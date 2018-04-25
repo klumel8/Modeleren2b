@@ -19,7 +19,9 @@ function [ a, Collision] = fo(p, Mass, G, N)
     
     %check if they collide.
     Collision = zeros(N,N);
-    colRange = 5*10^3;
+    colRange = 5*10^7;
+    
+    %check if particles collide
     if min(min(R(R~=0))) < colRange
         Collision = (R < colRange).*R>0;
     end
