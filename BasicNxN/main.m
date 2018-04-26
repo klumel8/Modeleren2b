@@ -37,18 +37,12 @@ Vz = linspace(1,N,N)*0;
 %total speed vector
 v  = [Vx; Vy; Vz] * defaultSpeed;
 
-%M = multiplier, (read code below), S = 'stepsize', T = 'total time'
-M = 10;
-S = 100;
+% dt = 'stepsize', T = 'total time'
+dt = 100;
 T = 10000000;
 
-%time step value
-step = S*M;
 
-%Total time duration
-tVal = T*M;
-
-%pos = zeros(3*N,round(tVal/step));
+%pos = zeros(3*N,round(T/dt));
 
 %some old plot code
 % figure;
@@ -61,7 +55,7 @@ tVal = T*M;
 %plot vector
 index = 0;
 
-for t = 0:step:tVal
+for t = 0:dt:T
     index = index+1;
     
     %later were gonna make some bounds on speed and range, this is needed.
@@ -103,20 +97,20 @@ for t = 0:step:tVal
     if level_of_awesomeness == 1
         %first order (newton forward)
         a = fo(p,Mass,G,N);
-        p = p + v*step + a * step^2 / 2;
-        v = v + a * step;
+        p = p + v*dt + a * dt^2 / 2;
+        v = v + a * dt;
     elseif level_of_awesomeness == 2
         %Runge Kutta 2 conserves angular momentum?
-        k1 = step^2*squeeze(fo(p + (1/2)*step*v,Mass,G,N))';
-        p = p + v*step + k1;
-        v = v + k1/step;
+        k1 = dt^2*permute(fo(p + (1/2)*dt*v,Mass,G,N),[3,2,1]);
+        p = p + v*dt + k1;
+        v = v + k1/dt;
     elseif level_of_awesomeness == 4
         %Runge Kutta 4
-        k1 = step^2*squeeze(fo(p,Mass,G,N))';
-        k2 = step^2*squeeze(fo(p + 0.5*step*v + 1/8*k1,Mass,G,N))';
-        k3 = step^2*squeeze(fo(p + step*v + .5*k2,Mass,G,N))';
-        p = p + v*step + 1/6*(k1+2*k2);
-        v = v + 1/(6*step)*(k1+4*k2+k3);
+        k1 = dt^2*permute(fo(p,Mass,G,N),[3,2,1]);
+        k2 = dt^2*permute(fo(p + 0.5*dt*v + 1/8*k1,Mass,G,N),[3,2,1]);
+        k3 = dt^2*permute(fo(p + dt*v + .5*k2,Mass,G,N),[3,2,1]);
+        p = p + v*dt + 1/6*(k1+2*k2);
+        v = v + 1/(6*dt)*(k1+4*k2+k3);
     end
     
     %als de snelheid te snel groter wordt stop dan het programma
