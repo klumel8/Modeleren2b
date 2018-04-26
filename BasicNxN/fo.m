@@ -1,27 +1,23 @@
 function [ a, Collision] = fo(p, Mass, G, N)
-    %get all combinations of all vectors.
-    combiR =  combvec(p,p);
+
+    p = permute(p,[3,2,1]); %Make the 'xyz' the third dimension. 
+    %The first dimension singleton and the 2nd dimension the particles
+    repVec = repmat(p,N,1,1); %Repeat the vectors;
     
-    %make the displacement between all vectors.
-    D = (combiR(1:3,:) - combiR(4:6,:));
-    
-    %make the displacement vector in an N x N x 3 matrix. The third
-    %dimension stored the x,y,z respectively 1,2,3.
-    D = reshape(D',[N N 3]);
+    D = permute(repVec,[2,1,3])-repVec; %Transpose and subtract the vectors
+    %That way subtracting all the different combinations
     
     %Calculate the range between each particle (stored in NxN matrix).
     R = sqrt(D(:,:,1).^2 + D(:,:,2).^2 + D(:,:,3).^2);
     
     %make the mass product;
-    combiM = combvec(Mass,Mass);
-    massProd = combiM(1,:) .* combiM(2,:);
-    massProd = reshape(massProd',[N N]);
+    massProd = Mass'*Mass; %To make it faster
+
+    
     
     %check if they collide.
     Collision = zeros(N,N);
-    colRange = 5*10^7;
-    
-    %check if particles collide
+    colRange = 5*10^3;
     if min(min(R(R~=0))) < colRange
         Collision = (R < colRange).*R>0;
     end
