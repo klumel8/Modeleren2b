@@ -10,6 +10,7 @@ defaultMass = 5*10^24;
 %Mass of each particle; to be replaced with random; to be replaced by
 %actual mass.
 Mass = linspace(1,N,N) * defaultMass;
+Mass = reshape(Mass,[1,3]); %Used for the matrix multiplication in fo
 
 %make a mass combination vector similar as range vector (but then
 %multiplied instead of subtracted).
