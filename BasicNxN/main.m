@@ -73,14 +73,20 @@ for t = 0:dt:T
        m1 = sum(Mass);
        %find indices of collided particles       
        %re-rank the collision indexes
+       %indices are the [a,b] coordinates of the NxN matrix which describes the particles which collise, a equals the column number and b the row number.
        indices = [mod(find(c),N)'; ceil(find(c)/N)'];
+       
+       %mod(5,5) returns 0, but this should be 5, so we fix this with this easy step.
        indices(1,:) = (indices(1,:)==0)*N + indices(1,:);
+       
+       %here we select only the elements above the diagonal becuase else we would have duplicates.
        indices(:,find(indices(1,:) < indices(2,:))) = [];
        
        
        %ik ga uit van compleet inelastisch.
        %new position is mass centre
        
+       %the mass centre is the new centre
        M = repmat(Mass,[3 1]);
        p(:,indices(1,:)) = (M(:,indices(1,:)).*p(:,indices(1,:)) + M(:,indices(2,:)).*p(:,indices(2,:)))./(M(:,indices(1,:))+M(:,indices(2,:)));
        
@@ -92,6 +98,8 @@ for t = 0:dt:T
        %speed of old particle is 0
        v(:,indices(2,:)) = 0;
        Mass(indices(2,:)) = 0;
+       
+       %show a message if there was significant (non rounding error) Mass loss.
        if abs(m1 - sum(Mass)) > 10^13
            m1 - sum(Mass)
            indices
