@@ -10,6 +10,7 @@ defaultMass = 5*10^24;
 %Mass of each particle; to be replaced with random; to be replaced by
 %actual mass.
 Mass = linspace(1,N,N) * defaultMass;
+Mass = reshape(Mass,[1,N]); %Used for the matrix multiplication in fo
 
 %make a mass combination vector similar as range vector (but then
 %multiplied instead of subtracted).
@@ -27,7 +28,7 @@ Z = (linspace(1,N,N));
 p = [X; Y; Z] * defaultRange;
 
 %Defualt speed
-defaultSpeed = 4*10^2;
+defaultSpeed = 1*10^2;
 
 %Make the startspeed parameters;
 Vx = cos(linspace(1,N,N)/N*2*pi + pi/2);
@@ -37,18 +38,12 @@ Vz = linspace(1,N,N)*0;
 %total speed vector
 v  = [Vx; Vy; Vz] * defaultSpeed;
 
-%M = multiplier, (read code below), S = 'stepsize', T = 'total time'
-M = 10;
-S = 100;
-T = 10000000;
+% dt = 'stepsize', T = 'total time'
+dt = 1000;
+T = 100000000;
 
-%time step value
-step = S*M;
 
-%Total time duration
-tVal = T*M;
-
-%pos = zeros(3*N,round(tVal/step));
+%pos = zeros(3*N,round(T/dt));
 
 %some old plot code
 % figure;
@@ -60,8 +55,9 @@ tVal = T*M;
 %index will later be used to keep track of iterations in order to make a
 %plot vector
 index = 0;
-
-for t = 0:step:tVal
+[kin,pot] = EnergyTracer(p,N,v,Mass,G);
+E_0 = kin + pot;
+for t = 0:dt:T
     index = index+1;
     
     %later were gonna make some bounds on speed and range, this is needed.
@@ -72,51 +68,54 @@ for t = 0:step:tVal
     
     %#BUG will crash if multiple collisions in one timestep
     
-    %check if the collision vector is empty
+    %check if the collision vector is empty    
     if max(max(c)) > 0
-       
-       %find indices of collided particles
-       find(c);
-       
+       m1 = sum(Mass);
+       %find indices of collided particles       
        %re-rank the collision indexes
-       indices = mod(find(c),N);
-       indices = (indices==0)*N + indices
+       indices = [mod(find(c),N)'; ceil(find(c)/N)'];
+       indices(1,:) = (indices(1,:)==0)*N + indices(1,:);
+       indices(:,find(indices(1,:) < indices(2,:))) = [];
        
        
        %ik ga uit van compleet inelastisch.
        %new position is mass centre
-       p(:,indices(1)) = (Mass(indices(1))*p(:,indices(1)) + Mass(indices(2))*p(:,indices(2)))/sum(Mass(indices));
+       
+       M = repmat(Mass,[3 1]);
+       p(:,indices(1,:)) = (M(:,indices(1,:)).*p(:,indices(1,:)) + M(:,indices(2,:)).*p(:,indices(2,:)))./(M(:,indices(1,:))+M(:,indices(2,:)));
        
        %use momentum fomulae for new speed
-       v(:,indices(1)) = (Mass(indices(1))*v(:,indices(1)) + Mass(indices(2))*v(:,indices(2)))/sum(Mass(indices));
+       v(:,indices(1,:)) = (M(:,indices(1,:)).*v(:,indices(1,:)) + M(:,indices(2,:)).*v(:,indices(2,:)))./(M(:,indices(1,:))+M(:,indices(2,:)));
        
        %new mass is um of the masses
-       Mass(indices(1)) = sum(Mass(indices));
-       
+       Mass(indices(1,:)) = Mass(indices(1,:)) + Mass(indices(2,:));
        %speed of old particle is 0
-       v(:,indices(2)) = [0;0;0];
-       Mass(indices(2)) = 0;
+       v(:,indices(2,:)) = 0;
+       Mass(indices(2,:)) = 0;
+       if abs(m1 - sum(Mass)) > 10^13
+           m1 - sum(Mass)
+           indices
+       end
     end
-    
     %calculate the new velocity.
     
     if level_of_awesomeness == 1
         %first order (newton forward)
         a = fo(p,Mass,G,N);
-        p = p + v*step + a * step^2 / 2;
-        v = v + a * step;
+        p = p + v*dt + a * dt^2 / 2;
+        v = v + a * dt;
     elseif level_of_awesomeness == 2
         %Runge Kutta 2 conserves angular momentum?
-        k1 = step^2*squeeze(fo(p + (1/2)*step*v,Mass,G,N))';
-        p = p + v*step + k1;
-        v = v + k1/step;
+        k1 = dt^2*permute(fo(p + (1/2)*dt*v,Mass,G,N),[3,2,1]);
+        p = p + v*dt + k1;
+        v = v + k1/dt;
     elseif level_of_awesomeness == 4
         %Runge Kutta 4
-        k1 = step^2*squeeze(fo(p,Mass,G,N))';
-        k2 = step^2*squeeze(fo(p + 0.5*step*v + 1/8*k1,Mass,G,N))';
-        k3 = step^2*squeeze(fo(p + step*v + .5*k2,Mass,G,N))';
-        p = p + v*step + 1/6*(k1+2*k2);
-        v = v + 1/(6*step)*(k1+4*k2+k3);
+        k1 = dt^2*permute(fo(p,Mass,G,N),[3,2,1]);
+        k2 = dt^2*permute(fo(p + 0.5*dt*v + 1/8*k1,Mass,G,N),[3,2,1]);
+        k3 = dt^2*permute(fo(p + dt*v + .5*k2,Mass,G,N),[3,2,1]);
+        p = p + v*dt + 1/6*(k1+2*k2);
+        v = v + 1/(6*dt)*(k1+4*k2+k3);
     end
     
     %als de snelheid te snel groter wordt stop dan het programma
@@ -131,27 +130,18 @@ for t = 0:step:tVal
         disp('Too far');
         break
     end
+    [kin,pot] = EnergyTracer(p,N,v,Mass,G);
+    T(index) = kin + pot - E_0;
     
-    %liever niet vol maken want dan heb je nullen
-    pos(:,index) = reshape(p,[],1);
-end
-for i=1:N
-    xPos(i,:) = pos(3*(i-1)+1,:);
-    yPos(i,:) = pos(3*(i-1)+2,:);
-    zPos(i,:) = pos(3*(i-1)+3,:);
-end
+    if mod(index,200) == 0
+        subplot(1,2,1) 
+        plot(T);
+        title('total energy') 
 
-hold off
-%make the axis stable
-minX = min(min(xPos));
-maxX = max(max(xPos));
-minY = min(min(yPos));
-maxY = max(max(yPos));
-minZ = min(min(zPos));
-maxZ = max(max(zPos));
-for t=1:100:size(xPos,2);
-    plot3(xPos(:,t),yPos(:,t),zPos(:,t),'*');
-    axis([minX maxX minY maxY minZ maxZ]);
-    drawnow
+        subplot(1,2,2) 
+        plot(p(1,:),p(2,:),'o');
+        axis([-1 1 -1 1]*10*defaultRange);
+        title('Movement')
+        drawnow
+    end
 end
-
