@@ -138,13 +138,19 @@ for t = 0:dt:T
         disp('Too far');
         break
     end
+    
+    %Make a Total energy vector for plotting
     [kin,pot] = EnergyTracer(p,N,v,Mass,G);
     T(index) = kin + pot - E_0;
     
+    %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     if mod(index,200) == 0
         subplot(1,2,1) 
-        plot(T);
-        title('total energy') 
+        plot(T(max(1,index-5000):end));
+        %make the axis nice and kushy
+        axis([0 5000 min(T(max(1,index-5000):end)) max(T(max(1,index-5000):end))]);
+        title('total energy')
+        drawnow
 
         subplot(1,2,2) 
         plot(p(1,:),p(2,:),'o');
