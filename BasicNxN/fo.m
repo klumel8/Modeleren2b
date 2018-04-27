@@ -1,30 +1,25 @@
 function [ a, Collision] = fo(p, Mass, G, N)
-    %get all combinations of all vectors.
-    combiR =  combvec(p,p);
-    
-    %make the displacement between all vectors.
-    D = (combiR(1:3,:) - combiR(4:6,:));
-    
-    %make the displacement vector in an N x N x 3 matrix. The third
-    %dimension stored the x,y,z respectively 1,2,3.
-    D = reshape(D',[N N 3]);
-    
-    %Calculate the range between each particle (stored in NxN matrix).
-    R = sqrt(D(:,:,1).^2 + D(:,:,2).^2 + D(:,:,3).^2);
-    
+    [D,R] = dispVec(p,N);
     %make the mass product;
-    combiM = combvec(Mass,Mass);
-    massProd = combiM(1,:) .* combiM(2,:);
-    massProd = reshape(massProd',[N N]);
+    massProd = Mass'*Mass; %To make it faster
     
     %check if they collide.
     Collision = zeros(N,N);
-    colRange = 5*10^7;
     
     %check if particles collide
-    if min(min(R(R~=0))) < colRange
-        Collision = (R < colRange).*R>0;
-    end
+    %make the radius of the particle dependent on size
+    planetSize = Mass.^(1/3)/(4*pi);
+    
+    %do some things to get the linear combination of all added ranges
+    planetCombi = combvec(planetSize,planetSize);
+    planetCombi = planetCombi(1,:) + planetCombi(2,:);
+    
+    %reshape it back to the standard NxN form
+    planetCombi = reshape(planetCombi',[N N]);
+    
+    %check whether they collide
+    Collision = (R < planetCombi).*R>0;
+    
     %Make a simple mathematical expression for everything distance related,
     %later to be used in the force formulae.
     dispComp = D./(repmat(R, [1,1,3]).^3);
@@ -40,4 +35,3 @@ function [ a, Collision] = fo(p, Mass, G, N)
     %calculate the acceleration in each direction.
     a = F./repmat(Mass,[1,1,3]);
 end
-
