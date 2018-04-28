@@ -82,6 +82,8 @@ for t = 0:dt:T
        %here we select only the elements above the diagonal becuase else we would have duplicates.
        indices(:,find(indices(1,:) < indices(2,:))) = [];
        
+       %select only the indices where the particles have a non-zero mass
+       indices = indices(:,Mass(indices(1,:))~=0 & Mass(indices(2,:))~=0);
        
        %ik ga uit van compleet inelastisch.
        %new position is mass centre
