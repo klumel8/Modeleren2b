@@ -11,3 +11,4 @@ function [D,R] = dispVec(p,N)
     %Calculate the range between each particle (stored in NxN matrix).
     R = sqrt(D(:,:,1).^2 + D(:,:,2).^2 + D(:,:,3).^2);
 end
+

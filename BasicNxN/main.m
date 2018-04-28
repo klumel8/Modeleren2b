@@ -1,6 +1,6 @@
 clear all; close all;
 %Particles in our model;
-N = 5;
+N = 30;
 
 level_of_awesomeness = 4;
 
@@ -9,7 +9,8 @@ defaultMass = 5*10^24;
 
 %Mass of each particle; to be replaced with random; to be replaced by
 %actual mass.
-Mass = linspace(1,N,N) * defaultMass;
+Mass = linspace(1,N,N) * defaultMass/10;
+Mass(1) = 1000*defaultMass;
 Mass = reshape(Mass,[1,N]); %Used for the matrix multiplication in fo
 
 %make a mass combination vector similar as range vector (but then
@@ -17,18 +18,19 @@ Mass = reshape(Mass,[1,N]); %Used for the matrix multiplication in fo
 G = 6.67408*10^-11;
 
 %Default range
-defaultRange = 10^9;
+defaultRange = 5*10^9;
 
 %Make the startposition parmeters (xyz)
 X = cos(linspace(1,N,N)/N*2*pi);
 Y = sin(linspace(1,N,N)/N*2*pi);
-Z = (linspace(1,N,N));
+Z = (linspace(1,N,N))*0;
 
 %make the total position vector
 p = [X; Y; Z] * defaultRange;
+p(:,1) = [0;0;0];
 
 %Defualt speed
-defaultSpeed = 1*10^2;
+defaultSpeed = 5*10^3;
 
 %Make the startspeed parameters;
 Vx = cos(linspace(1,N,N)/N*2*pi + pi/2);
@@ -36,11 +38,13 @@ Vy = sin(linspace(1,N,N)/N*2*pi + pi/2);
 Vz = linspace(1,N,N)*0;
 
 %total speed vector
-v  = [Vx; Vy; Vz] * defaultSpeed;
+%v  = [Vx; Vy; Vz] * defaultSpeed;
+v = (rand([3 N])-0.5)*2 *defaultSpeed;
+v(:,1) = [0;0;0];
 
 % dt = 'stepsize', T = 'total time'
 dt = 1000;
-T = 100000000;
+T = 1000000000;
 
 
 %pos = zeros(3*N,round(T/dt));
@@ -56,7 +60,12 @@ T = 100000000;
 %plot vector
 index = 0;
 [kin,pot] = EnergyTracer(p,N,v,Mass,G);
+%define begin energy
 E_0 = kin + pot;
+
+%define begin angular momentum
+L_0 = AngularMomentum(p,N,Mass,v);
+
 for t = 0:dt:T
     index = index+1;
     
@@ -73,22 +82,14 @@ for t = 0:dt:T
        m1 = sum(Mass);
        %find indices of collided particles       
        %re-rank the collision indexes
-       %indices are the [a,b] coordinates of the NxN matrix which describes the particles which collise, a equals the column number and b the row number.
        indices = [mod(find(c),N)'; ceil(find(c)/N)'];
-       
-       %mod(5,5) returns 0, but this should be 5, so we fix this with this easy step.
        indices(1,:) = (indices(1,:)==0)*N + indices(1,:);
-       
-       %here we select only the elements above the diagonal becuase else we would have duplicates.
        indices(:,find(indices(1,:) < indices(2,:))) = [];
        
-       %select only the indices where the particles have a non-zero mass
-       indices = indices(:,Mass(indices(1,:))~=0 & Mass(indices(2,:))~=0);
        
        %ik ga uit van compleet inelastisch.
        %new position is mass centre
        
-       %the mass centre is the new centre
        M = repmat(Mass,[3 1]);
        p(:,indices(1,:)) = (M(:,indices(1,:)).*p(:,indices(1,:)) + M(:,indices(2,:)).*p(:,indices(2,:)))./(M(:,indices(1,:))+M(:,indices(2,:)));
        
@@ -100,12 +101,6 @@ for t = 0:dt:T
        %speed of old particle is 0
        v(:,indices(2,:)) = 0;
        Mass(indices(2,:)) = 0;
-       
-       %show a message if there was significant (non rounding error) Mass loss.
-       if abs(m1 - sum(Mass)) > 10^13
-           m1 - sum(Mass)
-           indices
-       end
     end
     %calculate the new velocity.
     
@@ -128,36 +123,58 @@ for t = 0:dt:T
         v = v + 1/(6*dt)*(k1+4*k2+k3);
     end
     
-    %als de snelheid te snel groter wordt stop dan het programma
-    if norm(v(:,:)) > 20*norm(vOud(:,:));
-        disp('Too fast')
-        break
-    end
-    
     %als de planeten te ver weg zijn van de oorsprong stop het programma.
     R2 = sqrt(p(1,:).^2 + p(2,:).^2 + p(3,:).^2);
-    if min(R2) > defaultRange * 5
+    if min(R2) > defaultRange * 15
         disp('Too far');
         break
     end
     
-    %Make a Total energy vector for plotting
     [kin,pot] = EnergyTracer(p,N,v,Mass,G);
-    T(index) = kin + pot - E_0;
+    
+    %make a Total kinetic energy vector for plotting
+    T(index) = (kin + pot - E_0) / E_0;
+    
+    L = AngularMomentum(p,N,Mass,v);
+    
+    %make a angular momentum vector for plotting
+    L_t(index) = (L(3)-L_0(3))/L_0(3);
+    
     
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
-    if mod(index,200) == 0
-        subplot(1,2,1) 
+    if mod(index,10) == 0
+        subplot(2,2,1) 
         plot(T(max(1,index-5000):end));
         %make the axis nice and kushy
-        axis([0 5000 min(T(max(1,index-5000):end)) max(T(max(1,index-5000):end))]);
+        axis([0 5000 -1 1]);
+        %axis([0 5000 min(T(max(1,index-5000):end)) max(T(max(1,index-5000):end))]);
         title('total energy')
         drawnow
+        
+        subplot(2,2,2) 
+        plot(L_t(max(1,index-5000):end));
+        %make the axis nice and kushy
+        axis([[0 5000] [1 1]*round(L_t(end))+[-1 1]]);
+        title('Angular momentum(z)')
+        drawnow
 
-        subplot(1,2,2) 
+        subplot(2,2,3); 
         plot(p(1,:),p(2,:),'o');
-        axis([-1 1 -1 1]*10*defaultRange);
-        title('Movement')
+        
+        %Centre around COM;
+        CM = COM(Mass,p);
+        CM = [CM(1) CM(1) CM(2) CM(2)];
+        
+        axis(CM + [-1 1 -1 1]*2*defaultRange);
+        title(sum(Mass~=0));
         drawnow
     end
+    
+    %liever niet vol maken want dan heb je nullen
+    pos(:,index) = reshape(p,[],1);
+end
+for i=1:N
+    xPos(i,:) = pos(3*(i-1)+1,:);
+    yPos(i,:) = pos(3*(i-1)+2,:);
+    zPos(i,:) = pos(3*(i-1)+3,:);
 end
