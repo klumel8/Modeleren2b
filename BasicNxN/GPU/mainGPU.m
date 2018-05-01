@@ -30,7 +30,7 @@ Z = (linspace(1,N,N))*0;
 %make the total position vector
 pCPU = [X; Y; Z] * defaultRange;
 pCPU(:,1) = [0;0;0];
-p = gpuArray(p);
+p = gpuArray(pCPU);
 
 %Defualt speed
 defaultSpeed = 5*10^3;
@@ -51,7 +51,7 @@ T = 1000000000;
 
 
 posCPU = zeros(3*N,round(T/dt));
-pos = gpuArray(posCPU)
+pos = gpuArray(posCPU);
 
 %some old plot code
 % figure;
@@ -77,7 +77,7 @@ for t = 0:dt:T
     vOud = v;
     
     %read fo.m first, but keeps track of whether there was a collision.
-    c = col(p,Mass,G,N);
+    c = col(p,Mass,N);
     
     %#BUG will crash if multiple collisions in one timestep
     

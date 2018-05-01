@@ -12,7 +12,7 @@ function a = acc(p, Mass, G, N)
     %gpuD = gpuArray(D);
     %gpuDisp = gpuD./(gpuTemp.*gpuTemp.*gpuTemp);
     
-    dispComp = D./(temp.*temp.*temp);
+    dispComp = D./(temp.^3);
     
     %calculate the force in each direction (x,y,z).
     %no minus sign because somewhere I misplaced a minus sign (dont worry
