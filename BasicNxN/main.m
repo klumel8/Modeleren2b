@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 clear all; close all;
 %Particles in our model;
 N = 30;
@@ -327,4 +326,3 @@ end
 for i=0:N-1
     plot3(pos(3*i+1,:),pos(3*i+2,:),pos(3*i+3,:));
 end
->>>>>>> Code-Optimization
