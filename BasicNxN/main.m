@@ -13,7 +13,7 @@ defaultMass = 5*10^24;
 %Mass of each particle; to be replaced with random; to be replaced by
 %actual mass.
 Mass = linspace(1,N,N) * defaultMass/10;
-Mass(1) = 1000*defaultMass;
+Mass(1) = 330e3*defaultMass;
 
 %gravitational constant
 G = 6.67408*10^-11;
@@ -44,8 +44,8 @@ v = (rand([3 N])-0.5)*2 *defaultSpeed; %random
 v(:,1) = [0;0;0];
 
 % dt = 'stepsize', T = 'total time'
-dt = 1000;
-T = 1e9;
+dt = 1000; % in seconds
+T = 1e9; % in seconds
 
 
 %pos = zeros(3*N,round(T/dt));
@@ -159,7 +159,7 @@ for t = 0:dt:T
     
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when 1 == 1, (saves time)
-    if toc > 1/24 && 1 == 0
+    if toc > 1/24 && 1 == 1
         subplot(2,2,1) 
         plot(E_tot(max(1,index-5000):end));
         %make the axis nice and kushy
