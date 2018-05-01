@@ -2,7 +2,9 @@ clear all; close all;
 %Particles in our model;
 N = 30;
 
+%integration method
 level_of_awesomeness = 5;
+%used for plotting
 col_index = 1;
 
 %default mass (earth):
@@ -12,16 +14,14 @@ defaultMass = 5*10^24;
 %actual mass.
 Mass = linspace(1,N,N) * defaultMass/10;
 Mass(1) = 1000*defaultMass;
-Mass = reshape(Mass,[1,N]); %Used for the matrix multiplication in fo
 
-%make a mass combination vector similar as range vector (but then
-%multiplied instead of subtracted).
+%gravitational constant
 G = 6.67408*10^-11;
 
 %Default range
 defaultRange = 5*10^9;
 
-%Make the startposition parmeters (xyz)
+%Make the startposition parameters (xyz)
 X = cos(linspace(1,N,N)/N*2*pi);
 Y = sin(linspace(1,N,N)/N*2*pi);
 Z = (linspace(1,N,N))*0;
@@ -30,7 +30,7 @@ Z = (linspace(1,N,N))*0;
 p = [X; Y; Z] * defaultRange;
 p(:,1) = [0;0;0];
 
-%Defualt speed
+%Default speed
 defaultSpeed = 5*10^3;
 
 %Make the startspeed parameters;
@@ -39,8 +39,8 @@ Vy = sin(linspace(1,N,N)/N*2*pi + pi/2);
 Vz = linspace(1,N,N)*0;
 
 %total speed vector
-%v  = [Vx; Vy; Vz] * defaultSpeed;
-v = (rand([3 N])-0.5)*2 *defaultSpeed;
+%v  = [Vx; Vy; Vz] * defaultSpeed; %circular
+v = (rand([3 N])-0.5)*2 *defaultSpeed; %random
 v(:,1) = [0;0;0];
 
 % dt = 'stepsize', T = 'total time'

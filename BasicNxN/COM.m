@@ -1,4 +1,3 @@
-
 function [CM] = COM(Mass,p)
 %Calculate the center of mass of the given particlesx
 %input arguments:
