@@ -45,7 +45,7 @@ v(:,1) = [0;0;0];
 
 % dt = 'stepsize', T = 'total time'
 dt = 1000;
-T = 1000000000;
+T = 100000;
 
 
 %pos = zeros(3*N,round(T/dt));
@@ -74,7 +74,7 @@ for t = 0:dt:T
     vOud = v;
     
     %read fo.m first, but keeps track of whether there was a collision.
-    c = col(p,Mass,G,N);
+    c = col(p,Mass,N);
     
     %#BUG will crash if multiple collisions in one timestep
     

@@ -9,11 +9,9 @@ function Collision = col(p, Mass, N)
     planetSize = Mass.^(1/3)/(4*pi);
  
     %do some things to get the linear combination of all added ranges
-    planetCombi = combvec(planetSize,planetSize);
-    planetCombi = planetCombi(1,:) + planetCombi(2,:);
- 
-    %reshape it back to the standard NxN form
-    planetCombi = reshape(planetCombi',[N N]);
+    [comb1,comb2] = meshgrid(planetSize,planetSize);
+    planetCombi = comb1+comb2;
+    
     %check whether they collide
     Collision = (R < planetCombi).*R>0;
 end
