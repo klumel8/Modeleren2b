@@ -74,7 +74,7 @@ for t = 0:dt:T
     vOud = v;
     
     %read fo.m first, but keeps track of whether there was a collision.
-    [~,c] = fo(p,Mass,G,N);
+    c = col(p,Mass,G,N);
     
     %#BUG will crash if multiple collisions in one timestep
     
@@ -111,36 +111,36 @@ for t = 0:dt:T
     
     if level_of_awesomeness == 1
         %first order (newton forward)
-        a = fo(p,Mass,G,N);
+        a = acc(p,Mass,G,N);
         p = p + v*dt + a * dt^2 / 2;
         v = v + a * dt;
     elseif level_of_awesomeness == 2
         %Runge Kutta 2 conserves angular momentum?
-        k1 = dt^2*permute(fo(p + (1/2)*dt*v,Mass,G,N),[3,2,1]);
+        k1 = dt^2*permute(acc(p + (1/2)*dt*v,Mass,G,N),[3,2,1]);
         p = p + v*dt + k1;
         v = v + k1/dt;
     elseif level_of_awesomeness == 4
         %Runge Kutta 4
-        k1 = dt^2*permute(fo(p,Mass,G,N),[3,2,1]);
-        k2 = dt^2*permute(fo(p + 0.5*dt*v + 1/8*k1,Mass,G,N),[3,2,1]);
-        k3 = dt^2*permute(fo(p + dt*v + .5*k2,Mass,G,N),[3,2,1]);
+        k1 = dt^2*permute(acc(p,Mass,G,N),[3,2,1]);
+        k2 = dt^2*permute(acc(p + 0.5*dt*v + 1/8*k1,Mass,G,N),[3,2,1]);
+        k3 = dt^2*permute(acc(p + dt*v + .5*k2,Mass,G,N),[3,2,1]);
         p = p + v*dt + 1/6*(k1+2*k2);
         v = v + 1/(6*dt)*(k1+4*k2+k3);
     elseif level_of_awesomeness == 5
         %Runge Kutta 5a see file I (floris) send over whatsapp
-        k1 = dt^2*permute(fo(p,Mass,G,N),[3,2,1]);
-        k2 = dt^2*permute(fo(p + (1/4)*dt*v + (1/32)*k1,Mass,G,N),[3,2,1]);
-        k3 = dt^2*permute(fo(p + (7/10)*dt*v - (7/1000)*k1 + (63/250)*k2,Mass,G,N),[3,2,1]);
-        k4 = dt^2*permute(fo(p + dt*v + (2/7)*k1 + (3/14)*k3,Mass,G,N),[3,2,1]);
+        k1 = dt^2*permute(acc(p,Mass,G,N),[3,2,1]);
+        k2 = dt^2*permute(acc(p + (1/4)*dt*v + (1/32)*k1,Mass,G,N),[3,2,1]);
+        k3 = dt^2*permute(acc(p + (7/10)*dt*v - (7/1000)*k1 + (63/250)*k2,Mass,G,N),[3,2,1]);
+        k4 = dt^2*permute(acc(p + dt*v + (2/7)*k1 + (3/14)*k3,Mass,G,N),[3,2,1]);
         p = p + dt*v + (1/14)*k1 + (8/27)*k2 + (25/189)*k4;
         v = v + (1/dt)*((1/14)*k1 + (32/81)*k2 + (250/567)*k3 + (5/54)*k4);
     elseif level_of_awesomeness == 6
         %Runge Kutta 6.
-        k1 = dt^2*permute(fo(p,Mass,G,N),[3,2,1]);
-        k2 = dt^2*permute(fo(p + 1/4*dt*v + 1/32*k1,Mass,G,N),[3,2,1]);
-        k3 = dt^2*permute(fo(p + 1/2*dt*v - k1/24 + k2/6,Mass,G,N),[3,2,1]);
-        k4 = dt^2*permute(fo(p + 3/4*dt*v + k1*3/32 + k2/8 + k3/16,Mass,G,N),[3,2,1]);
-        k5 = dt^2*permute(fo(p + 3/7*dt*v - k1/14 + k3/7,Mass,G,N),[3,2,1]);
+        k1 = dt^2*permute(acc(p,Mass,G,N),[3,2,1]);
+        k2 = dt^2*permute(acc(p + 1/4*dt*v + 1/32*k1,Mass,G,N),[3,2,1]);
+        k3 = dt^2*permute(acc(p + 1/2*dt*v - k1/24 + k2/6,Mass,G,N),[3,2,1]);
+        k4 = dt^2*permute(acc(p + 3/4*dt*v + k1*3/32 + k2/8 + k3/16,Mass,G,N),[3,2,1]);
+        k5 = dt^2*permute(acc(p + 3/7*dt*v - k1/14 + k3/7,Mass,G,N),[3,2,1]);
         p = p + dt*v + (7*k1 +24*k2 + 6*k3 + 8*k4)/90;
         v = v + (7*k1 + 32*k2 + 12*k3 + 32*k4 + 7*k5)/(90*dt);
     end
