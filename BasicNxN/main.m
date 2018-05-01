@@ -168,8 +168,8 @@ for t = 0:dt:T
         
         %make the root mean square error of the total energy since the last
         %collision.
-        T_RMSE = sqrt(sum((K(col_index:end)-mean(K(col_index(end)))).^2)/index);
-        title(strcat('RMSE(Energy):',num2str(T_RMSE)));
+        E_tot_RMSE = sqrt(sum((K(col_index:end)-mean(K(col_index(end)))).^2)/index);
+        title(strcat('RMSE(Energy):',num2str(E_tot_RMSE)));
         drawnow
         
         subplot(2,2,2) 
