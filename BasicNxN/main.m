@@ -145,11 +145,13 @@ for t = 0:dt:T
         v = v + (7*k1 + 32*k2 + 12*k3 + 32*k4 + 7*k5)/(90*dt);
     end
     
+    %fetch the kinetic and potential energy.
     [kin,pot] = EnergyTracer(p,N,v,Mass,G);
     
-    %make a Total kinetic energy vector for plotting
+    %make a Total kinetic energy vector for plotting.
     T(index) = (kin + pot - E_0) / E_0;
     
+    %Calculate the Angular momentum
     L = AngularMomentum(p,N,Mass,v);
     
     %make a angular momentum vector for plotting

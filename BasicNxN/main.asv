@@ -108,7 +108,6 @@ for t = 0:dt:T
        %angular momentum and energy can be better defined.
        col_index = index;
     end
-    %calculate the new velocity.
     
     if level_of_awesomeness == 1
         %first order (newton forward)
@@ -146,18 +145,13 @@ for t = 0:dt:T
         v = v + (7*k1 + 32*k2 + 12*k3 + 32*k4 + 7*k5)/(90*dt);
     end
     
-    %als de planeten te ver weg zijn van de oorsprong stop het programma.
-    R2 = sqrt(p(1,:).^2 + p(2,:).^2 + p(3,:).^2);
-    if min(R2) > defaultRange * 15
-        disp('Too far');
-        break
-    end
-    
+    %fetch the kinetic and potential energy.
     [kin,pot] = EnergyTracer(p,N,v,Mass,G);
     
-    %make a Total kinetic energy vector for plotting
+    %make a Total kinetic energy vector for plotting.
     T(index) = (kin + pot - E_0) / E_0;
     
+    %Calculate the Angular momentum
     L = AngularMomentum(p,N,Mass,v);
     
     %make a angular momentum vector for plotting
@@ -165,8 +159,8 @@ for t = 0:dt:T
     
     
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
-    if toc > 1/24
-        T
+    %only plot when 1 == 1, (saves time)
+    if toc > 1/24 && 1 == 0
         subplot(2,2,1) 
         plot(T(max(1,index-5000):end));
         %make the axis nice and kushy
