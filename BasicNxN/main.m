@@ -3,6 +3,9 @@ clear all; close all;
 N = 30;
 
 level_of_awesomeness = 5;
+
+%col index keeps track of the collisions so it can reset the Energy RMSE
+%when an collision occurs.
 col_index = 1;
 
 %default mass (earth):
