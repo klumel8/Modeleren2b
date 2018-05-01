@@ -63,7 +63,8 @@ pos = gpuArray(posCPU);
 %index will later be used to keep track of iterations in order to make a
 %plot vector
 index = 0;
-[kin,pot] = EnergyTracer(p,N,v,Mass,G);
+[~,Rstep] = dispVec(p,N);
+[kin,pot] = EnergyTracer(Rstep,v,Mass,G);
 %define begin energy
 E_0 = kin + pot;
 
@@ -77,7 +78,8 @@ for t = 0:dt:T
     vOud = v;
     
     %read fo.m first, but keeps track of whether there was a collision.
-    c = col(p,Mass,N);
+    [~,Rstep] = dispVec(p,N); %This way only computed once for col and EnergyTracer
+    c = col(Rstep,Mass);
     
     %#BUG will crash if multiple collisions in one timestep
     
@@ -155,9 +157,10 @@ for t = 0:dt:T
         break
     end
     
-    [kin,pot] = EnergyTracer(p,N,v,Mass,G);
+    [kin,pot] = EnergyTracer(Rstep,v,Mass,G);
     
     %make a Total kinetic energy vector for plotting
+    class(T)
     T(index) = (kin + pot - E_0) / E_0;
     
     L = AngularMomentum(p,N,Mass,v);
