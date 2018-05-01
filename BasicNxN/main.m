@@ -168,7 +168,7 @@ for t = 0:dt:T
         
         %make the root mean square error of the total energy since the last
         %collision.
-        E_tot_RMSE = sqrt(sum((K(col_index:end)-mean(K(col_index(end)))).^2)/index);
+        E_tot_RMSE = sqrt(sum((E_tot(col_index:end)-mean(K(col_index(end)))).^2)/index);
         title(strcat('RMSE(Energy):',num2str(E_tot_RMSE)));
         drawnow
         
