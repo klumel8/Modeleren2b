@@ -2,7 +2,9 @@ clear all; close all;
 %Particles in our model;
 N = 30;
 
+%integration method
 level_of_awesomeness = 5;
+%used for plotting
 col_index = 1;
 
 %default mass (earth):
@@ -12,16 +14,14 @@ defaultMass = 5*10^24;
 %actual mass.
 Mass = linspace(1,N,N) * defaultMass/10;
 Mass(1) = 1000*defaultMass;
-Mass = reshape(Mass,[1,N]); %Used for the matrix multiplication in fo
 
-%make a mass combination vector similar as range vector (but then
-%multiplied instead of subtracted).
+%gravitational constant
 G = 6.67408*10^-11;
 
 %Default range
 defaultRange = 5*10^9;
 
-%Make the startposition parmeters (xyz)
+%Make the startposition parameters (xyz)
 X = cos(linspace(1,N,N)/N*2*pi);
 Y = sin(linspace(1,N,N)/N*2*pi);
 Z = (linspace(1,N,N))*0;
@@ -30,7 +30,7 @@ Z = (linspace(1,N,N))*0;
 p = [X; Y; Z] * defaultRange;
 p(:,1) = [0;0;0];
 
-%Defualt speed
+%Default speed
 defaultSpeed = 5*10^3;
 
 %Make the startspeed parameters;
@@ -39,8 +39,8 @@ Vy = sin(linspace(1,N,N)/N*2*pi + pi/2);
 Vz = linspace(1,N,N)*0;
 
 %total speed vector
-%v  = [Vx; Vy; Vz] * defaultSpeed;
-v = (rand([3 N])-0.5)*2 *defaultSpeed;
+%v  = [Vx; Vy; Vz] * defaultSpeed; %circular
+v = (rand([3 N])-0.5)*2 *defaultSpeed; %random
 v(:,1) = [0;0;0];
 
 % dt = 'stepsize', T = 'total time'
@@ -67,6 +67,8 @@ E_0 = kin + pot;
 %define begin angular momentum
 L_0 = AngularMomentum(p,N,Mass,v);
 
+%a timer so we dont plot too often and slow down the script
+tic;
 for t = 0:dt:T
     index = index+1;
     
@@ -80,7 +82,6 @@ for t = 0:dt:T
     
     %check if the collision vector is empty    
     if max(max(c)) > 0
-       m1 = sum(Mass);
        %find indices of collided particles       
        %re-rank the collision indexes
        indices = [mod(find(c),N)'; ceil(find(c)/N)'];
@@ -107,7 +108,6 @@ for t = 0:dt:T
        %angular momentum and energy can be better defined.
        col_index = index;
     end
-    %calculate the new velocity.
     
     if level_of_awesomeness == 1
         %first order (newton forward)
@@ -145,36 +145,31 @@ for t = 0:dt:T
         v = v + (7*k1 + 32*k2 + 12*k3 + 32*k4 + 7*k5)/(90*dt);
     end
     
-    %als de planeten te ver weg zijn van de oorsprong stop het programma.
-    R2 = sqrt(p(1,:).^2 + p(2,:).^2 + p(3,:).^2);
-    if min(R2) > defaultRange * 15
-        disp('Too far');
-        break
-    end
-    
+    %fetch the kinetic and potential energy.
     [kin,pot] = EnergyTracer(p,N,v,Mass,G);
     
-    %make a Total kinetic energy vector for plotting
-    T(index) = (kin + pot - E_0) / E_0;
+    %make a Total kinetic energy vector for plotting.
+    E_tot(index) = (kin + pot - E_0) / E_0;
     
+    %Calculate the Angular momentum
     L = AngularMomentum(p,N,Mass,v);
     
     %make a angular momentum vector for plotting
     L_t(index) = (L(3)-L_0(3))/L_0(3);
     
-    
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
-    if mod(index,20) == 0
+    %only plot when 1 == 1, (saves time)
+    if toc > 1/24 && 1 == 0
         subplot(2,2,1) 
-        plot(T(max(1,index-5000):end));
+        plot(E_tot(max(1,index-5000):end));
         %make the axis nice and kushy
         axis([0 5000 -1 1]);
-        %axis([0 5000 min(T(max(1,index-5000):end)) max(T(max(1,index-5000):end))]);
+        %axis([0 5000 min(K(max(1,index-5000):end)) max(K(max(1,index-5000):end))]);
         
         %make the root mean square error of the total energy since the last
         %collision.
-        T_RMSE = sqrt(sum((T(col_index:end)-mean(T(col_index(end)))).^2)/index);
-        title(T_RMSE);
+        T_RMSE = sqrt(sum((K(col_index:end)-mean(K(col_index(end)))).^2)/index);
+        title(strcat('RMSE(Energy):',num2str(T_RMSE)));
         drawnow
         
         subplot(2,2,2) 
@@ -191,16 +186,10 @@ for t = 0:dt:T
         CM = COM(Mass,p);
         CM = [CM(1) CM(1) CM(2) CM(2)];
         
+        %Shift the axis with the COM.
         axis(CM + [-1 1 -1 1]*2*defaultRange);
-        title(sum(Mass~=0));
+        title(strcat('N:', num2str(sum(Mass~=0))));
         drawnow
+        tic;
     end
-    
-    %liever niet vol maken want dan heb je nullen
-    pos(:,index) = reshape(p,[],1);
-end
-for i=1:N
-    xPos(i,:) = pos(3*(i-1)+1,:);
-    yPos(i,:) = pos(3*(i-1)+2,:);
-    zPos(i,:) = pos(3*(i-1)+3,:);
 end

@@ -1,8 +1,18 @@
 function Collision = col(p, Mass, N)
-    [~,R] = dispVec(p,N);
-    
-    %check if they collide.
-    
+%Calculate which particles, if any, collide
+%input arguments:
+%   p       : (3xN) position vector
+%   Mass    : (1xN) Mass vector
+%   N       : (scalar) number of particles
+%output arguments:
+%   Collision: (NxN logical) the (i,j)th element is 1 if particle i and j
+%               collide, 0 if they don't collide. The diagonal is filled
+%               with zero's
+%required functions(non-standard):
+%   dispVec
+
+    %get the distances between the particles
+    [~,R] = dispVec(p,N);    
         
     %check if particles collide
     %make the radius of the particle dependent on size

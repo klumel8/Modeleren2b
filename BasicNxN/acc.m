@@ -1,4 +1,17 @@
 function a = acc(p, Mass, G, N)
+% Calculate the acceleration of all the particles based on the
+% gravitational force
+%input arguments:
+%   p       : (3xN) position matrix
+%   Mass    : (1xN) mass vector
+%   G       : (scalar) gravitational constant
+%   N       : (scalar)number of particles
+%output arguments:
+%   a       : (3xN) acceleration matrix
+%required functions(non-standard):
+%   dispVec
+    
+    %get the distances between the particles
     [D,R] = dispVec(p,N);
     
     %make the mass product;
