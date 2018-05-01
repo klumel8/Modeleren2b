@@ -13,7 +13,7 @@ defaultMass = 5*10^24;
 %Mass of each particle; to be replaced with random; to be replaced by
 %actual mass.
 Mass = linspace(1,N,N) * defaultMass/10;
-Mass(1) = 1000*defaultMass;
+Mass(1) = 330e3*defaultMass;
 
 %gravitational constant
 G = 6.67408*10^-11;
@@ -44,8 +44,8 @@ v = (rand([3 N])-0.5)*2 *defaultSpeed; %random
 v(:,1) = [0;0;0];
 
 % dt = 'stepsize', T = 'total time'
-dt = 1000;
-T = 1000000000;
+dt = 1000; % in seconds
+T = 1e9; % in seconds
 
 
 %pos = zeros(3*N,round(T/dt));
@@ -164,12 +164,12 @@ for t = 0:dt:T
         plot(E_tot(max(1,index-5000):end));
         %make the axis nice and kushy
         axis([0 5000 -1 1]);
-        %axis([0 5000 min(T(max(1,index-5000):end)) max(T(max(1,index-5000):end))]);
+        %axis([0 5000 min(K(max(1,index-5000):end)) max(K(max(1,index-5000):end))]);
         
         %make the root mean square error of the total energy since the last
         %collision.
-        T_RMSE = sqrt(sum((K(col_index:end)-mean(K(col_index(end)))).^2)/index);
-        title(strcat('RMSE(Energy):',num2str(T_RMSE)));
+        E_tot_RMSE = sqrt(sum((K(col_index:end)-mean(K(col_index(end)))).^2)/index);
+        title(strcat('RMSE(Energy):',num2str(E_tot_RMSE)));
         drawnow
         
         subplot(2,2,2) 
