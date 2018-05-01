@@ -1,4 +1,4 @@
-function Collision = col(p, N)
+function Collision = col(p, Mass, N)
     [~,R] = dispVec(p,N);
     
     %check if they collide.
