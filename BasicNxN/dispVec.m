@@ -9,6 +9,6 @@ function [D,R] = dispVec(p,N)
     %That way subtracting all the different combinations
     
     %Calculate the range between each particle (stored in NxN matrix).
-    R = sqrt(D(:,:,1).^2 + D(:,:,2).^2 + D(:,:,3).^2);
+    R = realsqrt(sum(D.^2,3));
 end
 
