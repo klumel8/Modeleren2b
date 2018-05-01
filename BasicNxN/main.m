@@ -45,7 +45,7 @@ v(:,1) = [0;0;0];
 
 % dt = 'stepsize', T = 'total time'
 dt = 1000;
-T = 1000000000;
+T = 1e9;
 
 
 %pos = zeros(3*N,round(T/dt));
