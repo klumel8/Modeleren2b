@@ -149,7 +149,7 @@ for t = 0:dt:T
     [kin,pot] = EnergyTracer(p,N,v,Mass,G);
     
     %make a Total kinetic energy vector for plotting.
-    T(index) = (kin + pot - E_0) / E_0;
+    E_tot(index) = (kin + pot - E_0) / E_0;
     
     %Calculate the Angular momentum
     L = AngularMomentum(p,N,Mass,v);
@@ -157,19 +157,18 @@ for t = 0:dt:T
     %make a angular momentum vector for plotting
     L_t(index) = (L(3)-L_0(3))/L_0(3);
     
-    
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when 1 == 1, (saves time)
     if toc > 1/24 && 1 == 0
         subplot(2,2,1) 
-        plot(T(max(1,index-5000):end));
+        plot(E_tot(max(1,index-5000):end));
         %make the axis nice and kushy
         axis([0 5000 -1 1]);
-        %axis([0 5000 min(T(max(1,index-5000):end)) max(T(max(1,index-5000):end))]);
+        %axis([0 5000 min(K(max(1,index-5000):end)) max(K(max(1,index-5000):end))]);
         
         %make the root mean square error of the total energy since the last
         %collision.
-        T_RMSE = sqrt(sum((T(col_index:end)-mean(T(col_index(end)))).^2)/index);
+        T_RMSE = sqrt(sum((K(col_index:end)-mean(K(col_index(end)))).^2)/index);
         title(strcat('RMSE(Energy):',num2str(T_RMSE)));
         drawnow
         

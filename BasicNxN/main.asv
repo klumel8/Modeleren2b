@@ -2,7 +2,9 @@ clear all; close all;
 %Particles in our model;
 N = 30;
 
+%integration method
 level_of_awesomeness = 5;
+%used for plotting
 col_index = 1;
 
 %default mass (earth):
@@ -12,16 +14,14 @@ defaultMass = 5*10^24;
 %actual mass.
 Mass = linspace(1,N,N) * defaultMass/10;
 Mass(1) = 1000*defaultMass;
-Mass = reshape(Mass,[1,N]); %Used for the matrix multiplication in fo
 
-%make a mass combination vector similar as range vector (but then
-%multiplied instead of subtracted).
+%gravitational constant
 G = 6.67408*10^-11;
 
 %Default range
 defaultRange = 5*10^9;
 
-%Make the startposition parmeters (xyz)
+%Make the startposition parameters (xyz)
 X = cos(linspace(1,N,N)/N*2*pi);
 Y = sin(linspace(1,N,N)/N*2*pi);
 Z = (linspace(1,N,N))*0;
@@ -30,7 +30,7 @@ Z = (linspace(1,N,N))*0;
 p = [X; Y; Z] * defaultRange;
 p(:,1) = [0;0;0];
 
-%Defualt speed
+%Default speed
 defaultSpeed = 5*10^3;
 
 %Make the startspeed parameters;
@@ -39,8 +39,8 @@ Vy = sin(linspace(1,N,N)/N*2*pi + pi/2);
 Vz = linspace(1,N,N)*0;
 
 %total speed vector
-%v  = [Vx; Vy; Vz] * defaultSpeed;
-v = (rand([3 N])-0.5)*2 *defaultSpeed;
+%v  = [Vx; Vy; Vz] * defaultSpeed; %circular
+v = (rand([3 N])-0.5)*2 *defaultSpeed; %random
 v(:,1) = [0;0;0];
 
 % dt = 'stepsize', T = 'total time'
@@ -149,7 +149,7 @@ for t = 0:dt:T
     [kin,pot] = EnergyTracer(p,N,v,Mass,G);
     
     %make a Total kinetic energy vector for plotting.
-    T(index) = (kin + pot - E_0) / E_0;
+    E_tot(index) = (kin + pot - E_0) / E_0;
     
     %Calculate the Angular momentum
     L = AngularMomentum(p,N,Mass,v);
@@ -157,19 +157,18 @@ for t = 0:dt:T
     %make a angular momentum vector for plotting
     L_t(index) = (L(3)-L_0(3))/L_0(3);
     
-    
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when 1 == 1, (saves time)
     if toc > 1/24 && 1 == 0
         subplot(2,2,1) 
-        plot(T(max(1,index-5000):end));
+        plot(E_tot(max(1,index-5000):end));
         %make the axis nice and kushy
         axis([0 5000 -1 1]);
         %axis([0 5000 min(T(max(1,index-5000):end)) max(T(max(1,index-5000):end))]);
         
         %make the root mean square error of the total energy since the last
         %collision.
-        T_RMSE = sqrt(sum((T(col_index:end)-mean(T(col_index(end)))).^2)/index);
+        T_RMSE = sqrt(sum((K(col_index:end)-mean(K(col_index(end)))).^2)/index);
         title(strcat('RMSE(Energy):',num2str(T_RMSE)));
         drawnow
         
