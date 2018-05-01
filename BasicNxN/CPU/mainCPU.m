@@ -1,4 +1,4 @@
-clear all; close all;
+clear; close all;
 %Particles in our model;
 N = 30;
 
@@ -45,7 +45,8 @@ v(:,1) = [0;0;0];
 
 % dt = 'stepsize', T = 'total time'
 dt = 1000;
-T = 100000;
+T = 10000000;
+tvec = 0:dt:T;
 
 
 %pos = zeros(3*N,round(T/dt));
@@ -60,21 +61,26 @@ T = 100000;
 %index will later be used to keep track of iterations in order to make a
 %plot vector
 index = 0;
-[kin,pot] = EnergyTracer(p,N,v,Mass,G);
+[~,Rstep] = dispVec(p,N);
+[kin,pot] = EnergyTracer(Rstep,v,Mass,G);
 %define begin energy
 E_0 = kin + pot;
+T = zeros(size(tvec));
+
 
 %define begin angular momentum
 L_0 = AngularMomentum(p,N,Mass,v);
+L_t = zeros(size(tvec));
 
-for t = 0:dt:T
+for t = tvec
     index = index+1;
     
     %later were gonna make some bounds on speed and range, this is needed.
     vOud = v;
     
     %read fo.m first, but keeps track of whether there was a collision.
-    c = col(p,Mass,N);
+    [~,Rstep] = dispVec(p,N); %This way only computed once for col and EnergyTracer
+    c = col(Rstep,Mass);
     
     %#BUG will crash if multiple collisions in one timestep
     
@@ -152,7 +158,7 @@ for t = 0:dt:T
         break
     end
     
-    [kin,pot] = EnergyTracer(p,N,v,Mass,G);
+    [kin,pot] = EnergyTracer(Rstep,v,Mass,G);
     
     %make a Total kinetic energy vector for plotting
     T(index) = (kin + pot - E_0) / E_0;
@@ -162,7 +168,7 @@ for t = 0:dt:T
     %make a angular momentum vector for plotting
     L_t(index) = (L(3)-L_0(3))/L_0(3);
     
-    
+    %{
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     if mod(index,20) == 0
         subplot(2,2,1) 
@@ -195,6 +201,7 @@ for t = 0:dt:T
         title(sum(Mass~=0));
         drawnow
     end
+    %}
     
     %liever niet vol maken want dan heb je nullen
     pos(:,index) = reshape(p,[],1);
