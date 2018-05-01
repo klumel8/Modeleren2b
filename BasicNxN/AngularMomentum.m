@@ -1,6 +1,14 @@
 function [L] = AngularMomentum(p,N,Mass,v)
-%ANGULARMOMENTUM Summary of this function goes here
-%   Detailed explanation goes here
+%ANGULARMOMENTUM calculate the total angular momentum of the particles
+%input arguments:
+%   p       : (3xN) position vector
+%   N       : (scalar) number of particles
+%   Mass    : (1xN) mass vector
+%   v       : (3xN) velocity vector
+%output arguments:
+%   L       : (1x3) angular momentum vector
+%required functions (non-standard):
+%   COM
     CM = COM(Mass,p);
     Arm = p - repmat(CM,[1,N]);
     

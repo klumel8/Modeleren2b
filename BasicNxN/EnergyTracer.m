@@ -1,6 +1,17 @@
 function [kin,pot] = EnergyTracer(p,N,v,Mass,G)
-%ENERGYTRACER Summary of this function goes here
-%   The goal of this function is to keep track fo the total energy of the system
+%ENERGYTRACER calculates the kinetic and the potential energy of the given
+%particles
+%input arguments:
+%   p       : (3xN) position vector
+%   N       : (scalar) number of particles
+%   v       : (3xN) velocity vector
+%   Mass    : (1xN) mass vector
+%   G       : (scalar) gravitational constant
+%output arguments:
+%   kin     : (scalar) total kinetic energy
+%   pot     : (scalar) total potential energy
+%required functions(non-standard):
+%   dispVec
 
     %first get the distances of each particle to the rest
     [~,R] = dispVec(p,N);

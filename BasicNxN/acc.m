@@ -4,7 +4,7 @@ function a = acc(p, Mass, G, N)
 %input arguments:
 %   p       : (3xN) position matrix
 %   Mass    : (1xN) mass vector
-%   G       : (double) gravitational constant
+%   G       : (scalar) gravitational constant
 %   N       : (scalar)number of particles
 %output arguments:
 %   a       : (3xN) acceleration matrix
