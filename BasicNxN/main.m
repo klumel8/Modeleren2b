@@ -13,7 +13,7 @@ defaultMass = 5*10^24;
 %Mass of each particle; to be replaced with random; to be replaced by
 %actual mass.
 Mass = linspace(1,N,N) * defaultMass/10;
-Mass(1) = 330e3*defaultMass;
+Mass(1) = 1e3*defaultMass;
 
 %gravitational constant
 G = 6.67408*10^-11;
@@ -168,7 +168,7 @@ for t = 0:dt:T
         
         %make the root mean square error of the total energy since the last
         %collision.
-        E_tot_RMSE = sqrt(sum((K(col_index:end)-mean(K(col_index(end)))).^2)/index);
+        E_tot_RMSE = sqrt(sum((E_tot(col_index:end)-mean(E_tot(col_index(end)))).^2)/index);
         title(strcat('RMSE(Energy):',num2str(E_tot_RMSE)));
         drawnow
         
