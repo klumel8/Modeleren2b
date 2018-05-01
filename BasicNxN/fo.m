@@ -1,4 +1,5 @@
 function [ a, Collision] = fo(p, Mass, G, N)
+%FO not needed anymore, replaced by acc and cols
     [D,R] = dispVec(p,N);
     %make the mass product;
     massProd = Mass'*Mass; %To make it faster
