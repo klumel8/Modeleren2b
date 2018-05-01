@@ -1,6 +1,6 @@
 
 function [CM] = COM(Mass,p)
-%Calculate the centre of mass of the given particlesx
+%Calculate the center of mass of the given particlesx
 %input arguments:
 %   Mass    : (1xN) mass vector
 %   p       : (3xN) position vector

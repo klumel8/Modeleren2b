@@ -10,7 +10,8 @@ function a = acc(p, Mass, G, N)
 %   a       : (3xN) acceleration matrix
 %required functions(non-standard):
 %   dispVec
-
+    
+    %get the distances between the particles
     [D,R] = dispVec(p,N);
     
     %make the mass product;

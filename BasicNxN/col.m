@@ -10,10 +10,9 @@ function Collision = col(p, Mass, N)
 %               with zero's
 %required functions(non-standard):
 %   dispVec
-    [~,R] = dispVec(p,N);
-    
-    %check if they collide.
-    
+
+    %get the distances between the particles
+    [~,R] = dispVec(p,N);    
         
     %check if particles collide
     %make the radius of the particle dependent on size
