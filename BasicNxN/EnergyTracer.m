@@ -13,7 +13,7 @@ function [kin,pot] = EnergyTracer(p,N,v,Mass,G)
     pot(pot==Inf) = 0;
     
     %add them up
-    pot = nansum(nansum(pot))
+    pot = nansum(nansum(pot));
     
     %use the standard formulea for kinetic energy
     kin = nansum(0.5*Mass.*(v(1,:).^2 + v(2,:).^2 + v(3,:).^2)); 

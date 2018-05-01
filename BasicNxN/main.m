@@ -67,6 +67,8 @@ E_0 = kin + pot;
 %define begin angular momentum
 L_0 = AngularMomentum(p,N,Mass,v);
 
+%a timer so we dont plot too often and slow down the script
+tic;
 for t = 0:dt:T
     index = index+1;
     
@@ -80,7 +82,6 @@ for t = 0:dt:T
     
     %check if the collision vector is empty    
     if max(max(c)) > 0
-       m1 = sum(Mass);
        %find indices of collided particles       
        %re-rank the collision indexes
        indices = [mod(find(c),N)'; ceil(find(c)/N)'];
@@ -107,7 +108,6 @@ for t = 0:dt:T
        %angular momentum and energy can be better defined.
        col_index = index;
     end
-    %calculate the new velocity.
     
     if level_of_awesomeness == 1
         %first order (newton forward)
@@ -145,13 +145,6 @@ for t = 0:dt:T
         v = v + (7*k1 + 32*k2 + 12*k3 + 32*k4 + 7*k5)/(90*dt);
     end
     
-    %als de planeten te ver weg zijn van de oorsprong stop het programma.
-    R2 = sqrt(p(1,:).^2 + p(2,:).^2 + p(3,:).^2);
-    if min(R2) > defaultRange * 15
-        disp('Too far');
-        break
-    end
-    
     [kin,pot] = EnergyTracer(p,N,v,Mass,G);
     
     %make a Total kinetic energy vector for plotting
@@ -164,7 +157,8 @@ for t = 0:dt:T
     
     
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
-    if mod(index,20) == 0
+    %only plot when 1 == 1, (saves time)
+    if toc > 1/24 && 1 == 0
         subplot(2,2,1) 
         plot(T(max(1,index-5000):end));
         %make the axis nice and kushy
@@ -174,7 +168,7 @@ for t = 0:dt:T
         %make the root mean square error of the total energy since the last
         %collision.
         T_RMSE = sqrt(sum((T(col_index:end)-mean(T(col_index(end)))).^2)/index);
-        title(T_RMSE);
+        title(strcat('RMSE(Energy):',num2str(T_RMSE)));
         drawnow
         
         subplot(2,2,2) 
@@ -191,16 +185,10 @@ for t = 0:dt:T
         CM = COM(Mass,p);
         CM = [CM(1) CM(1) CM(2) CM(2)];
         
+        %Shift the axis with the COM.
         axis(CM + [-1 1 -1 1]*2*defaultRange);
-        title(sum(Mass~=0));
+        title(strcat('N:', num2str(sum(Mass~=0))));
         drawnow
+        tic;
     end
-    
-    %liever niet vol maken want dan heb je nullen
-    pos(:,index) = reshape(p,[],1);
-end
-for i=1:N
-    xPos(i,:) = pos(3*(i-1)+1,:);
-    yPos(i,:) = pos(3*(i-1)+2,:);
-    zPos(i,:) = pos(3*(i-1)+3,:);
 end
