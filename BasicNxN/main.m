@@ -2,7 +2,7 @@ clear all; close all;
 %Particles in our model;
 N = 100;
 G = 6.67408*10^-11; % [Nm^2kg^-2]
-defaultRange = 228e9; % [m]
+defaultRange = 108e9; % [m]
 
 % plotting configuration
 fps = 10;
@@ -133,6 +133,7 @@ for t = 0:dt:T
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when 1 == 1, (saves time)
     if toc > 1/fps && plotting
+        figure(1);
         subplot(2,2,1) 
         plot(E_tot(max(1,index-5000):end));
         %make the axis nice and kushy
@@ -143,26 +144,24 @@ for t = 0:dt:T
         %collision.
         E_tot_RMSE = sqrt(sum((E_tot(col_index:end)-mean(E_tot(col_index(end)))).^2)/index);
         title(strcat('RMSE(Energy):',num2str(E_tot_RMSE)));
-        drawnow
         
         subplot(2,2,2) 
         plot(L_t(max(1,index-5000):end));
         %make the axis nice and kushy
         axis([[0 5000] [1 1]*round(L_t(end))+[-1 1]]);
         title('Angular momentum(z)')
-        drawnow
 
-        subplot(2,2,3); 
+        subplot(2,2,3)
         plot(p(1,2:end),p(2,2:end),'.k','MarkerSize',20); hold on
         plot(p(1,1),p(2,1),'*y', 'MarkerSize',20); hold off
-        
         %Centre around COM;
         CM = COM(Mass,p);
         CM = [CM(1) CM(1) CM(2) CM(2)];
         
         %Shift the axis with the COM.
         axis(CM + [-1 1 -1 1]*defaultRange);
-        title(strcat('N:', num2str(sum(Mass~=0))));
+        axis equal
+        title(strcat('N =', " ", num2str(sum(Mass~=0))));
         drawnow
         tic;
     end

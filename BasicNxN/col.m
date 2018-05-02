@@ -10,13 +10,13 @@ function Collision = col(p, Mass, N)
 %               with zero's
 %required functions(non-standard):
 %   dispVec
-
+    rho = 1e-1; % [kgm^-3]
     %get the distances between the particles
     [~,R] = dispVec(p,N);    
         
     %check if particles collide
     %make the radius of the particle dependent on size
-    planetSize = Mass.^(1/3)/(4*pi);
+    planetSize = Mass.^(1/3)/(4/3*rho*pi)^(1/3);
  
     %do some things to get the linear combination of all added ranges
     planetCombi = combvec(planetSize,planetSize);
