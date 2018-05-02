@@ -1,50 +1,23 @@
 clear all; close all;
 %Particles in our model;
-N = 30;
+N = 100;
+G = 6.67408*10^-11; % [Nm^2kg^-2]
+defaultRange = 228e9; % [m]
+
+% plotting configuration
+fps = 10;
+plotting = true;
 
 %integration method
 level_of_awesomeness = 5;
 %used for plotting
 col_index = 1;
 
-%default mass (earth):
-defaultMass = 5*10^24;
-
-%Mass of each particle; to be replaced with random; to be replaced by
-%actual mass.
-Mass = linspace(1,N,N) * defaultMass/10;
-Mass(1) = 1e3*defaultMass;
-
-%gravitational constant
-G = 6.67408*10^-11;
-
-%Default range
-defaultRange = 5*10^9;
-
-%Make the startposition parameters (xyz)
-X = cos(linspace(1,N,N)/N*2*pi);
-Y = sin(linspace(1,N,N)/N*2*pi);
-Z = (linspace(1,N,N))*0;
-
-%make the total position vector
-p = [X; Y; Z] * defaultRange;
-p(:,1) = [0;0;0];
-
-%Default speed
-defaultSpeed = 5*10^3;
-
-%Make the startspeed parameters;
-Vx = cos(linspace(1,N,N)/N*2*pi + pi/2);
-Vy = sin(linspace(1,N,N)/N*2*pi + pi/2);
-Vz = linspace(1,N,N)*0;
-
-%total speed vector
-%v  = [Vx; Vy; Vz] * defaultSpeed; %circular
-v = (rand([3 N])-0.5)*2 *defaultSpeed; %random
-v(:,1) = [0;0;0];
+% Create initial conditions
+[Mass, p, v] = initialConditions(defaultRange,N);
 
 % dt = 'stepsize', T = 'total time'
-dt = 1000; % in seconds
+dt = 2000; % in seconds
 T = 1e9; % in seconds
 
 
@@ -159,7 +132,7 @@ for t = 0:dt:T
     
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when 1 == 1, (saves time)
-    if toc > 1/24 && 1 == 1
+    if toc > 1/fps && plotting
         subplot(2,2,1) 
         plot(E_tot(max(1,index-5000):end));
         %make the axis nice and kushy
@@ -180,14 +153,15 @@ for t = 0:dt:T
         drawnow
 
         subplot(2,2,3); 
-        plot(p(1,:),p(2,:),'o');
+        plot(p(1,2:end),p(2,2:end),'.k','MarkerSize',20); hold on
+        plot(p(1,1),p(2,1),'*y', 'MarkerSize',20); hold off
         
         %Centre around COM;
         CM = COM(Mass,p);
         CM = [CM(1) CM(1) CM(2) CM(2)];
         
         %Shift the axis with the COM.
-        axis(CM + [-1 1 -1 1]*2*defaultRange);
+        axis(CM + [-1 1 -1 1]*defaultRange);
         title(strcat('N:', num2str(sum(Mass~=0))));
         drawnow
         tic;

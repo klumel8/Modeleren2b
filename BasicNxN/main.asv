@@ -19,7 +19,6 @@ Mass(1) = 330e3*defaultMass;
 G = 6.67408*10^-11;
 
 %Default range
-defaultRange = 5*10^9;
 
 %Make the startposition parameters (xyz)
 X = cos(linspace(1,N,N)/N*2*pi);
