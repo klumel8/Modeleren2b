@@ -1,6 +1,6 @@
 clear all; close all;
 %Particles in our model;
-N = 100;
+N = 50;
 G = 6.67408*10^-11; % [Nm^2kg^-2]
 defaultRange = 108e9; % [m]
 
@@ -9,7 +9,7 @@ fps = 10;
 plotting = true;
 
 %integration method
-level_of_awesomeness = 5;
+level_of_awesomeness = 4;
 %used for plotting
 col_index = 1;
 
@@ -19,16 +19,6 @@ col_index = 1;
 % dt = 'stepsize', T = 'total time'
 dt = 2000; % in seconds
 T = 1e9; % in seconds
-
-
-%pos = zeros(3*N,round(T/dt));
-
-%some old plot code
-% figure;
-% hold on;
-% for i=1:N
-%     plot(p(1,i),p(2,i),'*');
-% end
 
 %index will later be used to keep track of iterations in order to make a
 %plot vector
@@ -135,31 +125,32 @@ for t = 0:dt:T
     if toc > 1/fps && plotting
         figure(1);
         subplot(2,2,1) 
-        plot(E_tot(max(1,index-5000):end));
-        %make the axis nice and kushy
-        axis([0 5000 -1 1]);
-        %axis([0 5000 min(K(max(1,index-5000):end)) max(K(max(1,index-5000):end))]);
+        plot(E_tot);
+        axis([max(0,index-5000) index+500 -1 1]);
+        xt = get(gca, 'XTick');
+        set(gca, 'XTick', xt, 'XTickLabel', xt*dt/31556926)
+        xlabel('time [years]')
+        ylabel('relative magnitude')
         
         %make the root mean square error of the total energy since the last
         %collision.
         E_tot_RMSE = sqrt(sum((E_tot(col_index:end)-mean(E_tot(col_index(end)))).^2)/index);
         title(strcat('RMSE(Energy):',num2str(E_tot_RMSE)));
         
-        subplot(2,2,2) 
-        plot(L_t(max(1,index-5000):end));
-        %make the axis nice and kushy
-        axis([[0 5000] [1 1]*round(L_t(end))+[-1 1]]);
+        subplot(2,2,2)       
+        plot(L_t);
         title('Angular momentum(z)')
+        axis([[max(0,index-5000) index+500] [1 1]*round(L_t(end))+[-1 1]]);
+        xt = get(gca, 'XTick');
+        set(gca, 'XTick', xt, 'XTickLabel', xt*dt/31556926)
+        xlabel('time [years]')
+        ylabel('relative magnitude')
+        
 
         subplot(2,2,3)
         plot(p(1,2:end),p(2,2:end),'.k','MarkerSize',20); hold on
         plot(p(1,1),p(2,1),'*y', 'MarkerSize',20); hold off
-        %Centre around COM;
-        CM = COM(Mass,p);
-        CM = [CM(1) CM(1) CM(2) CM(2)];
-        
-        %Shift the axis with the COM.
-        axis(CM + [-1 1 -1 1]*defaultRange);
+        axis([-1 1 -1 1]*defaultRange);
         axis equal
         title(strcat('N =', " ", num2str(sum(Mass~=0))));
         drawnow
