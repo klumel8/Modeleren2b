@@ -9,6 +9,9 @@ fps = 10;
 plotting = true;
 
 %integration method
+%1: newton forward
+%2,4-6: runge kutta 
+%7: leapfrog
 level_of_awesomeness = 4;
 %used for plotting
 col_index = 1;
@@ -29,6 +32,8 @@ E_0 = kin + pot;
 
 %define begin angular momentum
 L_0 = AngularMomentum(p,N,Mass,v);
+
+
 
 %a timer so we dont plot too often and slow down the script
 tic;
@@ -106,6 +111,16 @@ for t = 0:dt:T
         k5 = dt^2*permute(acc(p + 3/7*dt*v - k1/14 + k3/7,Mass,G,N),[3,2,1]);
         p = p + dt*v + (7*k1 +24*k2 + 6*k3 + 8*k4)/90;
         v = v + (7*k1 + 32*k2 + 12*k3 + 32*k4 + 7*k5)/(90*dt);
+    elseif level_of_awesomeness == 7
+        if t == 0
+            %initialize acceleration for leapfrog
+            a = acc(p,Mass,G,N);
+        end
+        %leapfrog
+        v = v + dt/2*a;
+        p = p + dt*v;
+        a = acc(p,Mass,G,N);
+        v = v + a*dt/2;
     end
     
     %fetch the kinetic and potential energy.
