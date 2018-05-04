@@ -132,6 +132,7 @@ for t = 0:dt:T
         %leapfrog
         v = v + dt/2*a;
         p = p + dt*v;
+        %a = acc(p,Mass,G,N);
         a = acc_barnes_hut(p,Mass,G,N,theta);
         v = v + a*dt/2;
     end
