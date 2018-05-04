@@ -1,6 +1,6 @@
 clear all; close all;
 %Particles in our model;
-N = 50;
+N = 10;
 G = 6.67408*10^-11; % [Nm^2kg^-2]
 defaultRange = 108e9; % [m]
 
@@ -17,7 +17,7 @@ col_index = 1;
 [Mass, p, v] = initialConditions(defaultRange,N);
 
 % dt = 'stepsize', T = 'total time'
-dt = 2000; % in seconds
+dt = 1000; % in seconds
 T = 1e9; % in seconds
 
 %index will later be used to keep track of iterations in order to make a

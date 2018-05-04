@@ -1,6 +1,6 @@
 clear all; close all;
 %Particles in our model;
-N = 100;
+N = 10;
 G = 6.67408*10^-11; % [Nm^2kg^-2]
 defaultRange = 108e9; % [m]
 
@@ -14,13 +14,13 @@ level_of_awesomeness = 4;
 col_index = 1;
 
 %barnes-hut parameter
-theta = 1; 
+theta = -0.1; 
 
 % Create initial conditions
 [Mass, p, v] = initialConditions(defaultRange,N);
 
 % dt = 'stepsize', T = 'total time'
-dt = 2000; % in seconds
+dt = 5000; % in seconds
 T = 1e9; % in seconds
 
 %index will later be used to keep track of iterations in order to make a
@@ -32,6 +32,11 @@ E_0 = kin + pot;
 
 %define begin angular momentum
 L_0 = AngularMomentum(p,N,Mass,v);
+
+if level_of_awesomeness == 7
+    %leapfrog initialize acceleration
+    a = acc_barnes_hut(p,Mass,G,N,theta);
+end
 
 %a timer so we dont plot too often and slow down the script
 tic;
@@ -122,7 +127,13 @@ for t = 0:dt:T
         k4 = dt^2*acc_barnes_hut(p + 3/4*dt*v + k1*3/32 + k2/8 + k3/16,Mass,G,N,theta);
         k5 = dt^2*acc_barnes_hut(p + 3/7*dt*v - k1/14 + k3/7,Mass,G,N,theta);
         p = p + dt*v + (7*k1 +24*k2 + 6*k3 + 8*k4)/90;
-        v = v + (7*k1 + 32*k2 + 12*k3 + 32*k4 + 7*k5)/(90*dt);
+        v = v + (7*k1 + 32*k2 + 14*k3 + 32*k4 + 7*k5)/(90*dt);
+    elseif level_of_awesomeness == 7
+        %leapfrog
+        v = v + dt/2*a;
+        p = p + dt*v;
+        a = acc_barnes_hut(p,Mass,G,N,theta);
+        v = v + a*dt/2;
     end
     
     %fetch the kinetic and potential energy.
@@ -141,6 +152,7 @@ for t = 0:dt:T
     %only plot when 1 == 1, (saves time)
     curr_test_t = toc;
     disp(curr_test_t)
+    disp('time')
     if toc > 1/fps && plotting
         figure(1);
         subplot(2,2,1) 

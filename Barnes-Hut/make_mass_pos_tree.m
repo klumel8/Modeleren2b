@@ -14,8 +14,6 @@ function [mass_tree, pos_tree] = make_mass_pos_tree(basic_tree,p,Mass,start_rang
     %make start_range a power of 2
     q = ceil(log(start_range)/log(2));
     start_range = 2^q;
-
-    scaled_p = p/start_range;
     
     centers = [ 0.5,-0.5,-0.5, 0.5, 0.5,-0.5,-0.5, 0.5; ...
                 0.5, 0.5,-0.5,-0.5, 0.5, 0.5,-0.5,-0.5; ...
@@ -23,6 +21,7 @@ function [mass_tree, pos_tree] = make_mass_pos_tree(basic_tree,p,Mass,start_rang
     mass_tree = tree(basic_tree,0);
     pos_tree = tree(basic_tree,[0;0;0]);
     iterator = basic_tree.breadthfirstiterator;
+    %doesnt fill all leaves, and sometimes puts 2 particles in 1 leaf
     for i = iterator(end:-1:1)
         if basic_tree.isleaf(i)
             curr_node = basic_tree.get(i);
@@ -31,19 +30,20 @@ function [mass_tree, pos_tree] = make_mass_pos_tree(basic_tree,p,Mass,start_rang
             n = numel(indices)-1;
             curr_center = sum(0.5.^(0:n).*centers(:,indices),2);
 
-            x_check = [(curr_center(1)+0.5^n);(curr_center(1)-0.5^n)]*start_range;
+            x_check = [(curr_center(1)+0.5^(n+1));(curr_center(1)-0.5^(n+1))]*start_range;
             x_right = p(1,:) <= max(x_check) & p(1,:) > min(x_check);
-            y_check = [(curr_center(2)+0.5^n);(curr_center(2)-0.5^n)]*start_range;
+            y_check = [(curr_center(2)+0.5^(n+1));(curr_center(2)-0.5^(n+1))]*start_range;
             y_right = p(2,:) <= max(y_check) & p(2,:) > min(y_check);
-            z_check = [(curr_center(3)+0.5^n);(curr_center(3)-0.5^n)]*start_range;
+            z_check = [(curr_center(3)+0.5^(n+1));(curr_center(3)-0.5^(n+1))]*start_range;
             z_right = p(3,:) <= max(z_check) & p(3,:) > min(z_check);
             all_right = x_right & y_right & z_right;
+
             mass_tree = mass_tree.set(i,Mass(all_right));
             pos_tree = pos_tree.set(i,p(:,all_right));
         end 
     end
-    mass_tree = mass_tree.recursivecumfun(@(x) sum(x));
-    mass_pos_tree = mass_tree.treefun2(pos_tree,@(m,r) m.*r);
-    mass_pos_tree = mass_pos_tree.recursivecumfun(@(x) sum(x));
-    pos_tree = mass_tree.treefun2(mass_pos_tree,@(m_tot,mr) mr/m_tot);
+    mass_tree = mass_tree.recursivecumfun(@(x) sum(x,2));
+    mass_pos_tree = pos_tree.treefun2(mass_tree,@(r,m) m.*r);
+    mass_pos_tree = mass_pos_tree.recursivecumfun(@(x) sum(x,2),3);
+    pos_tree = mass_tree.treefun2(mass_pos_tree,@(m_tot,mr) mr./m_tot);
 end
