@@ -13,7 +13,7 @@ function [D,R] = dispVec(p,N)
     p = permute(p,[3,2,1]); %Make the 'xyz' the third dimension. 
     %The first dimension singleton and the 2nd dimension the particles
     repVec = repmat(p,N,1,1); %Repeat the vectors;
-    
+
     D = permute(repVec,[2,1,3])-repVec; %Transpose and subtract the vectors
     %That way subtracting all the different combinations
     
