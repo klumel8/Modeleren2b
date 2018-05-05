@@ -1,15 +1,22 @@
-clear all; close all;
+powers = 1:3;
+N_all = 10.^(powers);
+for curr_N = powers
+    N = N_all(curr_N);
+    
+clearvars -except N N_all curr_N test_t; close all;
+
+% clear all; close all;
 %Particles in our model;
-N = 10;
+% N = 1000;
 G = 6.67408*10^-11; % [Nm^2kg^-2]
 defaultRange = 108e9; % [m]
 
 % plotting configuration
 fps = 10;
-plotting = true;
+plotting = false;
 
 %integration method
-level_of_awesomeness = 4;
+level_of_awesomeness = 7;
 %used for plotting
 col_index = 1;
 
@@ -18,7 +25,7 @@ col_index = 1;
 
 % dt = 'stepsize', T = 'total time'
 dt = 1000; % in seconds
-T = 1e9; % in seconds
+T = 1000*100;%1e9; % in seconds
 
 %index will later be used to keep track of iterations in order to make a
 %plot vector
@@ -106,6 +113,16 @@ for t = 0:dt:T
         k5 = dt^2*permute(acc(p + 3/7*dt*v - k1/14 + k3/7,Mass,G,N),[3,2,1]);
         p = p + dt*v + (7*k1 +24*k2 + 6*k3 + 8*k4)/90;
         v = v + (7*k1 + 32*k2 + 12*k3 + 32*k4 + 7*k5)/(90*dt);
+    elseif level_of_awesomeness == 7
+        if t == 0
+            %leapfrog initialize acceleration
+            a = permute(acc(p,Mass,G,N),[3,2,1]);
+        end
+        %leapfrog
+        v = v + dt/2*a;
+        p = p + dt*v;
+        a = permute(acc(p,Mass,G,N),[3,2,1]);
+        v = v + a*dt/2;
     end
     
     %fetch the kinetic and potential energy.
@@ -156,4 +173,9 @@ for t = 0:dt:T
         drawnow
         tic;
     end
+end
+test_t(curr_N) = toc;
+disp('no Barnes-Hut')
+disp(['N = ', num2str(N)])
+disp(['t = ',num2str(test_t(curr_N))])
 end

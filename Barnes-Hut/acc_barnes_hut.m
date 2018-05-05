@@ -1,5 +1,6 @@
 function a = acc_barnes_hut(p, Mass, G, N,theta)
 % does not always work, maybe because of collisions
+
     %create root of the tree
     basic_tree = tree('0');
 
@@ -20,7 +21,6 @@ function a = acc_barnes_hut(p, Mass, G, N,theta)
        
     % sum over first elements from the root which arent 0
     % currently no idea how without loop
-    
     %dont know if it works properly...
     
     iter = force_tree.depthfirstiterator;
