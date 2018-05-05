@@ -13,8 +13,20 @@ function a = acc_barnes_hut(p, Mass, G, N,theta)
 
     distance_tree = pos_tree - p;
     distance_norm_tree = distance_tree.treefun(@(x) norm(x,1));
-    %calculate which center of masses are far enough
-    far_enough = (0.5.^(distance_norm_tree.depthtree-1)).*start_range./distance_norm_tree < theta;
+    %calculate which center of masses are far enough, s/d < theta: s =
+    %longest distance in one cell, d = distance between center of mass of
+    %the cell and the particle
+%     far_enough = (3.*((0.5.^(distance_norm_tree.depthtree-1)).*start_range).^2).^(0.5)./distance_norm_tree < theta;
+    far_enough = ((0.5.^(distance_norm_tree.depthtree-1)).*start_range)./distance_norm_tree < theta;
+    %setting leaves to 1, to ensure that there is a force to calculate:
+    for i = far_enough.breadthfirstiterator
+        if far_enough.isleaf(i)
+            far_enough = far_enough.set(i,true);
+        end
+    end
+    %set root to 0, to ensure there some nodes are used to calculate the
+    %force
+    far_enough = far_enough.set(1,false);
     %calculate the force of each center of mass on this particle
     force_tree = G.*mass_tree.*Mass.*distance_tree./(distance_norm_tree.^3);
 

@@ -1,3 +1,4 @@
+%does not work with collisions: particles are not showing
 % powers = 1:3;
 % N_all = 10.^(powers);
 % for curr_N = powers
@@ -21,7 +22,7 @@ level_of_awesomeness = 7;
 col_index = 1;
 
 %barnes-hut parameters
-theta = -0.1; 
+theta = 1; 
 
 % Create initial conditions
 [Mass, p, v] = initialConditions(defaultRange,N);
@@ -160,7 +161,7 @@ for t = 0:dt:T
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when 1 == 1, (saves time)
 
-    if toc > 1/fps && plotting
+    if mod(t,10*dt) == 0 && plotting%toc > 1/fps && plotting
         figure(1);
         subplot(2,2,1) 
         plot(E_tot);
