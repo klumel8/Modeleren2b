@@ -1,6 +1,7 @@
 powers = 1:3;
 N_all = 10.^(powers);
-for curr_N = powers
+N_all(4) = 2000;
+for curr_N = 1:4
     N = N_all(curr_N);
     
 clearvars -except N N_all curr_N test_t; close all;

@@ -1,6 +1,19 @@
 %does not work with collisions: particles are not showing
-powers = 1:3;
+%test results:
+% no Barnes-Hut:
+% N = 10   -> t = 0.045269
+% N = 100  -> t = 0.61684
+% N = 1000 -> t = 74.6708
+% N = 2000 -> t = 317.9029
+% Barnes-hut:
+% N = 10   -> t = 0.80642
+% N = 100  -> t = 0.80225
+% N = 1000 -> t = 33.9423
+% N = 2000 -> t = 138.5657
+powers = 1:4;
 N_all = 10.^(powers);
+N_all(4) = 2000;
+
 for curr_N = powers
     N = N_all(curr_N);
     
