@@ -71,24 +71,14 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
     end
     
         
-    %old:
-%     force_tree = G.*mass_tree.*Mass.*distance_tree./(distance_norm_tree.^3);
-% 
-%        
-%     % sum over first elements from the root which arent 0
-%     % currently no idea how without loop
-%     %dont know if it works properly...
-%     
-%     iter = force_tree.depthfirstiterator;
-%     total_force = force_tree.get(1).*0; % get right size
-%     for index = iter(2:end)
-%         %only adds force when parent is not far enough and current
-%         %node is
-%         add_force = (far_enough.get(index) & ~far_enough.get(far_enough.getparent(index)));
-%         total_force = total_force + force_tree.get(index).*add_force;
-%     end
-%         
-%     a = total_force./Mass;   
+    %sasha: 
+    %suppose we calculate the force F from CoM a1 to CoM b1, and a2 is a
+    %particle (or CoM) contributing to a1:
+    % then we have vectors b1-a1, and a2-a1 -> b1 -a1 - (a2- a1) = b1-a2 =
+    % direction of the force from b1 acting on a2. the size of the force =
+    % F*m_a1/m_a2 -> F_a2 = |F|*m_a1/m_a2 * (b1-a2)/|b1-a2|
+
+    
 
     
     
