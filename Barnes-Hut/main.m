@@ -1,5 +1,5 @@
 %does not work with collisions: particles are not showing
-%test results:(100 time steps)
+%test results:(100 time steps) (no plotting)
 % no Barnes-Hut:
 % N = 10   -> t = 0.045269
 % N = 100  -> t = 0.61684
@@ -12,7 +12,7 @@
 % N = 2000 -> t = 138.5657
 powers = 1:4;
 N_all = 10.^(powers);
-N_all(4) = 2000;
+N_all(4) = 2000; %10^4 costs too much time for fast testing
 
 for curr_N = powers
     N = N_all(curr_N);
@@ -27,6 +27,7 @@ defaultRange = 108e9; % [m]
 
 % plotting configuration
 fps = 10;
+
 plotting = false;
 
 %integration method

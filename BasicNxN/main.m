@@ -1,7 +1,7 @@
-powers = 1:3;
+powers = 1:4;
 N_all = 10.^(powers);
-N_all(4) = 2000;
-for curr_N = 1:4
+N_all(4) = 2000; %10^4 costs too much time for fast testing
+for curr_N = powers
     N = N_all(curr_N);
     
 clearvars -except N N_all curr_N test_t; close all;
