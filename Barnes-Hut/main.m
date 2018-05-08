@@ -1,5 +1,5 @@
 %does not work with collisions: particles are not showing
-%test results:
+%test results:(100 time steps)
 % no Barnes-Hut:
 % N = 10   -> t = 0.045269
 % N = 100  -> t = 0.61684
