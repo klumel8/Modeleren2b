@@ -114,7 +114,7 @@ function [new_tree] = make_tree(curr_tree,first_leaf,p,Mass,start_range)
     
     %stop when each particle has a cell 
     if ~stop_next 
-        new_tree = make_tree(new_tree,first_leaf,p,start_range);
+        new_tree = make_tree(new_tree,first_leaf,p,Mass,start_range);
     end
 
 end

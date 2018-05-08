@@ -1,20 +1,20 @@
 %does not work with collisions: particles are not showing
-% powers = 1:3;
-% N_all = 10.^(powers);
-% for curr_N = powers
-%     N = N_all(curr_N);
+powers = 1:3;
+N_all = 10.^(powers);
+for curr_N = powers
+    N = N_all(curr_N);
     
-% clearvars -except N N_all curr_N test_t; close all;
-clear all; close all;
+clearvars -except N N_all curr_N test_t; close all;
+% clear all; close all;
 %Particles in our model;
 
-N = 100;
+% N = 100;
 G = 6.67408*10^-11; % [Nm^2kg^-2]
 defaultRange = 108e9; % [m]
 
 % plotting configuration
 fps = 10;
-plotting = true;
+plotting = false;
 
 %integration method
 level_of_awesomeness = 7;
@@ -136,6 +136,7 @@ for t = 0:dt:T
     elseif level_of_awesomeness == 7
         if t == 0
             %leapfrog initialize acceleration
+            %a = acc(p,Mass,G,N);
             a = acc_barnes_hut(p,Mass,G,N,theta);
         end
         %leapfrog
@@ -196,9 +197,9 @@ for t = 0:dt:T
         tic;
     end
 end
-% test_t(curr_N) = toc;
-% disp('Barnes-Hut')
-% disp(['N = ', num2str(N)])
-% disp(['t = ',num2str(test_t(curr_N))])
-% end
+test_t(curr_N) = toc;
+disp('Barnes-Hut')
+disp(['N = ', num2str(N)])
+disp(['t = ',num2str(test_t(curr_N))])
+end
 

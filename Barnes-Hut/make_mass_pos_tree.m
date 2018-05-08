@@ -63,11 +63,11 @@ function [mass_tree, pos_tree] = make_mass_pos_tree(basic_tree,p,Mass,start_rang
             %get the particle which is in this node(neglecting the
             %particles with Mass == 0
             x_check = [(curr_center(1)+0.5^(n));(curr_center(1)-0.5^(n))]*start_range;
-            x_right = p(1,:) <= max(x_check) & p(1,:) > min(x_check) & Mass(:)~=0;
+            x_right = p(1,:) <= max(x_check) & p(1,:) > min(x_check) & Mass~=0;
             y_check = [(curr_center(2)+0.5^(n));(curr_center(2)-0.5^(n))]*start_range;
-            y_right = p(2,:) <= max(y_check) & p(2,:) > min(y_check) & Mass(:)~=0;
+            y_right = p(2,:) <= max(y_check) & p(2,:) > min(y_check) & Mass~=0;
             z_check = [(curr_center(3)+0.5^(n));(curr_center(3)-0.5^(n))]*start_range;
-            z_right = p(3,:) <= max(z_check) & p(3,:) > min(z_check) & Mass(:)~=0;
+            z_right = p(3,:) <= max(z_check) & p(3,:) > min(z_check) & Mass~=0;
             all_right = x_right & y_right & z_right;
             
             %sum is only needed if we are going to put multiple particles
