@@ -1,4 +1,4 @@
-function [System] = initialConditions(radius, N)
+function [Mass, p, v] = initialConditions(radius, N, type)
 %initialConditions Creates the initial conditions for the simulation
 % Creates a vector with the large mass in the first index, and the other N
 % masses spread equally with circular orbits
@@ -9,10 +9,12 @@ function [System] = initialConditions(radius, N)
 %   Input:
 %           * radius  = "Radius of the orbit of the disc"     (1)[m]
 %           * N       = "Number of particles to be simulated" (1)[-]
+%           * type    = "1 = loose particles only,
+%                        2 = solar system"                    (1)[-]
 %   Output:
-%           * Mass    = "Mass vector"     (1:(N+1))[kg]
-%           * p       = "position vector" (3:(N+1))[m]
-%           * v       = "velocity vector" (3:(N+1))[m/s]
+%           * Mass    = "Mass vector"     (1:N)[kg]
+%           * p       = "position vector" (3:N)[m]
+%           * v       = "velocity vector" (3:N)[m/s]
 %
 %   Example(s):
 %
@@ -28,7 +30,7 @@ function [System] = initialConditions(radius, N)
 %   Keywords: Planets, Solar system, Initial Conditions
 %             
 %
-%   Version: v1.0 (05-08-2010)
+%   Version: v1.0 (02-05-2018)
 %
 
 %% Change-log
@@ -38,39 +40,39 @@ function [System] = initialConditions(radius, N)
 %
 
 %% Input Handling
-% This part of the function is meant to translate the provided input of the
-% function into the variables used in the calculation later on. This is for
-% example usefull for functions taking a variable number of input arguments
-% (see Matlab functions nargin/nargout/varargin etc...) or functions taking
-% a structure as input from which the individual variables should be
-% extracted. But also for functions with a fixed number of standard inputs
-% it is a good habit to include a section like this. Also use this part of
-% the function to define default values
+%   -
 
 %% Main Function
 
 % Define starting parameters 
-Mass_total = (2.6634*10272.66343)e27; % [kg ] total mass in system (no sun)
-System(1) = 1.988e30; % [kg] mass of sun 
-
+Mass_total = 2.6634e27; % [kg ] total mass in system (no sun)
+Mass_sun = 1.988e30; % [kg] mass of sun 
 G = 6.67408*10^-11; % [Nm^2kg^-2]
 
-% calculations
-Mass = ones(1,N) * Mass_total / N; % give each partical mass
+if type == 1
+    % calculations
+    Mass = ones(1,N) * Mass_total / N; % give each partical mass
+    Mass(1) = Mass_sun;
 
-% create position and speed vectors
-theta = 2*pi*rand(1,N); % create random angles
-r = radius * ( 0.5 + 0.1*randn(1,N) ); % create normally distributed angles
+    % create position and speed vectors
+    theta = 2*pi*rand(1,N); % create random angles
+    r = radius * ( 0.5 + 0.1*randn(1,N) ); % create normally distributed angles
 
-p = r.*[cos(theta); sin(theta); zeros(1,N)]; % position vector
+    p = r.*[cos(theta); sin(theta); zeros(1,N)]; % position vector
 
-v_abs = sqrt(G*Mass(1)./r);
-v = [sin(v_abs); cos(v_abs); zeros(1,N)];
+    v_abs = sqrt(G*Mass(1)./r);
+    v = v_abs .* [-sin(theta); cos(theta); zeros(1,N)];
 
-p(:,1) = [0;0;0]; v(:,1) = [0;0;0]; % pin sun to origin
-
+    p(:,1) = [0;0;0]; v(:,1) = [0;0;0]; % pin sun to origin
+end
+   
+if type == 2   
+%                    Mercury Venus Earth Mars  Jupiter Saturn Uranus Neptune
+   planets_mass   = [0.330   4.87  5.97  0.64  1898    568    68.6   102] * 10^24; %kg
+   lanets_radius  = [57.9    108.2 149.6 227.9 778.6 1433.5]
+end
 %% Output Handling
-
+% -
 
 end
 

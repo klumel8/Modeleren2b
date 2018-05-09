@@ -1,13 +1,20 @@
 clear all; close all;
 %Particles in our model;
+type = 2; % 1 = standard, 2 = solar system'
 N = 1e3;
 G = 6.67408*10^-11; % [Nm^2kg^-2]
-defaultRange = 108e9; % [m]
+
+if type == 1
+    defaultRange = 108e9; % [m]
+end
+if type == 2
+    defaultRange = 5e12/5; % [m]
+end
 
 % plotting configuration
 fps = 24;
-plotting = true;
-
+plotting_3d = true;
+plotting_number = false;
 %integration method
 %1: newton forward
 %2,4-6: runge kutta 
@@ -17,10 +24,13 @@ level_of_awesomeness = 4;
 col_index = 1;
 
 % Create initial conditions
-[Mass, p, v] = initialConditions(defaultRange,N);
+[Mass, p, v, N] = initialConditions(defaultRange,N, type);
 
 % dt = 'stepsize', T = 'total time'
 dt = 3600*24*7; % in seconds
+if type == 2
+    dt = dt/100;
+end
 T = 1e9; % in seconds
 
 %index will later be used to keep track of iterations in order to make a
@@ -137,7 +147,7 @@ for t = 0:dt:T
     
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when 1 == 1, (saves time)
-    if toc > 1/fps && plotting
+    if toc > 1/fps && plotting_3d
         figure(1);
         subplot(2,2,1) 
         plot(E_tot);
@@ -169,5 +179,9 @@ for t = 0:dt:T
         title(strcat('N =', " ", num2str(sum(Mass~=0))));
         drawnow
         tic;
+    end
+    
+    if plotting_number == true
+        lol = 3;
     end
 end
