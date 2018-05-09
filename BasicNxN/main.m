@@ -148,7 +148,7 @@ for t = 0:dt:T
     
     %make a momentum vector for plotting (only the norm)
     momentum(index) = norm(nansum(Mass.*v,2));
-    momentum_rel = (momentum-momentum_0)./momentum;
+    momentum_rel = (momentum-momentum_0)./momentum_0;
 
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when 1 == 1, (saves time)
