@@ -37,5 +37,6 @@ function a = acc(p, Mass, G, N)
     
     %calculate the acceleration in each direction.
     a = F./repmat(Mass,[1,1,3]);
+    a = permute(a,[3,2,1])
 end
 
