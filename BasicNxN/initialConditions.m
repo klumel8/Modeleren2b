@@ -82,6 +82,8 @@ if type == 2
     v = v_abs .* [-sin(theta); cos(theta); zeros(1,N)];
 
     p(:,1) = [0;0;0]; v(:,1) = [0;0;0]; % pin sun to origin
+    momentum = nansum(Mass .* v,2);
+    v(:,1) = -momentum / Mass(1);
 end
 %% Output Handling
 % -

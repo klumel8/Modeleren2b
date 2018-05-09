@@ -29,9 +29,9 @@ col_index = 1;
 % dt = 'stepsize', T = 'total time'
 dt = 3600*24*7; % in seconds
 if type == 2
-    dt = dt/10;
+    dt = dt;
 end
-T = 1e9; % in seconds
+T = 1e12; % in seconds
 
 %index will later be used to keep track of iterations in order to make a
 %plot vector
