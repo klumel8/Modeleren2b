@@ -12,7 +12,7 @@ plotting = true;
 %1: newton forward
 %2,4-6: runge kutta 
 %7: leapfrog
-level_of_awesomeness = 4;
+level_of_awesomeness = 7;
 %used for plotting
 col_index = 1;
 
@@ -114,12 +114,12 @@ for t = 0:dt:T
     elseif level_of_awesomeness == 7
         if t == 0
             %initialize acceleration for leapfrog
-            a = acc(p,Mass,G,N);
+            a = permute(acc(p,Mass,G,N),[3,2,1]);
         end
         %leapfrog
         v = v + dt/2*a;
         p = p + dt*v;
-        a = acc(p,Mass,G,N);
+        a = permute(acc(p,Mass,G,N),[3,2,1]);
         v = v + a*dt/2;
     end
     
