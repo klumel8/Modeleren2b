@@ -1,11 +1,11 @@
 %does not work with collisions: particles are not showing
 %test results:(100 time steps) (no plotting)
-% no Barnes-Hut:
+% no Barnes-Hut: (nando's laptop)
 % N = 10   -> t = 0.045269
 % N = 100  -> t = 0.61684
 % N = 1000 -> t = 74.6708
 % N = 2000 -> t = 317.9029
-% Barnes-hut:
+% Barnes-hut:(nando's laptop)
 % N = 10   -> t = 0.80642
 % N = 100  -> t = 0.80225
 % N = 1000 -> t = 33.9423
