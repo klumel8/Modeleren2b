@@ -1,26 +1,36 @@
 clear all; close all;
 %Particles in our model;
+type = 2; % 1 = standard, 2 = solar system'
 N = 1e3;
 G = 6.67408*10^-11; % [Nm^2kg^-2]
-defaultRange = 108e9; % [m]
+
+if type == 1
+    defaultRange = 108e9; % [m]
+end
+if type == 2
+    defaultRange = 5e12/5; % [m]
+end
 
 % plotting configuration
 fps = 24;
-plotting = true;
-
+plotting_3d = true;
+plotting_number = false;
 %integration method
 %1: newton forward
 %2,4-6: runge kutta 
 %7: leapfrog
-level_of_awesomeness = 7;
+level_of_awesomeness = 4;
 %used for plotting
 col_index = 1;
 
 % Create initial conditions
-[Mass, p, v] = initialConditions(defaultRange,N);
+[Mass, p, v, N] = initialConditions(defaultRange,N, type);
 
 % dt = 'stepsize', T = 'total time'
 dt = 3600*24*7; % in seconds
+if type == 2
+    dt = dt/10;
+end
 T = 1e9; % in seconds
 
 %index will later be used to keep track of iterations in order to make a
@@ -137,18 +147,18 @@ for t = 0:dt:T
     L_t(index) = (L(3)-L_0(3))/L_0(3);
     
     %make a momentum vector for plotting (only the norm)
-    momentum(index) = norm(sum(Mass.*v,2));
+    momentum(index) = norm(nansum(Mass.*v,2));
     momentum_rel = (momentum-momentum_0)/momentum_0;
-    
+
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when 1 == 1, (saves time)
-    if toc > 1/fps && plotting
+    if toc > 1/fps && plotting_3d
         figure(1);
         subplot(2,2,1) 
         plot(E_tot);
         axis([max(0,index-5000) index+500 -1 1]);
         xt = get(gca, 'XTick');
-        set(gca, 'XTick', xt, 'XTickLabel', xt*dt/31556926)
+        set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
         xlabel('time [years]')
         ylabel('relative magnitude')
         
@@ -162,7 +172,7 @@ for t = 0:dt:T
         title('Angular momentum(z)')
         axis([[max(0,index-5000) index+500] [1 1]*round(L_t(end))+[-1 1]]);
         xt = get(gca, 'XTick');
-        set(gca, 'XTick', xt, 'XTickLabel', xt*dt/31556926)
+        set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
         xlabel('time [years]')
         ylabel('relative magnitude')
         
@@ -176,13 +186,17 @@ for t = 0:dt:T
         tic;
         
         subplot(2,2,4)
-        subplot(2,2,2)       
         plot(momentum_rel);
         title('Relative momentum(norm)')
-        axis([[max(0,index-5000) index+500] [1 1]*round(momentum_rel(end))+[-1 1]]);
+        axis([max(0,index-5000) index+500 -1 1]);
+
         xt = get(gca, 'XTick');
         set(gca, 'XTick', xt, 'XTickLabel', xt*dt/31556926)
         xlabel('time [years]')
         ylabel('relative magnitude')
+    end
+    
+    if plotting_number == true
+        lol = 3;
     end
 end
