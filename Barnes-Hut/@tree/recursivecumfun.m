@@ -1,4 +1,4 @@
-function cumtree = recursivecumfun(obj, fun)
+function cumtree = recursivecumfun(obj, fun,size)
 %% RECURSIVECUMFUN  Create a tree where content is calculated recursively from children.
 %
 % cumtree = RECURSIVECUMFUN(obj, fun) generate a new tree by applying
@@ -14,10 +14,14 @@ function cumtree = recursivecumfun(obj, fun)
 % dt.tostring
 % ct = dt.recursivecumfun(@sum);
 % ct.tostring
+    if nargin == 2
+        size = 1;
+    end
 
     % Prepare a blank tree for holding values
     cumtree = tree(obj);
     descend(1);
+    
     
     
     
@@ -30,13 +34,14 @@ function cumtree = recursivecumfun(obj, fun)
            
             children = cumtree.getchildren(n);
             nChildren = numel(children);
-            stock = NaN(nChildren, 1);
+            stock = NaN(size,nChildren);
             
             for i = 1 : nChildren
                
                 child = children(i);
-                stock(i) = descend(child);
-                
+
+                stock(:,i) = descend(child);
+
             end
             val = fun(stock);
             % Store value in new tree
