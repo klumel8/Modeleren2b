@@ -29,7 +29,7 @@ col_index = 1;
 % dt = 'stepsize', T = 'total time'
 dt = 3600*24*7; % in seconds
 if type == 2
-    dt = dt/100;
+    dt = dt/10;
 end
 T = 1e9; % in seconds
 
@@ -44,7 +44,7 @@ E_0 = kin + pot;
 L_0 = AngularMomentum(p,N,Mass,v);
 
 %define begin momentum
-% momentum_0 = norm(sum(Mass.*v,2));
+momentum_0 = norm(sum(Mass.*v,2));
 
 %a timer so we dont plot too often and slow down the script
 tic;
@@ -147,8 +147,8 @@ for t = 0:dt:T
     L_t(index) = (L(3)-L_0(3))/L_0(3);
     
     %make a momentum vector for plotting (only the norm)
-%     momentum(index) = norm(sum(Mass(~isnan(v(1,:))).*v(:,~isnan(v(1,:)),2)));
-%     momentum_rel = (momentum-momentum_0)/momentum_0;
+    momentum(index) = norm(sum(Mass(~isnan(v(1,:))).*v(:,~isnan(v(1,:))),2));
+    momentum_rel = (momentum-momentum_0)/momentum_0;
 
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when 1 == 1, (saves time)
@@ -185,17 +185,15 @@ for t = 0:dt:T
         drawnow
         tic;
         
-%         subplot(2,2,4)
-%         subplot(2,2,2)       
-%         plot(momentum_rel);
-%         title('Relative momentum(norm)')
-%         axis([max(0,index-5000) index+500 -1 1]);
+        subplot(2,2,4)
+        plot(momentum_rel);
+        title('Relative momentum(norm)')
+        axis([max(0,index-5000) index+500 -1 1]);
 
-%         axis([[max(0,index-5000) index+500], [1 1]*round(momentum_rel(end))+[-1 1]]);
-%         xt = get(gca, 'XTick');
-%         set(gca, 'XTick', xt, 'XTickLabel', xt*dt/31556926)
-%         xlabel('time [years]')
-%         ylabel('relative magnitude')
+        xt = get(gca, 'XTick');
+        set(gca, 'XTick', xt, 'XTickLabel', xt*dt/31556926)
+        xlabel('time [years]')
+        ylabel('relative magnitude')
     end
     
     if plotting_number == true
