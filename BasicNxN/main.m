@@ -1,11 +1,11 @@
 clear all; close all;
 %Particles in our model;
-N = 50;
+N = 1e3;
 G = 6.67408*10^-11; % [Nm^2kg^-2]
 defaultRange = 108e9; % [m]
 
 % plotting configuration
-fps = 10;
+fps = 24;
 plotting = true;
 
 %integration method
@@ -17,7 +17,7 @@ col_index = 1;
 [Mass, p, v] = initialConditions(defaultRange,N);
 
 % dt = 'stepsize', T = 'total time'
-dt = 2000; % in seconds
+dt = 3600*24*7; % in seconds
 T = 1e9; % in seconds
 
 %index will later be used to keep track of iterations in order to make a
@@ -151,7 +151,6 @@ for t = 0:dt:T
         plot(p(1,2:end),p(2,2:end),'.k','MarkerSize',20); hold on
         plot(p(1,1),p(2,1),'*y', 'MarkerSize',20); hold off
         axis([-1 1 -1 1]*defaultRange);
-        axis equal
         title(strcat('N =', " ", num2str(sum(Mass~=0))));
         drawnow
         tic;
