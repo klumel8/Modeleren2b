@@ -7,6 +7,10 @@ type = 1;
 
 % plotting configuration
 fps = 24;
+plot_system = true;
+plot_ecc_a = true;
+plot_ang_mom = true;
+plot_momentum = true;
 plotting = true;
 
 if type == 1 % early solar system
@@ -172,30 +176,34 @@ for t = 0:dt:T
     %only plot when 1 == 1, (saves time)
     if toc > 1/fps && plotting
         figure(1); 
-        %eccentricity vs semi-major axis: 
-        subplot(2,2,1) 
-        plot(semi_m_axis(2:end),ecc(2:end),'.')
-        axis([0,max(defaultRange,max(semi_m_axis(2:end))),0, max([0.1;ecc(2:end)])])
-        title(['time: ',num2str(round(t/31556926,1)),' y'])
-        ylabel('$\varepsilon$','Interpreter','Latex')
-        xlabel('a[m]')
-        
-        %angular momentum
-        subplot(2,2,2)       
-        plot(L_t);
-        title('Angular momentum(z)')
-        axis([[max(0,index-5000) index+500] [1 1]*round(L_t(end))+[-1 1]]);
-        xt = get(gca, 'XTick');
-        set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,1))
-        xlabel('time [years]')
-        ylabel('relative magnitude')
-        
-        %particle system
-        subplot(2,2,3)
-        plot(p(1,2:end),p(2,2:end),'.k','MarkerSize',20); hold on
-        plot(p(1,1),p(2,1),'*y', 'MarkerSize',20); hold off
-        axis([-1 1 -1 1]*defaultRange);
-        title(strcat('N =', " ", num2str(sum(Mass~=0))));
+        if plot_ecc_a
+            %eccentricity vs semi-major axis: 
+            subplot(2,2,1) 
+            plot(semi_m_axis(2:end),ecc(2:end),'.')
+            axis([0,max(defaultRange,max(semi_m_axis(2:end))),0, 1])
+            title(['time: ',num2str(round(t/31556926,1)),' y'])
+            ylabel('$\varepsilon$','Interpreter','Latex')
+            xlabel('a[m]')
+        end
+        if plot_ang_mom
+            %angular momentum
+            subplot(2,2,2)       
+            plot(L_t);
+            title('Angular momentum(z)')
+            axis([[max(0,index-5000) index+500] [1 1]*round(L_t(end))+[-1 1]]);
+            xt = get(gca, 'XTick');
+            set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,1))
+            xlabel('time [years]')
+            ylabel('relative magnitude')
+        end
+        if plot_system
+            %particle system
+            subplot(2,2,3)
+            plot(p(1,2:end),p(2,2:end),'.k','MarkerSize',20); hold on
+            plot(p(1,1),p(2,1),'*y', 'MarkerSize',20); hold off
+            axis([-1 1 -1 1]*defaultRange);
+            title(strcat('N =', " ", num2str(sum(Mass~=0))));
+        end
         
 %         axis([max(0,index-5000) index+500 -1 1]);
 %         xt = get(gca, 'XTick');
@@ -218,15 +226,17 @@ for t = 0:dt:T
 %         plot(E_tot);
 
         if type == 2
-            subplot(2,2,4)
-            plot(rel_momentum);
-            title('Rel momentum(norm), rel to jupiter')
-            axis([max(0,index-5000) index+500 -0.1 1]);
+            if plot_momentum
+                subplot(2,2,4)
+                plot(rel_momentum);
+                title('Rel momentum(norm), rel to jupiter')
+                axis([max(0,index-5000) index+500 -0.1 1]);
 
-            xt = get(gca, 'XTick');
-            set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,1))
-            xlabel('time [years]')
-            ylabel('relative magnitude')
+                xt = get(gca, 'XTick');
+                set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,1))
+                xlabel('time [years]')
+                ylabel('relative magnitude')
+            end
         end
         drawnow
         tic;

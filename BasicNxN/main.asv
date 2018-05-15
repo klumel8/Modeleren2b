@@ -74,11 +74,9 @@ for t = 0:dt:T
        %find indices of collided particles       
        %re-rank the collision indexes
        indices = [mod(find(c),N)'; ceil(find(c)/N)'];
-       if any(find(indices == 1))
-           disp(indices);
-       end
        indices(1,:) = (indices(1,:)==0)*N + indices(1,:);
-       indices(:,find(indices(1,:) > indices(2,:))) = []; %this way, the 
+       indices(:,find(indices(1,:) > indices(2,:))) = [];
+       %this way, if a particle collides with the sun, the sun is still the first particle
        
        %ik ga uit van compleet inelastisch.
        %new position is mass centre
@@ -177,7 +175,7 @@ for t = 0:dt:T
         %eccentricity vs semi-major axis: 
         subplot(2,2,1) 
         plot(semi_m_axis(2:end),ecc(2:end),'.')
-        axis([0,max(defaultRange,max(semi_m_axis(2:end))),0, max([0.1;ecc(2:end)])])
+        axis([0,max(defaultRange,max(semi_m_axis(2:end))),0, 1])
         title(['time: ',num2str(round(t/31556926,1)),' y'])
         ylabel('$\varepsilon$','Interpreter','Latex')
         xlabel('a[m]')
