@@ -1,22 +1,31 @@
 clear all; close all;
 %Particles in our model;
-type = 1; % 1 = standard, 2 = solar system'
-N = 1e3;
-G = 6.67408*10^-11; % [Nm^2kg^-2]
-
-if type == 2
-    defaultRange = 108e9; % [m]
-end
-if type == 2
-    defaultRange = 5e12; % [m]
-    %% SECTION TITLE
-    % DESCRIPTIVE TEXT
-end
+% 1 = early solar system
+% 2 = solar system and Kuyper belt
+% 3 = sphere
+type = 1;
 
 % plotting configuration
 fps = 24;
 plotting_3d = true;
-plotting_number = false;
+plotting_e_vs_a = false;
+
+if type == 1
+    defaultRange = 108e9; % [m]
+    N = 1e3;
+    dt = 3600*24*7; % in seconds (dt = 1 week)
+    T = 1e9; % in seconds
+end
+if type == 2
+    defaultRange = 5e12; % [m]
+    N = 1;
+    dt = 2*3600*24*7; % in seconds (dt = 2 weeks)
+    T = 1e12; % in seconds
+end
+
+% universal parameters
+G = 6.67408*10^-11; % [Nm^2kg^-2]
+
 %integration method
 %1: newton forward
 %2,4-6: runge kutta 
@@ -27,13 +36,6 @@ col_index = 1;
 
 % Create initial conditions
 [Mass, p, v, N] = initialConditions(defaultRange,N, type);
-
-% dt = 'stepsize', T = 'total time'
-dt = 3600*24*7; % in seconds
-if type == 2
-    dt = dt;
-end
-T = 1e12; % in seconds
 
 %index will later be used to keep track of iterations in order to make a
 %plot vector
@@ -213,14 +215,14 @@ for t = 0:dt:T
         title(strcat('N =', " ", num2str(sum(Mass~=0))));
         
         subplot(2,2,4)
-%         plot(momentum_norm_rel);
-%         title('Relative momentum(norm)')
-%         axis([max(0,index-5000) index+500 [-1,1]*1.1*max(abs(momentum_norm_rel))]);
-% 
-%         xt = get(gca, 'XTick');
-%         set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
-%         xlabel('time [years]')
-%         ylabel('relative magnitude')
+        plot(momentum_norm_rel);
+        title('Relative momentum(norm)')
+        axis([max(0,index-5000) index+500 [-1,1]*1.1*max(abs(momentum_norm_rel))]);
+
+        xt = get(gca, 'XTick');
+        set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
+        xlabel('time [years]')
+        ylabel('relative magnitude')
         drawnow
         tic;
     end
