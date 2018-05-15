@@ -6,7 +6,7 @@ clear all; close all;
 type = 1;
 
 % plotting configuration
-fps = 24;
+fps = 1/3;
 plotting = true;
 
 if type == 1 % early solar system
@@ -175,7 +175,7 @@ for t = 0:dt:T
         %eccentricity vs semi-major axis: 
         subplot(2,2,1) 
         plot(semi_m_axis(2:end),ecc(2:end),'.')
-        axis([0,max(defaultRange,max(semi_m_axis(2:end))),0, max([0.1;ecc(2:end)])])
+        axis([0,max(defaultRange,max(semi_m_axis(2:end))),0, 0.7])
         title(['time: ',num2str(round(t/31556926,1)),' y'])
         ylabel('$\varepsilon$','Interpreter','Latex')
         xlabel('a[m]')
