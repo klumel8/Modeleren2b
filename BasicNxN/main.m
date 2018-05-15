@@ -6,15 +6,11 @@ clear all; close all;
 type = 1;
 
 % plotting configuration
-<<<<<<< HEAD
 fps = 1/3;
-=======
-fps = 24;
 plot_system = true;
 plot_ecc_a = true;
 plot_ang_mom = true;
 plot_momentum = true;
->>>>>>> 13d52f83a3168aaac2ccabe0078deb013d546153
 plotting = true;
 
 if type == 1 % early solar system
@@ -179,38 +175,12 @@ for t = 0:dt:T
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when 1 == 1, (saves time)
     if toc > 1/fps && plotting
-        figure(1); 
-<<<<<<< HEAD
-        %eccentricity vs semi-major axis: 
-        subplot(2,2,1) 
-        plot(semi_m_axis(2:end),ecc(2:end),'.')
-        axis([0,max(defaultRange,max(semi_m_axis(2:end))),0, 0.7])
-        title(['time: ',num2str(round(t/31556926,1)),' y'])
-        ylabel('$\varepsilon$','Interpreter','Latex')
-        xlabel('a[m]')
-        
-        %angular momentum
-        subplot(2,2,2)       
-        plot(L_t);
-        title('Angular momentum(z)')
-        axis([[max(0,index-5000) index+500] [1 1]*round(L_t(end))+[-1 1]]);
-        xt = get(gca, 'XTick');
-        set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,1))
-        xlabel('time [years]')
-        ylabel('relative magnitude')
-        
-        %particle system
-        subplot(2,2,3)
-        plot(p(1,2:end),p(2,2:end),'.k','MarkerSize',20); hold on
-        plot(p(1,1),p(2,1),'*y', 'MarkerSize',20); hold off
-        axis([-1 1 -1 1]*defaultRange);
-        title(strcat('N =', " ", num2str(sum(Mass~=0))));
-=======
+        figure(1)
         if plot_ecc_a
             %eccentricity vs semi-major axis: 
             subplot(2,2,1) 
             plot(semi_m_axis(2:end),ecc(2:end),'.')
-            axis([0,max(defaultRange,max(semi_m_axis(2:end))),0, 1])
+            axis([0,max(defaultRange,max(semi_m_axis(2:end))),0, 0.7])
             title(['time: ',num2str(round(t/31556926,1)),' y'])
             ylabel('$\varepsilon$','Interpreter','Latex')
             xlabel('a[m]')
@@ -234,7 +204,7 @@ for t = 0:dt:T
             axis([-1 1 -1 1]*defaultRange);
             title(strcat('N =', " ", num2str(sum(Mass~=0))));
         end
->>>>>>> 13d52f83a3168aaac2ccabe0078deb013d546153
+
         
 %         axis([max(0,index-5000) index+500 -1 1]);
 %         xt = get(gca, 'XTick');
