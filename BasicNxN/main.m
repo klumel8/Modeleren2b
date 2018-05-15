@@ -151,13 +151,13 @@ for t = 0:dt:T
     if type == 2
         %make a momentum vector for plotting (only the norm)
         momentum(:,:,index) = Mass.*v; % momentum of all particles (3xNxtime)
-        momentum_norm = vecnorm(nansum(momentum,2),1); %(1x1xtime)
-        rel_momentum = momentum_norm./vecnorm(momentum(:,6,1),1); %momentum relative to jupiter
+        momentum_norm = vecnorm(nansum(momentum,2),2,1); %(1x1xtime)
+        rel_momentum = momentum_norm./vecnorm(momentum(:,6,1),2,1); %momentum relative to jupiter
         rel_momentum = permute(rel_momentum,[3,2,1]);
     end
     
     [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass);
-    ecc = vecnorm(ecc,1)';
+    ecc = vecnorm(ecc,2,1)';
     semi_m_axis = semi_m_axis';
 
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
