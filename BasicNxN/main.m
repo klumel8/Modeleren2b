@@ -3,7 +3,7 @@ clear all; close all;
 % 1 = early solar system
 % 2 = solar system and Kuyper belt
 % 3 = sphere
-type = 2;
+type = 1;
 
 % plotting configuration
 fps = 24;
@@ -56,19 +56,30 @@ for t = 0:dt:T
     %later were gonna make some bounds on speed and range, this is needed.
     vOud = v;
     
+    %remove particles which are too far with a too high speed:
+    remove_crit = vecnorm(p)>10*defaultRange;
+    if any(remove_crit)
+        indices = find(remove_crit);
+        p(:,indices) = p(:,indices)./20;%bring particle back in the system
+        v(:,indices) = repmat([0;0;0],1,numel(indices));%set velocity to 0
+        Mass(indices) = 0;%set mass to 0
+    end
+    
     %read fo.m first, but keeps track of whether there was a collision.
     c = col(p,Mass,N);
     
     %#BUG will crash if multiple collisions in one timestep
-    
     %check if the collision vector is empty    
     if max(max(c)) > 0
        %find indices of collided particles       
        %re-rank the collision indexes
        indices = [mod(find(c),N)'; ceil(find(c)/N)'];
+       if any(find(indices == 1))
+           disp(indices);
+       end
        indices(1,:) = (indices(1,:)==0)*N + indices(1,:);
-       indices(:,find(indices(1,:) < indices(2,:))) = [];
-       
+       indices(:,find(indices(1,:) > indices(2,:))) = [];
+       %this way, if a particle collides with the sun, the sun is still the first particle
        
        %ik ga uit van compleet inelastisch.
        %new position is mass centre
@@ -181,11 +192,6 @@ for t = 0:dt:T
         set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,1))
         xlabel('time [years]')
         ylabel('relative magnitude')
-        
-
-
-        
-
         
         %particle system
         subplot(2,2,3)
