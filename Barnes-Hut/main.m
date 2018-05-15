@@ -1,4 +1,3 @@
-%does not work with collisions: particles are not showing
 %test results:(100 time steps) (no plotting)
 % no Barnes-Hut: (nando's laptop)
 % N = 10   -> t = 0.045269
@@ -28,7 +27,7 @@ defaultRange = 108e9; % [m]
 % plotting configuration
 fps = 10;
 
-plotting = false;
+plotting = true;
 
 %integration method
 level_of_awesomeness = 7;
@@ -37,15 +36,16 @@ level_of_awesomeness = 7;
 col_index = 1;
 
 %barnes-hut parameters
-theta = 1; 
+theta = 1/1.1; 
 
 % Create initial conditions
 [Mass, p, v] = initialConditions(defaultRange,N);
 
+
 % dt = 'stepsize', T = 'total time'
 
 dt = 1000; % in seconds
-T = 1000*100;%1e9; % in seconds
+T = 1e9; % in seconds
 
 %index will later be used to keep track of iterations in order to make a
 %plot vector
