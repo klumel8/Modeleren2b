@@ -56,6 +56,14 @@ L_0 = AngularMomentum(p,N,Mass,v);
 tic;
 for t = 0:dt:T
     index = index+1;
+    if mod(index,10) == 0%remove particles every 100 timesteps
+        %to be removed from: p,v,Mass,N
+        staying_indices = find(Mass ~= 0 & ~isnan(Mass));
+        p = p(:,staying_indices);
+        v = v(:,staying_indices);
+        Mass = Mass(staying_indices);
+        N = numel(staying_indices);
+    end
     
     %later were gonna make some bounds on speed and range, this is needed.
     vOud = v;
