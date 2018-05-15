@@ -7,11 +7,11 @@ type = 1;
 
 % plotting configuration
 fps = 1/3;
-plot_system = true;
-plot_ecc_a = true;
-plot_ang_mom = true;
-plot_momentum = true;
-plotting = true;
+plot_system = true;     %plot the particle system
+plot_ecc_a = true;      %plot eccentricity vs semi major axis
+plot_ang_mom = true;    %plot the angular momentum
+plot_momentum = true;   %plot the momentum, relative to jupiter(only for type ==2)
+plotting = true;        %plot anything at all
 
 %remove the particles every [remove_index] timesteps
 remove_index = 10;
@@ -60,10 +60,13 @@ L_0 = AngularMomentum(p,N,Mass,v);
 tic;
 for t = 0:dt:T
     index = index+1;
-    if mod(index,remove_index) == 0 & removing%remove particles every [remove_index] timesteps
+    
+    %remove particles every [remove_index] timesteps:
+    if mod(index,remove_index) == 0 & removing 
         %to be removed from: p,v,Mass,N
+        %only select the indices which wont be removed:
         staying_indices = find(Mass ~= 0 & ~isnan(Mass));
-        p = p(:,staying_indices);
+        p = p(:,staying_indices); 
         v = v(:,staying_indices);
         Mass = Mass(staying_indices);
         N = numel(staying_indices);

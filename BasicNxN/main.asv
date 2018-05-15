@@ -7,17 +7,21 @@ type = 1;
 
 % plotting configuration
 fps = 1/3;
-plot_system = true;
-plot_ecc_a = true;
-plot_ang_mom = true;
-plot_momentum = true;
-plotting = true;
+plot_system = true;     %plot the particle system
+plot_ecc_a = true;      %plot eccentricity vs semi major axis
+plot_ang_mom = true;    %plot the angular momentum
+plot_momentum = true;   %plot the momentum, relative to jupiter(only for type ==2)
+plotting = true;        %plot anything at all
+
+%remove the particles every [remove_index] timesteps
+remove_index = 10;
+removing = true;
 
 if type == 1 % early solar system
     defaultRange = 108e9; % [m]
     N = 1e3;
     dt = 3600*24*7; % in seconds (dt = 1 week)
-    T = 1e9; % in seconds
+    T = 5e9; % in seconds
 end
 
 if type == 2 % solar system and Kuyper belt
@@ -56,10 +60,13 @@ L_0 = AngularMomentum(p,N,Mass,v);
 tic;
 for t = 0:dt:T
     index = index+1;
-    if mod(index,remove_dt) == 0%remove particles every 10 timesteps
+    
+    %remove particles every [remove_index] timesteps:
+    if mod(index,remove_index) == 0 & removing 
         %to be removed from: p,v,Mass,N
+        %only select the indices which wont be removed:
         staying_indices = find(Mass ~= 0 & ~isnan(Mass));
-        p = p(:,staying_indices);
+        p = p(:,staying_indices); 
         v = v(:,staying_indices);
         Mass = Mass(staying_indices);
         N = numel(staying_indices);
@@ -188,7 +195,7 @@ for t = 0:dt:T
             %eccentricity vs semi-major axis: 
             subplot(2,2,1) 
             plot(semi_m_axis(2:end),ecc(2:end),'.')
-            axis([0,max(defaultRange,max(semi_m_axis(2:end))),0, 0.7])
+            axis([0,2*defaultRange,0, 0.7])
             title(['time: ',num2str(round(t/31556926,1)),' y'])
             ylabel('$\varepsilon$','Interpreter','Latex')
             xlabel('a[m]')
