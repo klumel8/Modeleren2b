@@ -152,7 +152,6 @@ for t = 0:dt:T
     L_t(index) = (L(3)-L_0(3))/L_0(3);
     
     %make a momentum vector for plotting (only the norm)
-<<<<<<< HEAD
     momentum(:,:,index) = Mass.*v;
     momentum_all = vecnorm(momentum,1);
     momentum_norm = vecnorm(nansum(momentum,2),1);
@@ -161,10 +160,8 @@ for t = 0:dt:T
 
     
     distance_to_0(index,:) = vecnorm(p,1);
-=======
     momentum(index) = norm(nansum(Mass.*v,2));
     momentum_rel = (momentum-momentum_0)./momentum_0;
->>>>>>> c52fd511be83a524ae04c5ff09deadc8363e13ff
 
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when 1 == 1, (saves time)
