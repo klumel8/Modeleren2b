@@ -168,6 +168,7 @@ for t = 0:dt:T
         subplot(2,2,1) 
         plot(semi_m_axis(2:end),ecc(2:end),'.')
         axis([0,max(semi_m_axis(2:end)),0, max([0.1;ecc(2:end)])])
+        title(['time: ',num2str(round(t/31556926,1)),' y'])
         ylabel('$\varepsilon$','Interpreter','Latex')
         xlabel('a[m]')
         
