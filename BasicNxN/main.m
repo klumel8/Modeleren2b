@@ -1,14 +1,16 @@
 clear all; close all;
 %Particles in our model;
-type = 2; % 1 = standard, 2 = solar system'
+type = 1; % 1 = standard, 2 = solar system'
 N = 1e3;
 G = 6.67408*10^-11; % [Nm^2kg^-2]
 
-if type == 1
+if type == 2
     defaultRange = 108e9; % [m]
 end
 if type == 2
-    defaultRange = 5e12/5; % [m]
+    defaultRange = 5e12; % [m]
+    %% SECTION TITLE
+    % DESCRIPTIVE TEXT
 end
 
 % plotting configuration
@@ -44,7 +46,10 @@ E_0 = kin + pot;
 L_0 = AngularMomentum(p,N,Mass,v);
 
 %define begin momentum
-momentum_0 = norm(nansum(Mass.*v,2));
+momentum_0 = vecnorm(Mass.*v,1);
+momentum_norm_0 = vecnorm(nansum(Mass.*v,2),2,1);
+momentum_norm_0 = Mass(6)*vecnorm(v(:,:),2,1);
+
 
 %a timer so we dont plot too often and slow down the script
 tic;
@@ -147,27 +152,49 @@ for t = 0:dt:T
     L_t(index) = (L(3)-L_0(3))/L_0(3);
     
     %make a momentum vector for plotting (only the norm)
-    momentum(index) = norm(nansum(Mass.*v,2));
-    momentum_rel = (momentum-momentum_0)./momentum;
+    momentum(:,:,index) = Mass.*v;
+    momentum_all = vecnorm(momentum,1);
+    momentum_norm = vecnorm(nansum(momentum,2),1);
+    momentum_norm_rel = permute((momentum_norm-momentum_norm_0),[2,3,1]);
+    momentum_rel =permute( (momentum_all-momentum_0),[2,3,1]);    
+
+    
+    distance_to_0(index,:) = vecnorm(p,1);
 
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when 1 == 1, (saves time)
     if toc > 1/fps && plotting_3d
         figure(1);
         subplot(2,2,1) 
-        plot(E_tot);
-        axis([max(0,index-5000) index+500 -1 1]);
-        xt = get(gca, 'XTick');
-        set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
-        xlabel('time [years]')
-        ylabel('relative magnitude')
+%         plot(E_tot);
+%         axis([max(0,index-5000) index+500 -1 1]);
+%         xt = get(gca, 'XTick');
+%         set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
+%         xlabel('time [years]')
+%         ylabel('relative magnitude')
+%         plot(log(abs(momentum_rel')));
+%         title('momentum')
+%         axis([max(0,index-5000) index+500 [0,1]*1.1*max(max(log(abs(momentum_rel))))]);
+% 
+%         xt = get(gca, 'XTick');
+%         set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
+%         xlabel('time [years]')
+%         ylabel('relative magnitude')
         
         %make the root mean square error of the total energy since the last
         %collision.
-        E_tot_RMSE = sqrt(sum((E_tot(col_index:end)-mean(E_tot(col_index(end)))).^2)/index);
-        title(strcat('RMSE(Energy):',num2str(E_tot_RMSE)));
+%         E_tot_RMSE = sqrt(sum((E_tot(col_index:end)-mean(E_tot(col_index(end)))).^2)/index);
+%         title(strcat('RMSE(Energy):',num2str(E_tot_RMSE)));
         
         subplot(2,2,2)       
+%         plot(log(distance_to_0));
+%         title('distance(norm)')
+%         axis([max(0,index-5000) index+500 [0,1]*1.1*max(max(log(distance_to_0)))]);
+% 
+%         xt = get(gca, 'XTick');
+%         set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
+%         xlabel('time [years]')
+%         ylabel('relative magnitude')
         plot(L_t);
         title('Angular momentum(z)')
         axis([[max(0,index-5000) index+500] [1 1]*round(L_t(end))+[-1 1]]);
@@ -182,18 +209,18 @@ for t = 0:dt:T
         plot(p(1,1),p(2,1),'*y', 'MarkerSize',20); hold off
         axis([-1 1 -1 1]*defaultRange);
         title(strcat('N =', " ", num2str(sum(Mass~=0))));
-        drawnow
-        tic;
         
         subplot(2,2,4)
-        plot(momentum_rel);
-        title('Relative momentum(norm)')
-        axis([max(0,index-5000) index+500 -1 1]);
-
-        xt = get(gca, 'XTick');
-        set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
-        xlabel('time [years]')
-        ylabel('relative magnitude')
+%         plot(momentum_norm_rel);
+%         title('Relative momentum(norm)')
+%         axis([max(0,index-5000) index+500 [-1,1]*1.1*max(abs(momentum_norm_rel))]);
+% 
+%         xt = get(gca, 'XTick');
+%         set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
+%         xlabel('time [years]')
+%         ylabel('relative magnitude')
+        drawnow
+        tic;
     end
     
     if plotting_number == true

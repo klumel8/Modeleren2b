@@ -84,6 +84,24 @@ if type == 2
     p(:,1) = [0;0;0]; v(:,1) = [0;0;0]; % pin sun to origin
     momentum = nansum(Mass .* v,2);
     v(:,1) = -momentum / Mass(1);
+    p(:,1) = -nansum(Mass.*p,2)/Mass(1);
+    
+end
+
+if type == 3
+    Mass = ones(1,N) * Mass_total / N; % give each partical mass
+
+    % create position and speed vectors
+    theta   = 2*pi*rand(1,N); % create random angles
+    phi     =   pi*rand(1,N);
+    r = radius * ( 0.5 + 0.1*randn(1,N) ); % create normally distributed angles
+
+    p = r.*[cos(theta).*sin(phi); sin(theta).*sin(phi); cos(phi)]; % position vector
+
+    v_abs = sqrt(G*Mass(1)./r);
+    v = v_abs .* [-sin(theta); cos(theta); zeros(1,N)];
+
+    p(:,1) = [0;0;0]; v(:,1) = [0;0;0]; % pin sun to origin   
 end
 %% Output Handling
 % -
