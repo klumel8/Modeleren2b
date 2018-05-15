@@ -74,9 +74,6 @@ for t = 0:dt:T
        %find indices of collided particles       
        %re-rank the collision indexes
        indices = [mod(find(c),N)'; ceil(find(c)/N)'];
-       if any(find(indices == 1))
-           disp(indices);
-       end
        indices(1,:) = (indices(1,:)==0)*N + indices(1,:);
        indices(:,find(indices(1,:) > indices(2,:))) = [];
        %this way, if a particle collides with the sun, the sun is still the first particle
