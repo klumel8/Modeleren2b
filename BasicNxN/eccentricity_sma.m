@@ -5,6 +5,7 @@ function [e a] = eccentricity_sma(p,v,m)
 %   v       : (3xN) velocity vector
 %output arguments:
 %   e       : (1xN) eccentricity vector
+%   a       : (1xN) semi major axis
 %no nonstandard functions required
     G = 6.67408*10^-11; % [Nm^2kg^-2]
 

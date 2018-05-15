@@ -166,12 +166,19 @@ for t = 0:dt:T
     distance_to_0(index,:) = vecnorm(p,1);
     momentum(index) = norm(nansum(Mass.*v,2));
     momentum_rel = (momentum-momentum_0)./momentum_0;
+    
+    [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass);
 
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when 1 == 1, (saves time)
     if toc > 1/fps && plotting
         figure(1); 
+        %eccentricity vs semi-major axis: 
         subplot(2,2,1) 
+        plot(ecc,semi_major_axis)
+        axis([0,max(semi_m_axis),0, 1])
+        ylabel('eccentricity')
+        xlabl('semi major axis')
 %         plot(E_tot);
 %         axis([max(0,index-5000) index+500 -1 1]);
 %         xt = get(gca, 'XTick');

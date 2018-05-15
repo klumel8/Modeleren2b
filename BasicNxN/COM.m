@@ -1,17 +1,11 @@
-function [e a] = eccentricity_sma(p,v,m)
+function [CM] = COM(Mass,p)
 %Calculate the center of mass of the given particlesx
 %input arguments:
+%   Mass    : (1xN) mass vector
 %   p       : (3xN) position vector
-%   v       : (3xN) velocity vector
 %output arguments:
-%   e       : (1xN) eccentricity vector
+%   CM      : (scalar) center of mass
 %no nonstandard functions required
-    G = 6.67408*10^-11; % [Nm^2kg^-2]
-
-    mu = G * m;
-    e = (vecnorm(v).^2 ./ mu - vecnorm(p).^(-1)) * p - p .* v .* v ./ mu;
-    
-    eps = vecnorm(v).^2 / 2 - mu ./ vecnorm(r);
-    
-    a = mu ./ (2 * eps);
+    CM = nansum(repmat(Mass, [3 1]).*p,2)/sum(Mass);
 end
+
