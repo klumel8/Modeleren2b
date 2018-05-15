@@ -170,7 +170,7 @@ for t = 0:dt:T
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when 1 == 1, (saves time)
     if toc > 1/fps && plotting
-        figure(1);
+        figure(1); 
         subplot(2,2,1) 
 %         plot(E_tot);
 %         axis([max(0,index-5000) index+500 -1 1]);
