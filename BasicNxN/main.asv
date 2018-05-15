@@ -7,38 +7,36 @@ type = 1;
 
 % plotting configuration
 fps = 24;
-plotting_3d = true;
-plotting_e_vs_a = false;
+plotting = true;
 
-if type == 1
+if type == 1 % early solar system
     defaultRange = 108e9; % [m]
     N = 1e3;
-end
-if type == 2
-    defaultRange = 5e12; % [m]
-    N = 1;
+    dt = 3600*24*7; % in seconds (dt = 1 week)
+    T = 1e9; % in seconds
 end
 
-% universal parameters
-G = 6.67408*10^-11; % [Nm^2kg^-2]
+if type == 2 % solar system and Kuyper belt
+    defaultRange = 5e12; % [m]
+    N = 1;
+    dt = 2*3600*24*7; % in seconds (dt = 2 weeks)
+    T = 1e12; % in seconds
+end
 
 %integration method
 %1: newton forward
 %2,4-6: runge kutta 
 %7: leapfrog
-level_of_awesomeness = 4;
-%used for plotting
-col_index = 1;
+int_met = 4;
+
+% universal parameters
+G = 6.67408*10^-11; % [Nm^2kg^-2]
 
 % Create initial conditions
 [Mass, p, v, N] = initialConditions(defaultRange,N, type);
 
-% dt = 'stepsize', T = 'total time'
-dt = 3600*24*7; % in seconds
-if type == 2
-    dt = dt;
-end
-T = 1e12; % in seconds
+% colision index used for plotting
+colision_index = 1;
 
 %index will later be used to keep track of iterations in order to make a
 %plot vector
@@ -51,7 +49,7 @@ E_0 = kin + pot;
 L_0 = AngularMomentum(p,N,Mass,v);
 
 %define begin momentum
-momentum_0 = vecnorm(Mass.*v,1);
+momentum_0 = vecnorm(Mass.*v,1); % total momentum at t = 0
 momentum_norm_0 = vecnorm(nansum(Mass.*v,2),2,1);
 momentum_norm_0 = Mass(6)*vecnorm(v(:,:),2,1);
 
@@ -95,27 +93,27 @@ for t = 0:dt:T
        
        %keep track of latest collision index, so that the RMSE error for
        %angular momentum and energy can be better defined.
-       col_index = index;
+       colision_index = index;
     end
     
-    if level_of_awesomeness == 1
+    if int_met == 1
         %first order (newton forward)
         a = acc(p,Mass,G,N);
         p = p + v*dt + a * dt^2 / 2;
         v = v + a * dt;
-    elseif level_of_awesomeness == 2
+    elseif int_met == 2
         %Runge Kutta 2 conserves angular momentum?
         k1 = dt^2*acc(p + (1/2)*dt*v,Mass,G,N);
         p = p + v*dt + k1;
         v = v + k1/dt;
-    elseif level_of_awesomeness == 4
+    elseif int_met == 4
         %Runge Kutta 4
         k1 = dt^2*acc(p,Mass,G,N);
         k2 = dt^2*acc(p + 0.5*dt*v + 1/8*k1,Mass,G,N);
         k3 = dt^2*acc(p + dt*v + .5*k2,Mass,G,N);
         p = p + v*dt + 1/6*(k1+2*k2);
         v = v + 1/(6*dt)*(k1+4*k2+k3);
-    elseif level_of_awesomeness == 5
+    elseif int_met == 5
         %Runge Kutta 5a see file I (floris) send over whatsapp
         k1 = dt^2*acc(p,Mass,G,N);
         k2 = dt^2*acc(p + (1/4)*dt*v + (1/32)*k1,Mass,G,N);
@@ -123,7 +121,7 @@ for t = 0:dt:T
         k4 = dt^2*acc(p + dt*v + (2/7)*k1 + (3/14)*k3,Mass,G,N);
         p = p + dt*v + (1/14)*k1 + (8/27)*k2 + (25/189)*k4;
         v = v + (1/dt)*((1/14)*k1 + (32/81)*k2 + (250/567)*k3 + (5/54)*k4);
-    elseif level_of_awesomeness == 6
+    elseif int_met == 6
         %Runge Kutta 6.
         k1 = dt^2*acc(p,Mass,G,N);
         k2 = dt^2*acc(p + 1/4*dt*v + 1/32*k1,Mass,G,N);
@@ -132,7 +130,7 @@ for t = 0:dt:T
         k5 = dt^2*acc(p + 3/7*dt*v - k1/14 + k3/7,Mass,G,N);
         p = p + dt*v + (7*k1 +24*k2 + 6*k3 + 8*k4)/90;
         v = v + (7*k1 + 32*k2 + 12*k3 + 32*k4 + 7*k5)/(90*dt);
-    elseif level_of_awesomeness == 7
+    elseif int_met == 7
         if t == 0
             %initialize acceleration for leapfrog
             a = acc(p,Mass,G,N);
@@ -170,7 +168,7 @@ for t = 0:dt:T
 
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when 1 == 1, (saves time)
-    if toc > 1/fps && plotting_3d
+    if toc > 1/fps && plotting
         figure(1);
         subplot(2,2,1) 
 %         plot(E_tot);
@@ -228,9 +226,5 @@ for t = 0:dt:T
         ylabel('relative magnitude')
         drawnow
         tic;
-    end
-    
-    if plotting_number == true
-        lol = 3;
     end
 end
