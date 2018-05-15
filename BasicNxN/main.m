@@ -13,11 +13,15 @@ plot_ang_mom = true;
 plot_momentum = true;
 plotting = true;
 
+%remove the particles every [remove_index] timesteps
+remove_index = 10;
+removing = true;
+
 if type == 1 % early solar system
     defaultRange = 108e9; % [m]
     N = 1e3;
     dt = 3600*24*7; % in seconds (dt = 1 week)
-    T = 1e9; % in seconds
+    T = 5e9; % in seconds
 end
 
 if type == 2 % solar system and Kuyper belt
@@ -56,7 +60,7 @@ L_0 = AngularMomentum(p,N,Mass,v);
 tic;
 for t = 0:dt:T
     index = index+1;
-    if mod(index,10) == 0%remove particles every 100 timesteps
+    if mod(index,remove_index) == 0 & removing%remove particles every [remove_index] timesteps
         %to be removed from: p,v,Mass,N
         staying_indices = find(Mass ~= 0 & ~isnan(Mass));
         p = p(:,staying_indices);
@@ -188,7 +192,7 @@ for t = 0:dt:T
             %eccentricity vs semi-major axis: 
             subplot(2,2,1) 
             plot(semi_m_axis(2:end),ecc(2:end),'.')
-            axis([0,max(defaultRange,max(semi_m_axis(2:end))),0, 0.7])
+            axis([0,2*defaultRange,0, 0.7])
             title(['time: ',num2str(round(t/31556926,1)),' y'])
             ylabel('$\varepsilon$','Interpreter','Latex')
             xlabel('a[m]')
