@@ -3,7 +3,7 @@ clear all; close all;
 % 1 = early solar system
 % 2 = solar system and Kuyper belt
 % 3 = sphere
-type = 1;
+type = 2;
 
 % plotting configuration
 fps = 24;
@@ -47,13 +47,6 @@ E_0 = kin + pot;
 
 %define begin angular momentum
 L_0 = AngularMomentum(p,N,Mass,v);
-
-%define begin momentum
-momentum_0 = vecnorm(Mass.*v,1); % total momentum at t = 0 per planet
-momentum_norm_0 = vecnorm(nansum(Mass.*v,2),2,1); % total momentum at t = 0
-if type == 2
-    momentum_norm_0 = Mass(6)*vecnorm(v(:,6),2,1); % momentum of jupiter at t = 0
-end
 
 % a timer so we dont plot too often and slow down the script
 tic;
@@ -155,19 +148,17 @@ for t = 0:dt:T
     %make a angular momentum vector for plotting
     L_t(index) = (L(3)-L_0(3))/L_0(3);
     
-    %make a momentum vector for plotting (only the norm)
-    momentum(:,:,index) = Mass.*v; % momentum of all particles
-    momentum_all = vecnorm(momentum,1); % norm of momentum of all particles
-    momentum_norm = vecnorm(nansum(momentum,2),1); 
-    momentum_norm_rel = permute((momentum_norm-momentum_norm_0),[2,3,1]);
-    momentum_rel =permute( (momentum_all-momentum_0),[2,3,1]);    
-
-    
-    distance_to_0(index,:) = vecnorm(p,1);
-    momentum(index) = norm(nansum(Mass.*v,2));
-    momentum_rel = (momentum-momentum_0)./momentum_0;
+    if type == 2
+        %make a momentum vector for plotting (only the norm)
+        momentum(:,:,index) = Mass.*v; % momentum of all particles (3xNxtime)
+        momentum_norm = vecnorm(nansum(momentum,2),1); %(1x1xtime)
+        rel_momentum = momentum_norm./vecnorm(momentum(:,6,1),1); %momentum relative to jupiter
+        rel_momentum = permute(rel_momentum,[3,2,1]);
+    end
     
     [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass);
+    ecc = vecnorm(ecc,1)';
+    semi_m_axis = semi_m_axis';
 
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when 1 == 1, (saves time)
@@ -175,11 +166,33 @@ for t = 0:dt:T
         figure(1); 
         %eccentricity vs semi-major axis: 
         subplot(2,2,1) 
-        plot(ecc,semi_major_axis)
-        axis([0,max(semi_m_axis),0, 1])
-        ylabel('eccentricity')
-        xlabl('semi major axis')
-%         plot(E_tot);
+        plot(semi_m_axis(2:end),ecc(2:end),'.')
+        axis([0,max(semi_m_axis(2:end)),0, 1])
+        ylabel('$\varepsilon$','Interpreter','Latex')
+        xlabel('a[m]')
+        
+        %angular momentum
+        subplot(2,2,2)       
+        plot(L_t);
+        title('Angular momentum(z)')
+        axis([[max(0,index-5000) index+500] [1 1]*round(L_t(end))+[-1 1]]);
+        xt = get(gca, 'XTick');
+        set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
+        xlabel('time [years]')
+        ylabel('relative magnitude')
+        
+
+
+        
+
+        
+        %particle system
+        subplot(2,2,3)
+        plot(p(1,2:end),p(2,2:end),'.k','MarkerSize',20); hold on
+        plot(p(1,1),p(2,1),'*y', 'MarkerSize',20); hold off
+        axis([-1 1 -1 1]*defaultRange);
+        title(strcat('N =', " ", num2str(sum(Mass~=0))));
+        
 %         axis([max(0,index-5000) index+500 -1 1]);
 %         xt = get(gca, 'XTick');
 %         set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
@@ -198,40 +211,19 @@ for t = 0:dt:T
         %collision.
 %         E_tot_RMSE = sqrt(sum((E_tot(col_index:end)-mean(E_tot(col_index(end)))).^2)/index);
 %         title(strcat('RMSE(Energy):',num2str(E_tot_RMSE)));
-        
-        subplot(2,2,2)       
-%         plot(log(distance_to_0));
-%         title('distance(norm)')
-%         axis([max(0,index-5000) index+500 [0,1]*1.1*max(max(log(distance_to_0)))]);
-% 
-%         xt = get(gca, 'XTick');
-%         set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
-%         xlabel('time [years]')
-%         ylabel('relative magnitude')
-        plot(L_t);
-        title('Angular momentum(z)')
-        axis([[max(0,index-5000) index+500] [1 1]*round(L_t(end))+[-1 1]]);
-        xt = get(gca, 'XTick');
-        set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
-        xlabel('time [years]')
-        ylabel('relative magnitude')
-        
+%         plot(E_tot);
 
-        subplot(2,2,3)
-        plot(p(1,2:end),p(2,2:end),'.k','MarkerSize',20); hold on
-        plot(p(1,1),p(2,1),'*y', 'MarkerSize',20); hold off
-        axis([-1 1 -1 1]*defaultRange);
-        title(strcat('N =', " ", num2str(sum(Mass~=0))));
-        
-        subplot(2,2,4)
-        plot(momentum_norm_rel);
-        title('Relative momentum(norm)')
-        axis([max(0,index-5000) index+500 [-1,1]*1.1*max(abs(momentum_norm_rel))]);
+        if type == 2
+            subplot(2,2,4)
+            plot(rel_momentum);
+%             title('Relative momentum(norm) relative to jupiter')
+            axis([max(0,index-5000) index+500 -0.1 1]);
 
-        xt = get(gca, 'XTick');
-        set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
-        xlabel('time [years]')
-        ylabel('relative magnitude')
+            xt = get(gca, 'XTick');
+            set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
+            xlabel('time [years]')
+            ylabel('relative magnitude')
+        end
         drawnow
         tic;
     end
