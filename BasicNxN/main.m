@@ -167,7 +167,7 @@ for t = 0:dt:T
         %eccentricity vs semi-major axis: 
         subplot(2,2,1) 
         plot(semi_m_axis(2:end),ecc(2:end),'.')
-        axis([0,max(semi_m_axis(2:end)),0, 1])
+        axis([0,max(semi_m_axis(2:end)),0, max([0.1;ecc(2:end)])])
         ylabel('$\varepsilon$','Interpreter','Latex')
         xlabel('a[m]')
         
@@ -177,7 +177,7 @@ for t = 0:dt:T
         title('Angular momentum(z)')
         axis([[max(0,index-5000) index+500] [1 1]*round(L_t(end))+[-1 1]]);
         xt = get(gca, 'XTick');
-        set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
+        set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,1))
         xlabel('time [years]')
         ylabel('relative magnitude')
         
@@ -216,11 +216,11 @@ for t = 0:dt:T
         if type == 2
             subplot(2,2,4)
             plot(rel_momentum);
-%             title('Relative momentum(norm) relative to jupiter')
+            title('Rel momentum(norm), rel to jupiter')
             axis([max(0,index-5000) index+500 -0.1 1]);
 
             xt = get(gca, 'XTick');
-            set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
+            set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,1))
             xlabel('time [years]')
             ylabel('relative magnitude')
         end
