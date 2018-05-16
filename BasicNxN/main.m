@@ -81,9 +81,7 @@ for t = 0:dt:T
         v = v(:,staying_indices);
         Mass = Mass(staying_indices);
         N = numel(staying_indices);
-        if int_met == 7
-            a = a(:,staying_indices);
-        end
+        a = a(:,staying_indices);
     end
     
     %later were gonna make some bounds on speed and range, this is needed.

@@ -41,6 +41,7 @@ function [new_tree] = make_tree(curr_tree,first_leaf,p,Mass,start_range)
     % make startrange a power of 2:
     q = ceil(log(start_range)/log(2));
     start_range = 2^q;
+    
     %define the centers (relative, startrange = 1)
     centers = [ 0.5,-0.5,-0.5, 0.5, 0.5,-0.5,-0.5, 0.5; ...
                 0.5, 0.5,-0.5,-0.5, 0.5, 0.5,-0.5,-0.5; ...
@@ -48,8 +49,10 @@ function [new_tree] = make_tree(curr_tree,first_leaf,p,Mass,start_range)
             
     %initiate tree (copy of curr_tree)
     new_tree = tree(curr_tree);
+    
     %initiate iterator
     iterator = curr_tree.breadthfirstiterator;
+    
     %if stop_next is true at the end of the loop, the recursion will stop
     stop_next = true;
     %loop over leaves, and adds node to a leaf if there is a particle in
@@ -76,12 +79,13 @@ function [new_tree] = make_tree(curr_tree,first_leaf,p,Mass,start_range)
             z_right = p(3,:) <= max(z_check) & p(3,:) > min(z_check)& Mass(:)~=0;
             all_right = x_right & y_right & z_right;
             n_particles = sum(all_right);
-            
+            disp([curr_node,num2str(n_particles)])
         else
             %for the case the only node is the root
             curr_center = [0;0;0];
             n = 0;
-            n_particles = size(p,2) - size(Mass(Mass~=0));
+            n_particles = sum(Mass~=0);
+            disp(['0',num2str(n_particles)])
         end
         %only adds nodes if there is more than 1 particle in this cell with
         %mass unequal 0
