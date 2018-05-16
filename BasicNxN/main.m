@@ -5,6 +5,9 @@ clear all; close all;
 % 3 = sphere
 type = 1;
 
+%use barnes hut
+barnes_hut = true;
+
 % plotting configuration
 fps = 1/3;
 plot_system = true;     %plot the particle system
@@ -237,22 +240,9 @@ for t = 0:dt:T
         
         %make the root mean square error of the total energy since the last
         %collision.
-<<<<<<< HEAD
-        E_tot_RMSE = sqrt(sum((E_tot(col_index:end)-mean(K(col_index(end)))).^2)/index);
-        title(strcat('RMSE(Energy):',num2str(E_tot_RMSE)));
-        drawnow
-        
-        subplot(2,2,2) 
-        plot(L_t(max(1,index-5000):end));
-        %make the axis nice and kushy
-        axis([[0 5000] [1 1]*round(L_t(end))+[-1 1]]);
-        title('Angular momentum(z)')
-        drawnow
-=======
 %         E_tot_RMSE = sqrt(sum((E_tot(col_index:end)-mean(E_tot(col_index(end)))).^2)/index);
 %         title(strcat('RMSE(Energy):',num2str(E_tot_RMSE)));
 %         plot(E_tot);
->>>>>>> 34c773a60838f79d6bef28f4f2897335c1d8a5d4
 
         if type == 2
             if plot_momentum
