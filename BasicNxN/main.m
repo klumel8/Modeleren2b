@@ -223,27 +223,6 @@ for t = 0:dt:T
             title(strcat('N =', " ", num2str(sum(Mass~=0))));
         end
 
-        
-%         axis([max(0,index-5000) index+500 -1 1]);
-%         xt = get(gca, 'XTick');
-%         set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
-%         xlabel('time [years]')
-%         ylabel('relative magnitude')
-%         plot(log(abs(momentum_rel')));
-%         title('momentum')
-%         axis([max(0,index-5000) index+500 [0,1]*1.1*max(max(log(abs(momentum_rel))))]);
-% 
-%         xt = get(gca, 'XTick');
-%         set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,2))
-%         xlabel('time [years]')
-%         ylabel('relative magnitude')
-        
-        %make the root mean square error of the total energy since the last
-        %collision.
-%         E_tot_RMSE = sqrt(sum((E_tot(col_index:end)-mean(E_tot(col_index(end)))).^2)/index);
-%         title(strcat('RMSE(Energy):',num2str(E_tot_RMSE)));
-%         plot(E_tot);
-
         if type == 2
             if plot_momentum
                 subplot(2,2,4)
