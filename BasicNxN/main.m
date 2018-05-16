@@ -3,13 +3,13 @@ clear all; close all;
 % 1 = early solar system
 % 2 = solar system and Kuyper belt
 % 3 = sphere
-type = 1;
+type = 2;
 
 %use barnes hut
 barnes_hut = true;
 
 % plotting configuration
-fps = 1/3;
+fps = 10;
 plot_system = true;     %plot the particle system
 plot_ecc_a = true;      %plot eccentricity vs semi major axis
 plot_ang_mom = true;    %plot the angular momentum
@@ -23,28 +23,31 @@ removing = true;
 if type == 1 % early solar system
     defaultRange = 108e9; % [m]
     N = 1e3;
-    dt = 3600*24*7; % in seconds (dt = 1 week)
-    T = 5e9; % in seconds
+    dt = 3600*24; % in seconds (dt = 1 day)
+    T = 5e10; % in seconds
+    [Mass, p, v, N] = initialConditions(defaultRange,N,1);
+    
 end
 
 if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
-    N = 1;
+    N = 1; % Dummy variable
+    N_k = 1e3; % particles in kuiper belt
     dt = 2*3600*24*7; % in seconds (dt = 2 weeks)
     T = 1e12; % in seconds
+    [Mass, p, v, N] = initialConditions(defaultRange,N,2);
+    [p_k, v_k] = kuiperbelt(N_k);
 end
 
 %integration method
 %1: newton forward
 %2,4-6: runge kutta 
 %7: leapfrog
-int_met = 4;
+int_met = 7;
 
 % universal parameters
 G = 6.67408*10^-11; % [Nm^2kg^-2]
-
-% Create initial conditions
-[Mass, p, v, N] = initialConditions(defaultRange,N, type);
+AU = 1.49597871e11; % [m]
 
 % colision index used for plotting
 colision_index = 1;
@@ -65,7 +68,7 @@ for t = 0:dt:T
     index = index+1;
     
     %remove particles every [remove_index] timesteps:
-    if mod(index,remove_index) == 0 & removing 
+    if mod(index,remove_index) == 0 && removing 
         %to be removed from: p,v,Mass,N
         %only select the indices which wont be removed:
         staying_indices = find(Mass ~= 0 & ~isnan(Mass));
@@ -73,6 +76,7 @@ for t = 0:dt:T
         v = v(:,staying_indices);
         Mass = Mass(staying_indices);
         N = numel(staying_indices);
+        a = a(:,staying_indices);
     end
     
     %later were gonna make some bounds on speed and range, this is needed.
@@ -164,6 +168,18 @@ for t = 0:dt:T
         p = p + dt*v;
         a = acc(p,Mass,G,N);
         v = v + a*dt/2;
+        
+        if type == 2
+%             if t == 0
+%                 %initialize acceleration for leapfrog
+%                 a = acc(p_k,Mass,G,N);
+%             end
+%             %leapfrog
+%             v = v + dt/2*a;
+%             p = p + dt*v;
+%             a = acc(p,Mass,G,N);
+%             v = v + a*dt/2;            
+        end
     end
     
     %fetch the kinetic and potential energy.
@@ -182,7 +198,7 @@ for t = 0:dt:T
         %make a momentum vector for plotting (only the norm)
         momentum(:,:,index) = Mass.*v; % momentum of all particles (3xNxtime)
         momentum_norm = vecnorm(nansum(momentum,2),2,1); %(1x1xtime)
-        rel_momentum = momentum_norm./vecnorm(momentum(:,6,1),2,1); %momentum relative to jupiter
+        rel_momentum = momentum_norm./vecnorm(momentum(:,end-3,1),2,1); %momentum relative to jupiter
         rel_momentum = permute(rel_momentum,[3,2,1]);
     end
     
@@ -218,9 +234,16 @@ for t = 0:dt:T
             %particle system
             subplot(2,2,3)
             plot(p(1,2:end),p(2,2:end),'.k','MarkerSize',20); hold on
-            plot(p(1,1),p(2,1),'*y', 'MarkerSize',20); hold off
-            axis([-1 1 -1 1]*defaultRange);
-            title(strcat('N =', " ", num2str(sum(Mass~=0))));
+            plot(p(1,1),p(2,1),'*y', 'MarkerSize',20); hold on
+            axis([-1 1 -1 1]*defaultRange*2);
+            title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
+            
+            %plot kuiperbelt if type == 2
+            if type == 2
+                plot(p_k(1,:),p_k(2,:),'.r','MarkerSize',20); hold on
+                axis([-1 1 -1 1]*50*AU);
+            end
+            hold off;
         end
 
         if type == 2
