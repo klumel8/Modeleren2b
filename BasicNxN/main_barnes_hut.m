@@ -39,7 +39,7 @@ col_index = 1;
 theta = 1/1.1; 
 
 % Create initial conditions
-[Mass, p, v] = initialConditions(defaultRange,N);
+[Mass, p, v] = initialConditions(defaultRange,N,1);
 
 
 % dt = 'stepsize', T = 'total time'

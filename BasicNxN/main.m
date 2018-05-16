@@ -7,9 +7,10 @@ type = 1;
 
 %use barnes hut
 barnes_hut = true;
+theta = 1/1.1;
 
 % plotting configuration
-fps = 1/3;
+fps = 5;
 plot_system = true;     %plot the particle system
 plot_ecc_a = true;      %plot eccentricity vs semi major axis
 plot_ang_mom = true;    %plot the angular momentum
@@ -22,15 +23,15 @@ removing = true;
 
 if type == 1 % early solar system
     defaultRange = 108e9; % [m]
-    N = 1e3;
-    dt = 3600*24*7; % in seconds (dt = 1 week)
+    N = 1e2;
+    dt = 3600; % in seconds (dt = 1 week)
     T = 5e9; % in seconds
 end
 
 if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1;
-    dt = 2*3600*24*7; % in seconds (dt = 2 weeks)
+    dt = 3600*24; % in seconds (dt = 2 weeks)
     T = 1e12; % in seconds
 end
 
@@ -45,6 +46,13 @@ G = 6.67408*10^-11; % [Nm^2kg^-2]
 
 % Create initial conditions
 [Mass, p, v, N] = initialConditions(defaultRange,N, type);
+
+%define acc function:
+if barnes_hut
+    acc_fun = @(p,Mass,N) acc_barnes_hut(p,Mass,G,N,theta);
+else 
+    acc_fun = @(p,Mass,N) acc(p,Mass,G,N);
+end
 
 % colision index used for plotting
 colision_index = 1;
@@ -73,6 +81,9 @@ for t = 0:dt:T
         v = v(:,staying_indices);
         Mass = Mass(staying_indices);
         N = numel(staying_indices);
+        if int_met == 7
+            a = a(:,staying_indices);
+        end
     end
     
     %later were gonna make some bounds on speed and range, this is needed.
@@ -122,47 +133,47 @@ for t = 0:dt:T
     
     if int_met == 1
         %first order (newton forward)
-        a = acc(p,Mass,G,N);
+        a = acc_fun(p,Mass,N);
         p = p + v*dt + a * dt^2 / 2;
         v = v + a * dt;
     elseif int_met == 2
         %Runge Kutta 2 conserves angular momentum?
-        k1 = dt^2*acc(p + (1/2)*dt*v,Mass,G,N);
+        k1 = dt^2*acc_fun(p + (1/2)*dt*v,Mass,N);
         p = p + v*dt + k1;
         v = v + k1/dt;
     elseif int_met == 4
         %Runge Kutta 4
-        k1 = dt^2*acc(p,Mass,G,N);
-        k2 = dt^2*acc(p + 0.5*dt*v + 1/8*k1,Mass,G,N);
-        k3 = dt^2*acc(p + dt*v + .5*k2,Mass,G,N);
+        k1 = dt^2*acc_fun(p,Mass,N);
+        k2 = dt^2*acc_fun(p + 0.5*dt*v + 1/8*k1,Mass,N);
+        k3 = dt^2*acc_fun(p + dt*v + .5*k2,Mass,N);
         p = p + v*dt + 1/6*(k1+2*k2);
         v = v + 1/(6*dt)*(k1+4*k2+k3);
     elseif int_met == 5
         %Runge Kutta 5a see file I (floris) send over whatsapp
-        k1 = dt^2*acc(p,Mass,G,N);
-        k2 = dt^2*acc(p + (1/4)*dt*v + (1/32)*k1,Mass,G,N);
-        k3 = dt^2*acc(p + (7/10)*dt*v - (7/1000)*k1 + (63/250)*k2,Mass,G,N);
-        k4 = dt^2*acc(p + dt*v + (2/7)*k1 + (3/14)*k3,Mass,G,N);
+        k1 = dt^2*acc_fun(p,Mass,N);
+        k2 = dt^2*acc_fun(p + (1/4)*dt*v + (1/32)*k1,Mass,N);
+        k3 = dt^2*acc_fun(p + (7/10)*dt*v - (7/1000)*k1 + (63/250)*k2,Mass,N);
+        k4 = dt^2*acc_fun(p + dt*v + (2/7)*k1 + (3/14)*k3,Mass,N);
         p = p + dt*v + (1/14)*k1 + (8/27)*k2 + (25/189)*k4;
         v = v + (1/dt)*((1/14)*k1 + (32/81)*k2 + (250/567)*k3 + (5/54)*k4);
     elseif int_met == 6
         %Runge Kutta 6.
-        k1 = dt^2*acc(p,Mass,G,N);
-        k2 = dt^2*acc(p + 1/4*dt*v + 1/32*k1,Mass,G,N);
-        k3 = dt^2*acc(p + 1/2*dt*v - k1/24 + k2/6,Mass,G,N);
-        k4 = dt^2*acc(p + 3/4*dt*v + k1*3/32 + k2/8 + k3/16,Mass,G,N);
-        k5 = dt^2*acc(p + 3/7*dt*v - k1/14 + k3/7,Mass,G,N);
+        k1 = dt^2*acc_fun(p,Mass,N);
+        k2 = dt^2*acc_fun(p + 1/4*dt*v + 1/32*k1,Mass,N);
+        k3 = dt^2*acc_fun(p + 1/2*dt*v - k1/24 + k2/6,Mass,N);
+        k4 = dt^2*acc_fun(p + 3/4*dt*v + k1*3/32 + k2/8 + k3/16,Mass,N);
+        k5 = dt^2*acc_fun(p + 3/7*dt*v - k1/14 + k3/7,Mass,N);
         p = p + dt*v + (7*k1 +24*k2 + 6*k3 + 8*k4)/90;
         v = v + (7*k1 + 32*k2 + 12*k3 + 32*k4 + 7*k5)/(90*dt);
     elseif int_met == 7
         if t == 0
             %initialize acceleration for leapfrog
-            a = acc(p,Mass,G,N);
+            a = acc_fun(p,Mass,N);
         end
         %leapfrog
-        v = v + dt/2*a;
+        v = v + a*dt/2;
         p = p + dt*v;
-        a = acc(p,Mass,G,N);
+        a = acc_fun(p,Mass,N);
         v = v + a*dt/2;
     end
     
