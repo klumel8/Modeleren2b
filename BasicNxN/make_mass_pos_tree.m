@@ -37,9 +37,6 @@ function [mass_tree, pos_tree] = make_mass_pos_tree(basic_tree,p,Mass,start_rang
 
     %initialize used variables:
     
-    %make start_range a power of 2
-    q = ceil(log(start_range)/log(2));
-    start_range = 2^q;
     %define the centers(relative, startrange = 1)
     centers = [ 0.5,-0.5,-0.5, 0.5, 0.5,-0.5,-0.5, 0.5; ...
                 0.5, 0.5,-0.5,-0.5, 0.5, 0.5,-0.5,-0.5; ...

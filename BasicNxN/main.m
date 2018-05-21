@@ -10,7 +10,8 @@ barnes_hut = true;
 theta = 1/1.1;
 
 % plotting configuration
-fps = 5;
+fps = 24;
+plot_all = true; %plot all frames
 plot_system = true;     %plot the particle system
 plot_ecc_a = true;      %plot eccentricity vs semi major axis
 plot_ang_mom = true;    %plot the angular momentum
@@ -23,7 +24,7 @@ removing = true;
 
 if type == 1 % early solar system
     defaultRange = 108e9; % [m]
-    N = 1e2;
+    N = 3e1;
     dt = 3600; % in seconds (dt = 1 week)
     T = 5e9; % in seconds
 end
@@ -39,7 +40,7 @@ end
 %1: newton forward
 %2,4-6: runge kutta 
 %7: leapfrog
-int_met = 4;
+int_met = 7;
 
 % universal parameters
 G = 6.67408*10^-11; % [Nm^2kg^-2]
@@ -81,16 +82,19 @@ for t = 0:dt:T
         v = v(:,staying_indices);
         Mass = Mass(staying_indices);
         N = numel(staying_indices);
-        a = a(:,staying_indices);
+        if int_met == 7
+            a = a(:,staying_indices);
+        end
     end
     
     %later were gonna make some bounds on speed and range, this is needed.
     vOud = v;
     
     %remove particles which are too far with a too high speed:
-    remove_crit = vecnorm(p)>10*defaultRange;
+    remove_crit = vecnorm(p)>100*defaultRange;
     if any(remove_crit)
         indices = find(remove_crit);
+        disp(['Number of removed particles: ',num2str(numel(indices))])
         p(:,indices) = p(:,indices)./20;%bring particle back in the system
         v(:,indices) = repmat([0;0;0],1,numel(indices));%set velocity to 0
         Mass(indices) = 0;%set mass to 0
@@ -172,6 +176,11 @@ for t = 0:dt:T
         v = v + a*dt/2;
         p = p + dt*v;
         a = acc_fun(p,Mass,N);
+        if any(a>v)
+            disp('a>v')
+            disp(a)
+            disp(v)
+        end
         v = v + a*dt/2;
     end
     
@@ -200,8 +209,8 @@ for t = 0:dt:T
     semi_m_axis = semi_m_axis';
 
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
-    %only plot when 1 == 1, (saves time)
-    if toc > 1/fps && plotting
+    %only plot when plotting = true, (saves time)
+    if (toc > 1/fps && plotting) | plot_all
         figure(1)
         if plot_ecc_a
             %eccentricity vs semi-major axis: 

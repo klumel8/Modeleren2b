@@ -57,7 +57,7 @@ if type == 1
 
     % create position and speed vectors
     theta = 2*pi*rand(1,N); % create random angles
-    r = radius * ( 0.5 + 0.1*randn(1,N) ); % create normally distributed angles
+    r = radius * ( 0.5 + 0.1*rand(1,N) ); % create uniformly distributed radii
 
     p = r.*[cos(theta); sin(theta); zeros(1,N)]; % position vector
 
@@ -65,6 +65,9 @@ if type == 1
     v = v_abs .* [-sin(theta); cos(theta); zeros(1,N)];
 
     p(:,1) = [0;0;0]; v(:,1) = [0;0;0]; % pin sun to origin
+    momentum = nansum(Mass .* v,2);
+    v(:,1) = -momentum / Mass(1); %give sun position and velocity to make velocitiy of CoM 0
+    p(:,1) = -nansum(Mass.*p,2)/Mass(1);
 end
    
 if type == 2   
@@ -102,6 +105,9 @@ if type == 3
     v = v_abs .* [-sin(theta); cos(theta); zeros(1,N)];
 
     p(:,1) = [0;0;0]; v(:,1) = [0;0;0]; % pin sun to origin   
+    momentum = nansum(Mass .* v,2);
+    v(:,1) = -momentum / Mass(1);
+    p(:,1) = -nansum(Mass.*p,2)/Mass(1);
 end
 %% Output Handling
 % -

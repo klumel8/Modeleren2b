@@ -24,22 +24,21 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
     %the cell and the particle
     far_enough = (3.*((0.5.^(distance_norm_tree.depthtree-1)).*start_range).^2).^(0.5)./distance_norm_tree < theta;
 %     far_enough = ((0.5.^(distance_norm_tree.depthtree-1)).*start_range)./distance_norm_tree < theta;
-    
     %setting leaves to 1, to ensure that there is a force to calculate:
     for i = far_enough.breadthfirstiterator
         if far_enough.isleaf(i)
-            this_leaf = ones(size(Mass));
-            this_leaf = this_leaf.*(1-(distance_norm_tree.get(i) == 0));
-            far_enough = far_enough.set(i,this_leaf);
+            far_enough = far_enough.set(i,logical(ones(size(Mass))));
         end
     end
-    
-    depth_iter = far_enough.depthfirstiterator;
     %set far_enough to 0 if one or more of its children are 0
+    depth_iter = far_enough.depthfirstiterator;
     for i = depth_iter(end:-1:2)
         far_enough = far_enough.set(far_enough.getparent(i),far_enough.get(far_enough.getparent(i)).*far_enough.get(i));
     end
-
+    for i = depth_iter
+        current = far_enough.get
+        for j = 1:N
+            if isnan(far_enough(k
     
     %set root to 0, to ensure there some nodes are used to calculate the
     %force
