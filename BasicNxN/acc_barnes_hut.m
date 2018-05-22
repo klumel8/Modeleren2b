@@ -28,9 +28,7 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
     %setting leaves to 1, to ensure that there is a force to calculate:
     for i = far_enough.breadthfirstiterator
         if far_enough.isleaf(i)
-            this_leaf = ones(size(Mass));
-            this_leaf = this_leaf.*(1-(distance_norm_tree.get(i) == 0));
-            far_enough = far_enough.set(i,this_leaf);
+            far_enough = far_enough.set(i,(distance_norm_tree.get(i) > 0));
         end
     end
     
@@ -60,22 +58,20 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
     %nando: dont know if it is possible without forloops
     
     
-    %goes wrong: 
+    %goes wrong: (i think its only this part, i could be wrong)
     a = zeros(3,N);
     iter = far_enough.depthfirstiterator;
-    for k = iter(2:end) %exclude root from iteration, because it doesnt have a parent
-        prev_node = far_enough.get(far_enough.getparent(k));
+    %loop over CoM
+    for k = iter(2:end) %exclude root from iteration, because it doesnt have a parent and should never be used to calculate the force
+        parent_node = far_enough.get(far_enough.getparent(k));
         node = far_enough.get(k);
-        for i = 1:N
-            %if the CoM is far enough, calculate the acceleration
-            if node(i) & ~prev_node(i)
+        for i = 1:N %loop over particles
+            %if the CoM is far enough, and if parent is not far enough, calculate the acceleration
+            if node(i) & ~parent_node(i)
                 %direction of acceleration is right
                 %maybe calculate distance before forloop?
-                distance = pos_tree.get(k) - p(i);
+                distance = pos_tree.get(k) - p(i); %accelerate in the direction of the CoM
                 a(:,i) = a(:,i) + G.*mass_tree.get(k).*distance./(vecnorm(distance).^3);
-                if i == 1
-                    disp(G.*mass_tree.get(k).*distance./(vecnorm(distance).^3))
-                end
             end
         end
     end

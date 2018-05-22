@@ -28,25 +28,27 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
     %setting leaves to 1, to ensure that there is a force to calculate:
     for i = far_enough.breadthfirstiterator
         if far_enough.isleaf(i)
-            this_leaf = ones(size(Mass));
-            this_leaf = this_leaf.*(1-(distance_norm_tree.get(i) == 0));
-            far_enough = far_enough.set(i,this_leaf);
+            far_enough = far_enough.set(i,(distance_norm_tree.get(i) > 0));
         end
     end
     
     depth_iter = far_enough.depthfirstiterator;
     %set far_enough to 0 if one or more of its children are 0
     for i = depth_iter(end:-1:2)
-        if far_e
-        far_enough = far_enough.set(far_enough.getparent(i),far_enough.get(far_enough.getparent(i)).*far_enough.get(i));
-        disp(far_enough.get(i))
-        disp(basic_tree.get(i))
+        if ~far_enough.isleaf(i)
+            for child = far_enough.getchildren(i)
+                far_enough = far_enough.set(i,far_enough.get(i).*far_enough.get(child));
+            end
+%         far_enough = far_enough.set(far_enough.getparent(i),far_enough.get(far_enough.getparent(i)).*far_enough.get(i));
+%         disp(far_enough.get(i))
+%         disp(basic_tree.get(i))
+        end
     end
 
     
     %set root to 0, to ensure there some nodes are used to calculate the
     %force
-    far_enough = far_enough.set(1,logical(zeros(size(Mass))));
+    far_enough = far_enough.set(1,zeros(size(Mass)));
     
     %calculate the force of each center of mass on this particle
     %sasha: calculate force of CoM's on each other if far enough away, then
@@ -58,17 +60,17 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
     
     %goes wrong: 
     a = zeros(3,N);
-    for i = 1:N
-
-        iter = far_enough.depthfirstiterator;
-        for k = iter(2:end) %exclude root from iteration, because it doesnt have a parent
-            prev_node = far_enough.get(far_enough.getparent(k));
-            node = far_enough.get(k);
-            %if the CoM is far enough, calculate the acceleration
-            if node(i) & ~prev_node(i)
+    iter = far_enough.depthfirstiterator;
+    %loop over CoM
+    for k = iter(2:end) %exclude root from iteration, because it doesnt have a parent and should never be used to calculate the force
+        parent_node = far_enough.get(far_enough.getparent(k));
+        node = far_enough.get(k);
+        for i = 1:N %loop over particles
+            %if the CoM is far enough, and if parent is not far enough, calculate the acceleration
+            if node(i) & ~parent_node(i)
                 %direction of acceleration is right
                 %maybe calculate distance before forloop?
-                distance = pos_tree.get(k) - p(i);
+                distance = pos_tree.get(k) - p(i); %accelerate in the direction of the CoM
                 a(:,i) = a(:,i) + G.*mass_tree.get(k).*distance./(vecnorm(distance).^3);
             end
         end

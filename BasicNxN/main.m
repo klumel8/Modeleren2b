@@ -7,7 +7,8 @@ type = 1;
 
 %use barnes hut
 barnes_hut = true;
-theta = 0;
+theta = 0;%0 to test acc calculation: all particles are indiviually used,
+          %should be the same as without barnes hut
 
 % plotting configuration
 fps = 24;
