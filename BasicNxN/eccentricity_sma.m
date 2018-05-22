@@ -1,4 +1,4 @@
-function [e a] = eccentricity_sma(p,v,m)
+function [e, a] = eccentricity_sma(p,v,m)
 %Calculate the center of mass of the given particlesx
 %input arguments:
 %   p       : (3xN) position vector

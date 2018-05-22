@@ -11,7 +11,7 @@ type = 1;
 %7: leapfrog
 int_met = 4;
 %use barnes hut
-barnes_hut = true;
+barnes_hut = false;
 
 % universal parameters
 G = 6.67408*10^-11; % [Nm^2kg^-2]
@@ -19,8 +19,8 @@ AU = 1.49597871e11; % [m]
 
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
-    N = 1e3;
-    dt = 3600*24*7*4; % in seconds (dt = 1 day)
+    N = 1e1;
+    dt = 3600*24; % in seconds (dt = 1 day)
     T = 5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
     
@@ -93,7 +93,7 @@ for t = 0:dt:T
     end
     
     %read fo.m first, but keeps track of whether there was a collision.
-    c = col(p,Mass,N);
+    c = col(p,v,Mass,N,dt);
     
     %#BUG will crash if multiple collisions in one timestep
     %check if the collision vector is empty    
@@ -104,6 +104,7 @@ for t = 0:dt:T
        indices(1,:) = (indices(1,:)==0)*N + indices(1,:);
        indices(:,find(indices(1,:) > indices(2,:))) = [];
        %this way, if a particle collides with the sun, the sun is still the first particle
+        
        
        %ik ga uit van compleet inelastisch.
        %new position is mass centre
