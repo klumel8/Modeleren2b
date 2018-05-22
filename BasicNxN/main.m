@@ -19,7 +19,7 @@ AU = 1.49597871e11; % [m]
 
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
-    N = 1e1;
+    N = 1e2;
     dt = 3600*24; % in seconds (dt = 1 day)
     T = 5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);

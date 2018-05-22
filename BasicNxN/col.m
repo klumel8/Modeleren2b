@@ -13,7 +13,7 @@ function Collision = col(p, v, Mass, N,dt)
 %   dispVec
     rho = 1e3; % [kgm^-3]
     %get the distances between the particles
-    [D,R] = dispVec(p,N);    
+    [D,R] = dispVec(p,N);   
     [DV,DV_norm] = dispVec(v,N);
         
     %check if particles collide
@@ -35,10 +35,8 @@ function Collision = col(p, v, Mass, N,dt)
     %check if they collide at the begin or endpoint:
     col_begin_end = R.^2 < planetCombi.^2 | vecnorm(D + DV*dt,2,3).^2 <planetCombi.^2;
     
-    %combine all checks
-    Collision = (col_somewhere & col_time_correct) | col_begin_end;
-    %remove collisions of a particle with itself
-    Collision = Collision & ~eye(N);
+    %combine all checks & remove all collisions of a particle with itself
+    Collision = ((col_somewhere & col_time_correct) | col_begin_end) & ~eye(N);
     
     %old
 %     Collision = (R <planetCombi).* R>0;
