@@ -37,13 +37,20 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
     depth_iter = far_enough.depthfirstiterator;
     %set far_enough to 0 if one or more of its children are 0
     for i = depth_iter(end:-1:2)
-        far_enough = far_enough.set(far_enough.getparent(i),far_enough.get(far_enough.getparent(i)).*far_enough.get(i));
+        if ~far_enough.isleaf(i)
+            for child = far_enough.getchildren(i)
+                far_enough = far_enough.set(i,far_enough.get(i).*far_enough.get(child));
+            end
+%         far_enough = far_enough.set(far_enough.getparent(i),far_enough.get(far_enough.getparent(i)).*far_enough.get(i));
+%         disp(far_enough.get(i))
+%         disp(basic_tree.get(i))
+        end
     end
 
     
     %set root to 0, to ensure there some nodes are used to calculate the
     %force
-    far_enough = far_enough.set(1,logical(zeros(size(Mass))));
+    far_enough = far_enough.set(1,zeros(size(Mass)));
     
     %calculate the force of each center of mass on this particle
     %sasha: calculate force of CoM's on each other if far enough away, then
@@ -54,32 +61,21 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
     
     
     %goes wrong: 
-    depth_tree = far_enough.depthtree;
     a = zeros(3,N);
-    for i = 1:N
-        depth = 0;
-        skip_next = false;
-
-        iter = far_enough.depthfirstiterator;
-        for k = iter
-            if depth >= depth_tree.get(k)
-                %set skip_next to false when back at the 'top'(lower depth
-                %than previous used node)
-                skip_next = false;
-            end
-            if skip_next
-                continue
-            end
-            node = far_enough.get(k);
+    iter = far_enough.depthfirstiterator;
+    for k = iter(2:end) %exclude root from iteration, because it doesnt have a parent
+        prev_node = far_enough.get(far_enough.getparent(k));
+        node = far_enough.get(k);
+        for i = 1:N
             %if the CoM is far enough, calculate the acceleration
-            if node(i)
-                %skip next node until at the same depth again
-                skip_next = true;
-                depth = depth_tree.get(k);
+            if node(i) & ~prev_node(i)
                 %direction of acceleration is right
                 %maybe calculate distance before forloop?
                 distance = pos_tree.get(k) - p(i);
                 a(:,i) = a(:,i) + G.*mass_tree.get(k).*distance./(vecnorm(distance).^3);
+                if i == 1
+                    disp(G.*mass_tree.get(k).*distance./(vecnorm(distance).^3))
+                end
             end
         end
     end

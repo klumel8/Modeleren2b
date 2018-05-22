@@ -7,7 +7,7 @@ type = 1;
 
 %use barnes hut
 barnes_hut = true;
-theta = 1/1.1;
+theta = 0;
 
 % plotting configuration
 fps = 24;
@@ -93,6 +93,7 @@ for t = 0:dt:T
     %remove particles which are too far with a too high speed:
     remove_crit = vecnorm(p)>100*defaultRange;
     if any(remove_crit)
+        disp('too far')
         indices = find(remove_crit);
         disp(['Number of removed particles: ',num2str(numel(indices))])
         p(:,indices) = p(:,indices)./20;%bring particle back in the system
@@ -106,6 +107,7 @@ for t = 0:dt:T
     %#BUG will crash if multiple collisions in one timestep
     %check if the collision vector is empty    
     if max(max(c)) > 0
+        disp('collision')
        %find indices of collided particles       
        %re-rank the collision indexes
        indices = [mod(find(c),N)'; ceil(find(c)/N)'];
