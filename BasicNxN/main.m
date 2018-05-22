@@ -3,10 +3,38 @@ clear all; close all;
 % 1 = early solar system
 % 2 = solar system and Kuyper belt
 % 3 = sphere
-type = 2;
+type = 1;
 
+%integration method
+%1: newton forward
+%2,4-6: runge kutta 
+%7: leapfrog
+int_met = 4;
 %use barnes hut
 barnes_hut = true;
+
+% universal parameters
+G = 6.67408*10^-11; % [Nm^2kg^-2]
+AU = 1.49597871e11; % [m]
+
+if type == 1 % early solar system
+    defaultRange = 5*AU; % [m]
+    N = 1e3;
+    dt = 3600*24*7*4; % in seconds (dt = 1 day)
+    T = 5e10; % in seconds
+    [Mass, p, v, N] = initialConditions(defaultRange,N,1);
+    
+end
+
+if type == 2 % solar system and Kuyper belt
+    defaultRange = 5e12; % [m]
+    N = 1; % Dummy variable
+    N_k = 1e3; % particles in kuiper belt
+    dt = 26*3600*24*7; % in seconds (dt = 2 weeks)
+    T = 1e12; % in seconds
+    [Mass, p, v, N] = initialConditions(defaultRange,N,2);
+    [p_k, v_k] = kuiperbelt(N_k);
+end
 
 % plotting configuration
 fps = 10;
@@ -19,35 +47,6 @@ plotting = true;        %plot anything at all
 %remove the particles every [remove_index] timesteps
 remove_index = 10;
 removing = true;
-
-if type == 1 % early solar system
-    defaultRange = 108e9; % [m]
-    N = 1e3;
-    dt = 3600*24; % in seconds (dt = 1 day)
-    T = 5e10; % in seconds
-    [Mass, p, v, N] = initialConditions(defaultRange,N,1);
-    
-end
-
-if type == 2 % solar system and Kuyper belt
-    defaultRange = 5e12; % [m]
-    N = 1; % Dummy variable
-    N_k = 1e3; % particles in kuiper belt
-    dt = 2*3600*24*7; % in seconds (dt = 2 weeks)
-    T = 1e12; % in seconds
-    [Mass, p, v, N] = initialConditions(defaultRange,N,2);
-    [p_k, v_k] = kuiperbelt(N_k);
-end
-
-%integration method
-%1: newton forward
-%2,4-6: runge kutta 
-%7: leapfrog
-int_met = 7;
-
-% universal parameters
-G = 6.67408*10^-11; % [Nm^2kg^-2]
-AU = 1.49597871e11; % [m]
 
 % colision index used for plotting
 colision_index = 1;
@@ -76,7 +75,9 @@ for t = 0:dt:T
         v = v(:,staying_indices);
         Mass = Mass(staying_indices);
         N = numel(staying_indices);
-        a = a(:,staying_indices);
+        if int_met == 7
+            a = a(:,staying_indices);
+        end
     end
     
     %later were gonna make some bounds on speed and range, this is needed.
@@ -214,7 +215,7 @@ for t = 0:dt:T
             %eccentricity vs semi-major axis: 
             subplot(2,2,1) 
             plot(semi_m_axis(2:end),ecc(2:end),'.')
-            axis([0,2*defaultRange,0, 0.7])
+            axis([0,1.1*defaultRange,0, 0.5])
             title(['time: ',num2str(round(t/31556926,1)),' y'])
             ylabel('$\varepsilon$','Interpreter','Latex')
             xlabel('a[m]')
@@ -235,7 +236,7 @@ for t = 0:dt:T
             subplot(2,2,3)
             plot(p(1,2:end),p(2,2:end),'.k','MarkerSize',20); hold on
             plot(p(1,1),p(2,1),'*y', 'MarkerSize',20); hold on
-            axis([-1 1 -1 1]*defaultRange*2);
+            axis([-1 1 -1 1]*defaultRange*1.1);
             title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
             
             %plot kuiperbelt if type == 2
