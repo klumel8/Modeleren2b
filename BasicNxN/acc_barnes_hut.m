@@ -64,13 +64,13 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
     %loop over CoM
     for k = iter(2:end) %exclude root from iteration, because it doesnt have a parent and should never be used to calculate the force
         parent_node = far_enough.get(far_enough.getparent(k));
-        node = far_enough.get(k);
+        node = far_enough.get(k); %node = 1xN matrix with 1 at place i when this CoM is far enough from particle i
         for i = 1:N %loop over particles
             %if the CoM is far enough, and if parent is not far enough, calculate the acceleration
             if node(i) & ~parent_node(i)
                 %direction of acceleration is right
                 %maybe calculate distance before forloop?
-                distance = pos_tree.get(k) - p(i); %accelerate in the direction of the CoM
+                distance = pos_tree.get(k) - p(i); %vector in the direction of the CoM
                 a(:,i) = a(:,i) + G.*mass_tree.get(k).*distance./(vecnorm(distance).^3);
             end
         end
