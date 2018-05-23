@@ -3,13 +3,13 @@ clear all; close all;
 % 1 = early solar system
 % 2 = solar system and Kuyper belt
 % 3 = sphere
-type = 1;
+type = 2;
 
 %integration method
 %1: newton forward
 %2,4-6: runge kutta 
 %7: leapfrog
-int_met = 4;
+int_met = 7;
 %use barnes hut
 barnes_hut = false;
 
@@ -30,7 +30,7 @@ if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1; % Dummy variable
     N_k = 1e3; % particles in kuiper belt
-    dt = 26*3600*24*7; % in seconds (dt = 2 weeks)
+    dt = 3600*24*7*52; % in seconds (dt = 2 weeks)
     T = 1e12; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k);
@@ -41,7 +41,7 @@ fps = 10;
 plot_system = true;     %plot the particle system
 plot_ecc_a = true;      %plot eccentricity vs semi major axis
 plot_ang_mom = true;    %plot the angular momentum
-plot_momentum = true;   %plot the momentum, relative to jupiter(only for type ==2)
+plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
 plotting = true;        %plot anything at all
 
 %remove the particles every [remove_index] timesteps
@@ -172,15 +172,15 @@ for t = 0:dt:T
         v = v + a*dt/2;
         
         if type == 2
-%             if t == 0
-%                 %initialize acceleration for leapfrog
-%                 a = acc(p_k,Mass,G,N);
-%             end
-%             %leapfrog
-%             v = v + dt/2*a;
-%             p = p + dt*v;
-%             a = acc(p,Mass,G,N);
-%             v = v + a*dt/2;            
+            if t == 0
+                %initialize acceleration for leapfrog
+                a_k = kuiperacc(p,p_k,Mass);
+            end
+            %leapfrog
+            v_k = v_k + dt/2*a_k;
+            p_k = p_k + dt*v_k;
+            a_k = kuiperacc(p,p_k,Mass);
+            v_k = v_k + a_k*dt/2;            
         end
     end
     
@@ -233,16 +233,22 @@ for t = 0:dt:T
             ylabel('relative magnitude')
         end
         if plot_system
+            T_neptune = 60182*3600*24; % seconds
+            omega_neptune = 2*pi/T_neptune;
+            A = [cos(omega_neptune*t), sin(omega_neptune*t);...
+                -sin(omega_neptune*t), cos(omega_neptune*t) ];
+            plot_p(1:2,:) = A*p(1:2,:);
+            plot_p_k(1:2,:) = A*p_k(1:2,:);
             %particle system
             subplot(2,2,3)
-            plot(p(1,2:end),p(2,2:end),'.k','MarkerSize',20); hold on
-            plot(p(1,1),p(2,1),'*y', 'MarkerSize',20); hold on
+            plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); hold on
+            plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20); hold on
             axis([-1 1 -1 1]*defaultRange*1.1);
             title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
             
             %plot kuiperbelt if type == 2
             if type == 2
-                plot(p_k(1,:),p_k(2,:),'.r','MarkerSize',20); hold on
+                plot(plot_p_k(1,:),plot_p_k(2,:),'.r','MarkerSize',2); hold on
                 axis([-1 1 -1 1]*50*AU);
             end
             hold off;

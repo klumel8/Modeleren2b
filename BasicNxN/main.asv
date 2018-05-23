@@ -3,13 +3,13 @@ clear all; close all;
 % 1 = early solar system
 % 2 = solar system and Kuyper belt
 % 3 = sphere
-type = 1;
+type = 2;
 
 %integration method
 %1: newton forward
 %2,4-6: runge kutta 
 %7: leapfrog
-int_met = 4;
+int_met = 7;
 %use barnes hut
 barnes_hut = false;
 
@@ -19,7 +19,7 @@ AU = 1.49597871e11; % [m]
 
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
-    N = 1e1;
+    N = 1e2;
     dt = 3600*24; % in seconds (dt = 1 day)
     T = 5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
@@ -172,15 +172,15 @@ for t = 0:dt:T
         v = v + a*dt/2;
         
         if type == 2
-%             if t == 0
-%                 %initialize acceleration for leapfrog
-%                 a = acc(p_k,Mass,G,N);
-%             end
-%             %leapfrog
-%             v = v + dt/2*a;
-%             p = p + dt*v;
-%             a = acc(p,Mass,G,N);
-%             v = v + a*dt/2;            
+            if t == 0
+                %initialize acceleration for leapfrog
+                a_k = kuiperacc(p,p_k,Mass);
+            end
+            %leapfrog
+            v_k = v_k + dt/2*a_k;
+            p_k = p_k + dt*v_k;
+            a_k = kuiperacc(p,p_k,Mass);
+            v_k = v_k + a_k*dt/2;            
         end
     end
     
@@ -233,6 +233,12 @@ for t = 0:dt:T
             ylabel('relative magnitude')
         end
         if plot_system
+            T_neptune = 60.182*3600*24; % seconds
+            omega_neptune = 2*pi/T_neptune;
+            A = (cos(omega_neptune*t) sin(omega_neptune*t);...
+                -sin(omega_neptune*t), cos(omega_neptune*t));
+            p(1:2,:) = A*p(1:2,:);
+            
             %particle system
             subplot(2,2,3)
             plot(p(1,2:end),p(2,2:end),'.k','MarkerSize',20); hold on
@@ -242,7 +248,7 @@ for t = 0:dt:T
             
             %plot kuiperbelt if type == 2
             if type == 2
-                plot(p_k(1,:),p_k(2,:),'.r','MarkerSize',20); hold on
+                plot(p_k(1,:),p_k(2,:),'.r','MarkerSize',2); hold on
                 axis([-1 1 -1 1]*50*AU);
             end
             hold off;
