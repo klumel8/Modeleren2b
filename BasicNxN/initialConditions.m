@@ -74,14 +74,19 @@ if type == 2
 % %          Sun Mercury Venus Earth Mars  Jupiter Saturn Uranus Neptune
 %     Mass= [0.1 0.330   4.87  5.97  0.64  1898    568    68.6   102   ] * 10^24;   % kg
 %     r   = [0.1 57.9    108.2 149.6 227.9 778.6   1433.5 2872.5 4495.1] * 10^9;    % m
-% 
+
 %          Sun Jupiter Saturn Uranus Neptune
-    Mass= [0.1 1898    568    68.6   102   ] * 10^24;   % kg
-    r   = [0.1 778.6   1433.5 2872.5 4495.1] * 10^9;    % m
+%     Mass= [0.1 1898    568    68.6   102   ] * 10^24;   % kg
+%     r   = [0.1 778.6   1433.5 2872.5 4495.1] * 10^9;    % m
     
     %for richardson error estimation
 %     Mass = [0.1, 1898] * 10^24;
 %     r   = [0.1 778.6 ]* 10^9;
+
+
+%          Sun Neptune
+    Mass= [0.1 10200   ] * 10^24;   % kg
+    r   = [0.1 4495.1] * 10^9;    % m
     N   = length(Mass);
     
     Mass(1) = Mass_sun;
