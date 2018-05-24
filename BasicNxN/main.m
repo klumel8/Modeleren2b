@@ -3,7 +3,7 @@ clear all; close all;
 % 1 = early solar system
 % 2 = solar system and Kuyper belt
 % 3 = sphere
-type = 1;
+type = 2;
 
 %integration method
 %1: newton forward
@@ -30,7 +30,7 @@ if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1; % Dummy variable
     N_k = 1e3; % particles in kuiper belt
-    dt = 26*3600*24*7; % in seconds (dt = 2 weeks)
+    dt = 3600*24*7; % in seconds (dt = 2 weeks)
     T = 1e12; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k);
@@ -143,6 +143,7 @@ for t = 0:dt:T
         k3 = dt^2*acc(p + dt*v + .5*k2,Mass,G,N);
         p = p + v*dt + 1/6*(k1+2*k2);
         v = v + 1/(6*dt)*(k1+4*k2+k3);
+        
     elseif int_met == 5
         %Runge Kutta 5a see file I (floris) send over whatsapp
         k1 = dt^2*acc(p,Mass,G,N);
@@ -196,7 +197,7 @@ for t = 0:dt:T
     %make a angular momentum vector for plotting
     L_t(index) = (L(3)-L_0(3))/L_0(3);
     
-    if type == 2
+    if type ~= 2
         %make a momentum vector for plotting (only the norm)
         momentum(:,:,index) = Mass.*v; % momentum of all particles (3xNxtime)
         momentum_norm = vecnorm(nansum(momentum,2),2,1); %(1x1xtime)
@@ -251,7 +252,7 @@ for t = 0:dt:T
         if type == 2
             if plot_momentum
                 subplot(2,2,4)
-                plot(rel_momentum);
+%                 plot(rel_momentum);
                 title('Rel momentum(norm), rel to jupiter')
                 axis([max(0,index-5000) index+500 -0.1 1]);
 

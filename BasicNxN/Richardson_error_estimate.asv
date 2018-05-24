@@ -1,15 +1,26 @@
+%different main for calculating richardson error estimation(REE)
+
 clear all; close all;
+%all integration methods where REE is calculated for:
+%integration method
+%1: newton forward
+%2,4-6: runge kutta (paper)
+%7: leapfrog
+%8: runge kutta 4, first order
+int_methods = [1,2,4,5,6,7,8];
+
+for int_met = int_methods
+    start_dt = 3600*7;
+    T = start_dt;
+    saved_var = [];
+    for power = 1:5
+        dt = start_dt*2^(-(power-1));
 %Particles in our model;
 % 1 = early solar system
 % 2 = solar system and Kuyper belt
 % 3 = sphere
-type = 1;
+type = 2;
 
-%integration method
-%1: newton forward
-%2,4-6: runge kutta 
-%7: leapfrog
-int_met = 4;
 %use barnes hut
 barnes_hut = false;
 
@@ -19,34 +30,34 @@ AU = 1.49597871e11; % [m]
 
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
-    N = 1e1;
-    dt = 3600*24; % in seconds (dt = 1 day)
-    T = 5e10; % in seconds
-    [Mass, p, v, N] = initialConditions(defaultRange,N,1);
-    
+    N = 1e2;
+%     dt = 3600*24; % in seconds (dt = 1 day)
+%     T = 5e10; % in seconds
+    [Mass, p, v, N] = initialConditions(defaultRange,N,1); 
 end
 
 if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1; % Dummy variable
     N_k = 1e3; % particles in kuiper belt
-    dt = 26*3600*24*7; % in seconds (dt = 2 weeks)
-    T = 1e12; % in seconds
+%     dt = 26*3600*24*7; % in seconds (dt = 2 weeks)
+%     T = 1e12; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k);
 end
 
+begin_p = p;
 % plotting configuration
 fps = 10;
 plot_system = true;     %plot the particle system
 plot_ecc_a = true;      %plot eccentricity vs semi major axis
 plot_ang_mom = true;    %plot the angular momentum
 plot_momentum = true;   %plot the momentum, relative to jupiter(only for type ==2)
-plotting = true;        %plot anything at all
+plotting = false;        %plot anything at all
 
 %remove the particles every [remove_index] timesteps
 remove_index = 10;
-removing = true;
+removing = false;
 
 % colision index used for plotting
 colision_index = 1;
@@ -143,6 +154,16 @@ for t = 0:dt:T
         k3 = dt^2*acc(p + dt*v + .5*k2,Mass,G,N);
         p = p + v*dt + 1/6*(k1+2*k2);
         v = v + 1/(6*dt)*(k1+4*k2+k3);
+%         kv1 = acc(p,Mass,G,N);
+%         kr1 = v;
+%         kv2 = acc(p+1/2*dt*kr1,Mass,G,N);
+%         kr2 = v.*kv1*dt/2;
+%         kv3 = acc(p+1/2*dt*kr2,Mass,G,N);
+%         kr3 = v.*kv2*dt/2;
+%         kv4 = acc(p+kr3*dt,Mass,G,N);
+%         kr4 = v.*kv3*dt;
+%         v = v + dt/6*(kv1+2*kv2+2*kv3+kv4);
+%         p = p + dt/6*(kr1+2*kr2+2*kr3+kr4);
     elseif int_met == 5
         %Runge Kutta 5a see file I (floris) send over whatsapp
         k1 = dt^2*acc(p,Mass,G,N);
@@ -182,6 +203,17 @@ for t = 0:dt:T
 %             a = acc(p,Mass,G,N);
 %             v = v + a*dt/2;            
         end
+    elseif int_met == 8
+        kv1 = dt*acc(p,Mass,G,N);
+        kr1 = dt*v;
+        kv2 = dt*acc(p+kr1/2,Mass,G,N);
+        kr2 = dt*(v+kv1/2);
+        kv3 = dt*acc(p+kr2/2,Mass,G,N);
+        kr3 = dt*(v+kv2/2);
+        kv4 = dt*acc(p+kr3,Mass,G,N);
+        kr4 = dt*(v+kv3);
+        p = p + 1/6*(kr1+2*kr2+2*kr3+kr4);
+        v = v + 1/6*(kv1+2*kv2+2*kv3+kv4);
     end
     
     %fetch the kinetic and potential energy.
@@ -196,7 +228,7 @@ for t = 0:dt:T
     %make a angular momentum vector for plotting
     L_t(index) = (L(3)-L_0(3))/L_0(3);
     
-    if type == 2
+    if type~= 2
         %make a momentum vector for plotting (only the norm)
         momentum(:,:,index) = Mass.*v; % momentum of all particles (3xNxtime)
         momentum_norm = vecnorm(nansum(momentum,2),2,1); %(1x1xtime)
@@ -251,7 +283,7 @@ for t = 0:dt:T
         if type == 2
             if plot_momentum
                 subplot(2,2,4)
-                plot(rel_momentum);
+%                 plot(rel_momentum);
                 title('Rel momentum(norm), rel to jupiter')
                 axis([max(0,index-5000) index+500 -0.1 1]);
 
@@ -265,3 +297,15 @@ for t = 0:dt:T
         tic;
     end
 end
+        saved_var(power) = L(3)-L_0(3);%p(1,2);%vecnorm(v(:,2));%kin + pot;% L(3)-L_0(3);%;
+        if power>=3
+            p2(int_met,power-2) = (saved_var(power-1) - saved_var(power-2))./(saved_var(power)-saved_var(power-1));
+        end
+    end
+    figure(2)
+    plot(saved_var)
+    hold on
+end
+    legend('1','2','4','5','6','7','8')
+
+disp(log(abs(p2(int_methods,:)))/log(2))
