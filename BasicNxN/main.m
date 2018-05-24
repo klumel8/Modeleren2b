@@ -3,7 +3,7 @@ clear all; close all;
 % 1 = early solar system
 % 2 = solar system and Kuyper belt
 % 3 = sphere
-type = 1;
+type = 2;
 
 %use barnes hut
 barnes_hut = true;
@@ -85,6 +85,9 @@ for t = 0:dt:T
         N = numel(staying_indices);
         if int_met == 7
             a = a(:,staying_indices);
+        end
+        if type == 2
+            momentum = momentum(:,staying_indices,:);
         end
     end
     
@@ -179,13 +182,10 @@ for t = 0:dt:T
         v = v + a*dt/2;
         p = p + dt*v;
         a = acc_fun(p,Mass,N);
-        if any(a>v)
-            disp('a>v')
-            disp(a)
-            disp(v)
-        end
+
         v = v + a*dt/2;
     end
+
     
     %fetch the kinetic and potential energy.
     [kin,pot] = EnergyTracer(p,N,v,Mass,G);
@@ -203,7 +203,9 @@ for t = 0:dt:T
         %make a momentum vector for plotting (only the norm)
         momentum(:,:,index) = Mass.*v; % momentum of all particles (3xNxtime)
         momentum_norm = vecnorm(nansum(momentum,2),2,1); %(1x1xtime)
+        %goes wrong if too many planets fly away(should never happen)
         rel_momentum = momentum_norm./vecnorm(momentum(:,6,1),2,1); %momentum relative to jupiter
+
         rel_momentum = permute(rel_momentum,[3,2,1]);
     end
     
