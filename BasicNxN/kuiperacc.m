@@ -1,6 +1,6 @@
-function a = acc(p, Mass, G, N)
+function a = kuiperacc(p, p_k, Mass)
 % Calculate the acceleration of all the particles based on the
-% gravitational force
+% another system of particles with mass
 %input arguments:
 %   p       : (3xN) position matrix
 %   Mass    : (1xN) mass vector
@@ -10,17 +10,19 @@ function a = acc(p, Mass, G, N)
 %   a       : (3xN) acceleration matrix
 %required functions(non-standard):
 %   dispVec
-    
-    %get the distances between the particles
-    [D,R] = dispVec(p,N);
-    
-    %make the mass product;
-    massProd = Mass'*Mass; %To make it faster
 
-    
+    G = 6.67408*10^-11; % [Nm^2kg^-2]
+    N = size(p,2);
+    N_k = size(p_k,2);
+    a = zeros(3,N_k,N);
+    %get the distances between the particles
+    for i = 1
+    D = repmat(p(:,i), [1,N_k]) - p_k;
+    R = vecnorm(D);
+
     %Make a simple mathematical expression for everything distance related,
     %later to be used in the force formulae.
-    temp= repmat(R, [1,1,3]);
+    temp= repmat(R, [3,1]);
     %gpuTemp = gpuArray(temp);
     %gpuD = gpuArray(D);
     %gpuDisp = gpuD./(gpuTemp.*gpuTemp.*gpuTemp);
@@ -30,13 +32,8 @@ function a = acc(p, Mass, G, N)
     %calculate the force in each direction (x,y,z).
     %no minus sign because somewhere I misplaced a minus sign (dont worry
     %I anticipated this)
-    forceComp = G*repmat(massProd, [1,1,3]).*dispComp;
-    
-    %calculate the Force of each point on eachother  
-    F = nansum(forceComp,1);
-    
-    %calculate the acceleration in each direction.
-    a = F./repmat(Mass,[1,1,3]);
-    a = permute(a,[3,2,1]);
+    a(:,:,i) = G*repmat(Mass(i), [3,1]).*dispComp;
+    end
+    a = sum(a,3);
 end
 
