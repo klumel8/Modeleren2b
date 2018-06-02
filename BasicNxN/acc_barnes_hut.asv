@@ -14,7 +14,12 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
     %create trees
     basic_tree = make_tree(basic_tree,1,p,Mass,start_range);
     [mass_tree, pos_tree ]= make_mass_pos_tree(basic_tree,p,Mass,start_range);
-
+    for i = distance_tree.depthfirstiterator
+        curr = distance_tree.get(i);
+        if any(curr(3,:)~=0)
+            disp(curr(3,:))
+        end
+    end
     %calculate distance between particles and center of masses
     distance_tree = pos_tree - p;
     distance_norm_tree = distance_tree.treefun(@(x) vecnorm(x));
@@ -25,12 +30,13 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
     far_enough = (3.*((0.5.^(distance_norm_tree.depthtree-1)).*start_range).^2).^(0.5)./distance_norm_tree < theta;
 %     far_enough = ((0.5.^(distance_norm_tree.depthtree-1)).*start_range)./distance_norm_tree < theta;
     
-    %setting leaves to 1, to ensure that there is a force to calculate:
     
     depth_iter = far_enough.depthfirstiterator;
+    %set leaves to 1, to ensure that there is a force to calculate
     %set far_enough to 0 if one or more of its children are 0
-    for i = depth_iter(end:-1:2)
+    for i = depth_iter(end:-1:1)
         if far_enough.isleaf(i)
+            %get the index of the particle in this leaf
             [~, min_index] = min(distance_norm_tree.get(i));
             
             far_enough = far_enough.set(i,(1:N ~= min_index)); % 0 at the min index, 1 elsewhere
@@ -39,7 +45,9 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
                 far_enough = far_enough.set(i,far_enough.get(i).*far_enough.get(child));
             end
 %         far_enough = far_enough.set(far_enough.getparent(i),far_enough.get(far_enough.getparent(i)).*far_enough.get(i));
-            if 
+            if any(far_enough.get(i))
+                disp(far_enough.get(i))
+            end
         end
     end
 
@@ -69,6 +77,11 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
                 %direction of acceleration is right
                 %maybe calculate distance before forloop?
                 distance = pos_tree.get(k) - p(i); %vector in the direction of the CoM
+                if any(distance(3,:)~=0)
+                    disp(distance)
+                    disp(pos_tree.get(k))
+                    disp(p(i))
+                end
                 a(:,i) = a(:,i) + G.*mass_tree.get(k).*distance./(vecnorm(distance).^3);
             end
         end

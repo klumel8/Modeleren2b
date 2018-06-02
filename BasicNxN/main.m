@@ -33,7 +33,7 @@ end
 if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1;
-    dt = 3600*24; % in seconds (dt = 2 weeks)
+    dt = 3600*24*7; % in seconds (dt = 2 weeks)
     T = 1e12; % in seconds
 end
 

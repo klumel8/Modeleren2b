@@ -14,7 +14,7 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
     %create trees
     basic_tree = make_tree(basic_tree,1,p,Mass,start_range);
     [mass_tree, pos_tree ]= make_mass_pos_tree(basic_tree,p,Mass,start_range);
-
+    
     %calculate distance between particles and center of masses
     distance_tree = pos_tree - p;
     distance_norm_tree = distance_tree.treefun(@(x) vecnorm(x));
@@ -71,7 +71,7 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
             if node(i) & ~parent_node(i)
                 %direction of acceleration is right
                 %maybe calculate distance before forloop?
-                distance = pos_tree.get(k) - p(i); %vector in the direction of the CoM
+                distance = pos_tree.get(k) - p(:,i); %vector in the direction of the CoM
                 a(:,i) = a(:,i) + G.*mass_tree.get(k).*distance./(vecnorm(distance).^3);
             end
         end
