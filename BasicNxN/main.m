@@ -3,7 +3,7 @@ clear; close all;
 % 1 = early solar system
 % 2 = solar system and Kuyper belt
 % 3 = sphere
-type = 2;
+type = 1;
 
 %integration method
 %1: newton forward
@@ -11,7 +11,9 @@ type = 2;
 %7: leapfrog
 int_met = 7;
 %use barnes hut
-barnes_hut = false;
+barnes_hut = true;
+theta = 0.5;%0 to test acc calculation: all particles are indiviually used,
+          %should be the same as without barnes hut
 
 % universal parameters
 G = 6.67408*10^-11; % [Nm^2kg^-2]
@@ -20,10 +22,9 @@ AU = 1.49597871e11; % [m]
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
     N = 1e2;
-    dt = 3600*24; % in seconds (dt = 1 day)
+    dt = 3600*24*7; % in seconds (dt = 1 day)
     T = 5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
-    
 end
 
 if type == 2 % solar system and Kuyper belt
@@ -47,6 +48,13 @@ plotting = true;        %plot anything at all
 %remove the particles every [remove_index] timesteps
 remove_index = 10;
 removing = true;
+
+%define acc function:
+if barnes_hut
+    acc_fun = @(p,Mass,N) acc_barnes_hut(p,Mass,G,N,theta);
+else 
+    acc_fun = @(p,Mass,N) acc(p,Mass,G,N);
+end
 
 % colision index used for plotting
 colision_index = 1;
@@ -78,15 +86,20 @@ for t = 0:dt:T
         if int_met == 7
             a = a(:,staying_indices);
         end
+%         if type == 2
+%             momentum = momentum(:,staying_indices,:);
+%         end
     end
     
     %later were gonna make some bounds on speed and range, this is needed.
     vOud = v;
     
     %remove particles which are too far with a too high speed:
-    remove_crit = vecnorm(p)>10*defaultRange;
+    remove_crit = vecnorm(p)>100*defaultRange;
     if any(remove_crit)
+        disp('too far')
         indices = find(remove_crit);
+        disp(['Number of removed particles: ',num2str(numel(indices))])
         p(:,indices) = p(:,indices)./20;%bring particle back in the system
         v(:,indices) = repmat([0;0;0],1,numel(indices));%set velocity to 0
         Mass(indices) = 0;%set mass to 0
@@ -98,6 +111,7 @@ for t = 0:dt:T
     %#BUG will crash if multiple collisions in one timestep
     %check if the collision vector is empty    
     if max(max(c)) > 0
+        disp('collision')
        %find indices of collided particles       
        %re-rank the collision indexes
        indices = [mod(find(c),N)'; ceil(find(c)/N)'];
@@ -128,48 +142,49 @@ for t = 0:dt:T
     
     if int_met == 1
         %first order (newton forward)
-        a = acc(p,Mass,G,N);
+        a = acc_fun(p,Mass,N);
         p = p + v*dt + a * dt^2 / 2;
         v = v + a * dt;
     elseif int_met == 2
         %Runge Kutta 2 conserves angular momentum?
-        k1 = dt^2*acc(p + (1/2)*dt*v,Mass,G,N);
+        k1 = dt^2*acc_fun(p + (1/2)*dt*v,Mass,N);
         p = p + v*dt + k1;
         v = v + k1/dt;
     elseif int_met == 4
         %Runge Kutta 4
-        k1 = dt^2*acc(p,Mass,G,N);
-        k2 = dt^2*acc(p + 0.5*dt*v + 1/8*k1,Mass,G,N);
-        k3 = dt^2*acc(p + dt*v + .5*k2,Mass,G,N);
+        k1 = dt^2*acc_fun(p,Mass,N);
+        k2 = dt^2*acc_fun(p + 0.5*dt*v + 1/8*k1,Mass,N);
+        k3 = dt^2*acc_fun(p + dt*v + .5*k2,Mass,N);
         p = p + v*dt + 1/6*(k1+2*k2);
         v = v + 1/(6*dt)*(k1+4*k2+k3);
         
     elseif int_met == 5
         %Runge Kutta 5a see file I (floris) send over whatsapp
-        k1 = dt^2*acc(p,Mass,G,N);
-        k2 = dt^2*acc(p + (1/4)*dt*v + (1/32)*k1,Mass,G,N);
-        k3 = dt^2*acc(p + (7/10)*dt*v - (7/1000)*k1 + (63/250)*k2,Mass,G,N);
-        k4 = dt^2*acc(p + dt*v + (2/7)*k1 + (3/14)*k3,Mass,G,N);
+        k1 = dt^2*acc_fun(p,Mass,N);
+        k2 = dt^2*acc_fun(p + (1/4)*dt*v + (1/32)*k1,Mass,N);
+        k3 = dt^2*acc_fun(p + (7/10)*dt*v - (7/1000)*k1 + (63/250)*k2,Mass,N);
+        k4 = dt^2*acc_fun(p + dt*v + (2/7)*k1 + (3/14)*k3,Mass,N);
         p = p + dt*v + (1/14)*k1 + (8/27)*k2 + (25/189)*k4;
         v = v + (1/dt)*((1/14)*k1 + (32/81)*k2 + (250/567)*k3 + (5/54)*k4);
     elseif int_met == 6
         %Runge Kutta 6.
-        k1 = dt^2*acc(p,Mass,G,N);
-        k2 = dt^2*acc(p + 1/4*dt*v + 1/32*k1,Mass,G,N);
-        k3 = dt^2*acc(p + 1/2*dt*v - k1/24 + k2/6,Mass,G,N);
-        k4 = dt^2*acc(p + 3/4*dt*v + k1*3/32 + k2/8 + k3/16,Mass,G,N);
-        k5 = dt^2*acc(p + 3/7*dt*v - k1/14 + k3/7,Mass,G,N);
+        k1 = dt^2*acc_fun(p,Mass,N);
+        k2 = dt^2*acc_fun(p + 1/4*dt*v + 1/32*k1,Mass,N);
+        k3 = dt^2*acc_fun(p + 1/2*dt*v - k1/24 + k2/6,Mass,N);
+        k4 = dt^2*acc_fun(p + 3/4*dt*v + k1*3/32 + k2/8 + k3/16,Mass,N);
+        k5 = dt^2*acc_fun(p + 3/7*dt*v - k1/14 + k3/7,Mass,N);
         p = p + dt*v + (7*k1 +24*k2 + 6*k3 + 8*k4)/90;
         v = v + (7*k1 + 32*k2 + 12*k3 + 32*k4 + 7*k5)/(90*dt);
     elseif int_met == 7
         if t == 0
             %initialize acceleration for leapfrog
-            a = acc(p,Mass,G,N);
+            a = acc_fun(p,Mass,N);
         end
         %leapfrog
-        v = v + dt/2*a;
+        v = v + a*dt/2;
         p = p + dt*v;
-        a = acc(p,Mass,G,N);
+        a = acc_fun(p,Mass,N);
+
         v = v + a*dt/2;
         
         if type == 2
@@ -184,6 +199,7 @@ for t = 0:dt:T
             v_k = v_k + a_k*dt/2;            
         end
     end
+
     
     %fetch the kinetic and potential energy.
     [kin,pot] = EnergyTracer(p,N,v,Mass,G);
@@ -197,21 +213,22 @@ for t = 0:dt:T
     %make a angular momentum vector for plotting
     L_t(index) = (L(3)-L_0(3))/L_0(3);
     
-    if type ~= 2
-        %make a momentum vector for plotting (only the norm)
-        momentum(:,:,index) = Mass.*v; % momentum of all particles (3xNxtime)
-        momentum_norm = vecnorm(nansum(momentum,2),2,1); %(1x1xtime)
-        rel_momentum = momentum_norm./vecnorm(momentum(:,end-3,1),2,1); %momentum relative to jupiter
-        rel_momentum = permute(rel_momentum,[3,2,1]);
-    end
+%     if type == 2 
+%         %make a momentum vector for plotting (only the norm)
+%         momentum(:,:,index) = Mass.*v; % momentum of all particles (3xNxtime)
+%         momentum_norm = vecnorm(nansum(momentum,2),2,1); %(1x1xtime)
+%         rel_momentum = momentum_norm./vecnorm(momentum(:,end-3,1),2,1); %momentum relative to jupiter
+% %         rel_momentum = momentum_norm./vecnorm(momentum(:,6,1),2,1); %momentum relative to jupiter
+%         rel_momentum = permute(rel_momentum,[3,2,1]);
+%     end
     
     [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass);
     ecc = vecnorm(ecc,2,1)';
     semi_m_axis = semi_m_axis';
 
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
-    %only plot when 1 == 1, (saves time)
-    if toc > 1/fps && plotting
+    %only plot when plotting = true, (saves time)
+    if (toc > 1/fps && plotting)
         figure(1)
         if plot_ecc_a
             %eccentricity vs semi-major axis: 
@@ -238,8 +255,12 @@ for t = 0:dt:T
             omega_neptune = 2*pi/T_neptune;
             A = [cos(omega_neptune*t), sin(omega_neptune*t);...
                 -sin(omega_neptune*t), cos(omega_neptune*t) ];
-            plot_p(1:2,:) = A*p(1:2,:);
-            plot_p_k(1:2,:) = A*p_k(1:2,:);
+            if type == 2
+                plot_p(1:2,:) = A*p(1:2,:);
+                plot_p_k(1:2,:) = A*p_k(1:2,:);
+            else
+                plot_p = p;
+            end
             %particle system
             subplot(2,2,3)
             plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); hold on
