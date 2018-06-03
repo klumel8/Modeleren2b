@@ -193,7 +193,7 @@ for t = 0:dt:T
     [kin,pot] = EnergyTracer(p,N,v,Mass,G);
     
     %make a Total kinetic energy vector for plotting.
-    E_tot(index) = (kin + pot - E_0) / E_0;
+    E_tot(index) = (kin + pot - E_0) / abs(E_0);
     
     %Calculate the Angular momentum
     L = AngularMomentum(p,N,Mass,v);
