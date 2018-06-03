@@ -17,7 +17,7 @@
 %     N = N_all(curr_N);
     
 % clearvars -except N N_all curr_N test_t; close all;
-clear all; close all;
+clear; close all;
 %Particles in our model;
 
 N = 100;
@@ -39,6 +39,7 @@ col_index = 1;
 theta = 1/1.1; 
 
 % Create initial conditions
+rng(121) %rng(seed): Used to control random number generation
 [Mass, p, v] = initialConditions(defaultRange,N);
 
 
