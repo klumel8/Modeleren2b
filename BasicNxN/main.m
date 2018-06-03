@@ -1,4 +1,4 @@
-clear all; close all;
+clear; close all;
 %Particles in our model;
 % 1 = early solar system
 % 2 = solar system and Kuyper belt
