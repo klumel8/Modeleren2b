@@ -110,9 +110,7 @@ for t = 0:dt:T
        %angular momentum and energy can be better defined.
        col_index = index;
        
-       goodPoints = Mass~=0; %Check what points are the ones to continue. 
-       %These will be used to redefine the usefull variables to only
-       %include these "Good points"
+       goodPoints = Mass~=0; %Check what points are the ones to continue
        
        if level_of_awesomeness == 7 %Update accelration for collisions
            a(:,indices(1,:)) = (M(:,indices(1,:)).*a(:,indices(1,:)) + M(:,indices(2,:)).*a(:,indices(2,:)))./(M(:,indices(1,:))+M(:,indices(2,:)));
@@ -125,7 +123,7 @@ for t = 0:dt:T
        p = p(:,goodPoints);
        
        
-       N = numel(Mass); %N = number of good points
+       N = numel(Mass);
        
        
     end
