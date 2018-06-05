@@ -45,14 +45,17 @@ function [mass_tree, pos_tree] = make_mass_pos_tree(basic_tree,p,Mass,start_rang
     mass_tree = tree(basic_tree,0);
     pos_tree = tree(basic_tree,[0;0;0]);
     %initiate iterator
-    iterator = basic_tree.breadthfirstiterator;
+    iterator = 1:numel(basic_tree.Node);
+    
     %fill leaves in mass_tree and pos_tree
     for i = iterator(end:-1:1)
         if basic_tree.isleaf(i)
             %get node name
-            curr_node = basic_tree.get(i);
-            indices = str2double(split(curr_node(2:end),''));
-            indices = indices(2:end-1);%remove NaN
+            curr_node = basic_tree.Node{i};
+            %temp = split(curr_node(2:end),'');
+            %indices = str2double(temp);
+            %indices = indices(2:end-1);%remove NaN
+            indices = curr_node(2:end);
             n = numel(indices);
             %get center position
             curr_center = sum(0.5.^(0:(n-1)).*centers(:,indices),2);
@@ -60,29 +63,30 @@ function [mass_tree, pos_tree] = make_mass_pos_tree(basic_tree,p,Mass,start_rang
             %get the particle which is in this node(neglecting the
             %particles with Mass == 0
             x_check = [(curr_center(1)+0.5^(n));(curr_center(1)-0.5^(n))]*start_range;
-            x_right = p(1,:) <= max(x_check) & p(1,:) > min(x_check) & Mass~=0;
+            x_right = p(1,:) <= max(x_check) & p(1,:) > min(x_check);
             y_check = [(curr_center(2)+0.5^(n));(curr_center(2)-0.5^(n))]*start_range;
-            y_right = p(2,:) <= max(y_check) & p(2,:) > min(y_check) & Mass~=0;
+            y_right = p(2,:) <= max(y_check) & p(2,:) > min(y_check);
             z_check = [(curr_center(3)+0.5^(n));(curr_center(3)-0.5^(n))]*start_range;
-            z_right = p(3,:) <= max(z_check) & p(3,:) > min(z_check) & Mass~=0;
-            all_right = x_right & y_right & z_right;
+            z_right = p(3,:) <= max(z_check) & p(3,:) > min(z_check);
+            all_right = x_right & y_right & z_right  & Mass~=0;
             
             %sum is only needed if we are going to put multiple particles
             %in one cell: (maybe that wont work properly, it isnt
             %implemented yet)
-            mass_tree = mass_tree.set(i,sum(Mass(all_right))); 
+            mass_tree.Node{i} = sum(Mass(all_right)); 
             %sums are only needed if we are going to put multiple particles
             %in one cell, otherwise only p(:,all_right) is needed:(see
             %comment above)
             if any(p(3,all_right)~=0)
                 disp(p(:,all_right))
             end
-            pos_tree = pos_tree.set(i,sum(Mass(all_right).*p(:,all_right),2)./sum(Mass(all_right)));
+            pos_tree.Node{i} = sum(Mass(all_right).*p(:,all_right),2)./sum(Mass(all_right));
         end 
     end
     %fill mass_tree by summing over the nodes
     mass_tree = mass_tree.recursivecumfun(@(x) sum(x,2));
     %make a tree with m*r, to easily get the center of mass
+
     mass_pos_tree = pos_tree.treefun2(mass_tree,@(r,m) m.*r);
     mass_pos_tree = mass_pos_tree.recursivecumfun(@(x) sum(x,2),3);
     %fill the pos_tree (center of masses)

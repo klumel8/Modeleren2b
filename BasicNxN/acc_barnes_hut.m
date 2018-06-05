@@ -2,11 +2,11 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
 % does not always work, maybe because of collisions
 
     %create root of the tree
-    basic_tree = tree('0');
+    basic_tree = tree(0);
 
     %define the maximal range
     start_range = 1.1*max(max(max(abs(p))));
-    
+    %start_range = 8e11;
     % make startrange a power of 2:(maybe is not needed)
     q = ceil(log(start_range)/log(2));
     start_range = 2^q;
@@ -22,11 +22,24 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
     %calculate which center of masses are far enough, s/d < theta: s =
     %longest distance in one cell, d = distance between center of mass of
     %the cell and the particle
-    far_enough = (3.*((0.5.^(distance_norm_tree.depthtree-1)).*start_range).^2).^(0.5)./distance_norm_tree < theta;
+    depthNodes = cellfun('length',basic_tree.Node)-1;
+    tempNode = 0.5.^(depthNodes-1);
+    tempTree = basic_tree;
+    tempTree.Node = num2cell(tempNode);
+    
+    tempNode = ((3.*((0.5.^(depthNodes-1)).*start_range).^2).^0.5)./cell2mat(distance_norm_tree.Node);
+    far_enough_Node = tempNode < theta;
+    %oldTemp = 0.5.^(distance_norm_tree.depthtree-1);
+    far_enough_Node = mat2cell(far_enough_Node,ones(1,size(far_enough_Node,1)),size(far_enough_Node,2));
+    far_enough = basic_tree;
+    far_enough.Node = far_enough_Node;
+    
+    
+    %far_enough = (3.*((tempTree).*start_range).^2).^(0.5)./distance_norm_tree < theta;
 %     far_enough = ((0.5.^(distance_norm_tree.depthtree-1)).*start_range)./distance_norm_tree < theta;
     
     
-    depth_iter = far_enough.depthfirstiterator;
+    depth_iter = 1:numel(far_enough_Node);
     %set leaves to 1, to ensure that there is a force to calculate
     %set far_enough to 0 if one or more of its children are 0
     for i = depth_iter(end:-1:1)
@@ -37,11 +50,11 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
             far_enough = far_enough.set(i,(1:N ~= min_index)); % 0 at the min index, 1 elsewhere
         else
             for child = far_enough.getchildren(i)
-                far_enough = far_enough.set(i,far_enough.get(i).*far_enough.get(child));
+                far_enough = far_enough.set(i,far_enough.Node{i}.*far_enough.Node{child});
             end
 %         far_enough = far_enough.set(far_enough.getparent(i),far_enough.get(far_enough.getparent(i)).*far_enough.get(i));
-            if any(far_enough.get(i))
-                disp(far_enough.get(i))
+            if any(far_enough.Node{i})
+                %disp(far_enough.Node{i})
             end
         end
     end
@@ -61,20 +74,33 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
     
     %goes wrong: (i think its only this part, i could be wrong)
     a = zeros(3,N);
-    iter = far_enough.depthfirstiterator;
+    a_T = zeros(3,N);
+    iter = 1:numel(far_enough.Node);
+    
     %loop over CoM
     for k = iter(2:end) %exclude root from iteration, because it doesnt have a parent and should never be used to calculate the force
+        far_enough.getparent(k);
+        
         parent_node = far_enough.get(far_enough.getparent(k));
         node = far_enough.get(k); %node = 1xN matrix with 1 at place i when this CoM is far enough from particle i
+        
+        %{
         for i = 1:N %loop over particles
             %if the CoM is far enough, and if parent is not far enough, calculate the acceleration
+            
             if node(i) & ~parent_node(i)
                 %direction of acceleration is right
                 %maybe calculate distance before forloop?
                 distance = pos_tree.get(k) - p(:,i); %vector in the direction of the CoM
                 a(:,i) = a(:,i) + G.*mass_tree.get(k).*distance./(vecnorm(distance).^3);
             end
+                
         end
+        %}
+        distance = (pos_tree.get(k)-p(:,:)).*repmat(node.*(~parent_node),3,1);
+        acc_added = G.*mass_tree.get(k).*distance./(vecnorm(distance,2,1).^3);
+        acc_added(isnan(acc_added)) = 0;
+        a = a + acc_added;
     end
     
         

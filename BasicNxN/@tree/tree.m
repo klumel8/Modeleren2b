@@ -20,7 +20,7 @@ classdef tree
 
 % Jean-Yves Tinevez <tinevez@pasteur.fr> March 2012
     
-    properties (SetAccess = private)
+    properties (SetAccess = public)
         % Hold the data at each node
         Node = { [] };
         

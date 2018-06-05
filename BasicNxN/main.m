@@ -19,11 +19,12 @@ theta = 0.5;%0 to test acc calculation: all particles are indiviually used,
 G = 6.67408*10^-11; % [Nm^2kg^-2]
 AU = 1.49597871e11; % [m]
 
+rng(121) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
     N = 1e2;
     dt = 3600*24*7; % in seconds (dt = 1 day)
-    T = 5e10; % in seconds
+    T = 1e8;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
 end
 
@@ -44,6 +45,14 @@ plot_ecc_a = true;      %plot eccentricity vs semi major axis
 plot_ang_mom = true;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
 plotting = true;        %plot anything at all
+
+make_movie = false;
+TstepsPframe = 3;
+frames = floor(T/(TstepsPframe*dt))+1;
+if make_movie
+    F(frames) = struct('cdata',[],'colormap',[]);
+end
+
 
 %remove the particles every [remove_index] timesteps
 remove_index = 10;
@@ -70,10 +79,10 @@ E_0 = kin + pot;
 L_0 = AngularMomentum(p,N,Mass,v);
 
 % a timer so we dont plot too often and slow down the script
-tic;
+
 for t = 0:dt:T
     index = index+1;
-    
+
     %remove particles every [remove_index] timesteps:
     if mod(index,remove_index) == 0 && removing 
         %to be removed from: p,v,Mass,N
@@ -228,27 +237,40 @@ for t = 0:dt:T
 
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when plotting = true, (saves time)
-    if (toc > 1/fps && plotting)
+    if (plotting && (mod(t,TstepsPframe*dt)==0))
         figure(1)
         if plot_ecc_a
             %eccentricity vs semi-major axis: 
             subplot(2,2,1) 
             plot(semi_m_axis(2:end),ecc(2:end),'.')
-            axis([0,1.1*defaultRange,0, 0.5])
             title(['time: ',num2str(round(t/31556926,1)),' y'])
-            ylabel('$\varepsilon$','Interpreter','Latex')
-            xlabel('a[m]')
+            if t == 0
+                axis([0,1.1*defaultRange,0, 0.5])
+                ylabel('$\varepsilon$','Interpreter','Latex')
+                xlabel('a[m]')
+                ax = gca;
+                ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
+
+            end
         end
         if plot_ang_mom
             %angular momentum
             subplot(2,2,2)       
             plot(L_t);
-            title('Angular momentum(z)')
-            axis([[max(0,index-5000) index+500] [1 1]*round(L_t(end))+[-1 1]]);
-            xt = get(gca, 'XTick');
-            set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,1))
-            xlabel('time [years]')
-            ylabel('relative magnitude')
+            if t == 0
+                
+                ax = gca;
+                title('Angular momentum(z)')
+                axis([[max(0,index-5000) index+500] [1 1]*round(L_t(end))+[-1 1]]);
+                xt = get(gca, 'XTick');
+                set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,1))
+                xlabel('time [years]')
+                ylabel('relative magnitude')
+                
+                ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
+
+            end
+            
         end
         if plot_system
             T_neptune = 60182*3600*24; % seconds
@@ -263,17 +285,30 @@ for t = 0:dt:T
             end
             %particle system
             subplot(2,2,3)
-            plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); hold on
-            plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20); hold on
-            axis([-1 1 -1 1]*defaultRange*1.1);
-            title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
+            axSys = gca;
+            plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
+            axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
             
+            plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20); 
+            
+            
+            %axis([-1 1 -1 1]*defaultRange*1.1);
+            title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
+            if t == 0
+                
+                axis([-1 1 -1 1]*defaultRange*1.1);
+                
+            end
             %plot kuiperbelt if type == 2
             if type == 2
-                plot(plot_p_k(1,:),plot_p_k(2,:),'.r','MarkerSize',2); hold on
+                hold on
+                plot(plot_p_k(1,:),plot_p_k(2,:),'.r','MarkerSize',2); 
                 axis([-1 1 -1 1]*50*AU);
+                hold off
+                
             end
-            hold off;
+            axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
+            
         end
 
         if type == 2
@@ -290,6 +325,16 @@ for t = 0:dt:T
             end
         end
         drawnow
-        tic;
+        if make_movie
+            F(t/(TstepsPframe*dt)+1) = getframe(gcf);
+        end
     end
+end
+
+if make_movie
+    v = VideoWriter('testVideo.avi'); %Maak een video-file
+    v.FrameRate = 5;
+    open(v)
+    writeVideo(v,F) %Sla de frames op in de video
+    close(v)
 end

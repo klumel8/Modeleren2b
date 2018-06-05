@@ -45,9 +45,11 @@ function [new_tree] = make_tree(curr_tree,first_leaf,p,Mass,start_range)
             
     %initiate tree (copy of curr_tree)
     new_tree = tree(curr_tree);
+    new_tree_T = tree(curr_tree);
     
     %initiate iterator
-    iterator = curr_tree.breadthfirstiterator;
+    iterator = 1:numel(curr_tree.Node);
+    
     
     %if stop_next is true at the end of the loop, the recursion will stop
     stop_next = true;
@@ -58,9 +60,11 @@ function [new_tree] = make_tree(curr_tree,first_leaf,p,Mass,start_range)
             %get the node name, to determine which cell(in positions) it is
             %example name: 0148: first octant, then within that octant the
             %4th octant, then within thát octant the 8 octant
-            curr_node = curr_tree.get(i);
-            indices = str2double(split(curr_node(2:end),''));
-            indices = indices(2:end-1);%remove NaN
+            curr_node = curr_tree.Node{i};
+            %temp = split(curr_node(2:end),'');
+            %indices = str2double(temp);
+            %indices = indices(2:end-1);%remove NaN
+            indices = curr_node(2:end);
             n = numel(indices);
 
             curr_center = sum(0.5.^(0:(n-1)).*centers(:,indices),2);
@@ -88,19 +92,27 @@ function [new_tree] = make_tree(curr_tree,first_leaf,p,Mass,start_range)
                 %checks if there is one or more particle with mass ~= 0 in
                 %the new node
                 new_center = curr_center+0.5^n.*centers(:,j);
+                
                 x_check = [(new_center(1)+centers(1,j)*0.5^n);(new_center(1)-centers(1,j)*0.5^n)]*start_range;
-                x_right = (p(1,:) <= max(x_check) & p(1,:) > min(x_check))& Mass~=0;
+                x_right = (p(1,:) <= max(x_check) & p(1,:) > min(x_check));
                 y_check = [(new_center(2)+centers(2,j)*0.5^n);(new_center(2)-centers(2,j)*0.5^n)]*start_range;
-                y_right = p(2,:) <= max(y_check) & p(2,:) > min(y_check)& Mass~=0;
+                y_right = (p(2,:) <= max(y_check) & p(2,:) > min(y_check));
                 z_check = [(new_center(3)+centers(3,j)*0.5^n);(new_center(3)-centers(3,j)*0.5^n)]*start_range;
-                z_right = p(3,:) <= max(z_check) & p(3,:) > min(z_check)& Mass~=0;
-                all_right = x_right & y_right & z_right;
+                z_right = (p(3,:) <= max(z_check) & p(3,:) > min(z_check));
+                
+                all_right = x_right & y_right & z_right & Mass~=0;
+
+                
                 %only adds node if there is a particle in the next part
                 %with mass>0
                 if any(all_right)  
                     %add node:
-                    new_tree = new_tree.addnode(i,[curr_tree.get(i), num2str(j)]);
-                    
+                    if i>0
+                        new_tree.Node{end+1,1} = [curr_tree.Node{i},j];
+                        new_tree.Parent = [new_tree.Parent;i];
+                    else
+                        new_tree = new_tree.addnode(i,[curr_tree.Node{i}, j]);
+                    end
                     %stops the iteration if all new nodes have only 1 particle
                     stop_next = stop_next & sum(all_right)==1; 
                 end

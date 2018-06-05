@@ -28,7 +28,7 @@ function cumtree = recursivecumfun(obj, fun,size)
     function val = descend(n) % current node index
         
         if cumtree.isleaf(n)
-            val = cumtree.get(n);
+            val = cumtree.Node{n};
             
         else
            
