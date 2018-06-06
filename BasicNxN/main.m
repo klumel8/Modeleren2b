@@ -9,13 +9,13 @@ type = 3;
 
 %integration method
 %1: newton forward
-%2,4-6: runge kutta 
+%2,4-6: runge kutta
 %7: leapfrog
 int_met = 4;
 %use barnes hut
 barnes_hut = false;
 theta = 0.5;%0 to test acc calculation: all particles are indiviually used,
-          %should be the same as without barnes hut
+%should be the same as without barnes hut
 
 % universal parameters
 G = 6.67408*10^-11; % [Nm^2kg^-2]
@@ -28,21 +28,21 @@ if type == 1 % early solar system
     dt = 3600*24*7*10; % in seconds (dt = 1 day)
     T = 1e9;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
-
+    
 end
 
 if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1; % Dummy variable
     N_k = 1e3; % particles in kuiper belt
-    dt = 3600*24*7*52*10; % in seconds 
+    dt = 3600*24*7*52*10; % in seconds
     T = 1e12; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k);
 end
 if type  == 3 %sphere
     plot_3d = true;
-        
+    
     defaultRange = 5*AU; % [m]
     N = 5e2;
     dt = 3600*24*7*20; % in seconds (dt = 1 day)
@@ -60,7 +60,7 @@ end
 if type == 5 % solar system
     defaultRange = 5e12; % [m]
     N = 9; % Dummy variable
-    dt = 3600*24*7; % in seconds 
+    dt = 3600*24*7; % in seconds
     T = 1e12; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,type);
 end
@@ -98,7 +98,7 @@ removing = true;
 %define acc function:
 if barnes_hut
     acc_fun = @(p,Mass,N) acc_barnes_hut(p,Mass,G,N,theta);
-else 
+else
     acc_fun = @(p,Mass,N) acc(p,Mass,G,N);
 end
 
@@ -119,22 +119,22 @@ L_0 = AngularMomentum(p,N,Mass,v);
 
 for t = 0:dt:T
     index = index+1;
-
+    
     %remove particles every [remove_index] timesteps:
-    if mod(index,remove_index) == 0 && removing 
+    if mod(index,remove_index) == 0 && removing
         %to be removed from: p,v,Mass,N
         %only select the indices which wont be removed:
         staying_indices = find(Mass ~= 0 & ~isnan(Mass));
-        p = p(:,staying_indices); 
+        p = p(:,staying_indices);
         v = v(:,staying_indices);
         Mass = Mass(staying_indices);
         N = numel(staying_indices);
         if int_met == 7
             a = a(:,staying_indices);
         end
-%         if type == 2
-%             momentum = momentum(:,staying_indices,:);
-%         end
+        %         if type == 2
+        %             momentum = momentum(:,staying_indices,:);
+        %         end
     end
     
     %later were gonna make some bounds on speed and range, this is needed.
@@ -157,35 +157,35 @@ for t = 0:dt:T
     c = col(p,v,Mass,N,dt);
     
     %#BUG will crash if multiple collisions in one timestep
-    %check if the collision vector is empty    
+    %check if the collision vector is empty
     if max(max(c)) > 0
         disp('collision')
-       %find indices of collided particles       
-       %re-rank the collision indexes
-       indices = [mod(find(c),N)'; ceil(find(c)/N)'];
-       indices(1,:) = (indices(1,:)==0)*N + indices(1,:);
-       indices(:,find(indices(1,:) > indices(2,:))) = [];
-       %this way, if a particle collides with the sun, the sun is still the first particle
+        %find indices of collided particles
+        %re-rank the collision indexes
+        indices = [mod(find(c),N)'; ceil(find(c)/N)'];
+        indices(1,:) = (indices(1,:)==0)*N + indices(1,:);
+        indices(:,find(indices(1,:) > indices(2,:))) = [];
+        %this way, if a particle collides with the sun, the sun is still the first particle
         
-       
-       %ik ga uit van compleet inelastisch.
-       %new position is mass centre
-       
-       M = repmat(Mass,[3 1]);
-       p(:,indices(1,:)) = (M(:,indices(1,:)).*p(:,indices(1,:)) + M(:,indices(2,:)).*p(:,indices(2,:)))./(M(:,indices(1,:))+M(:,indices(2,:)));
-       
-       %use momentum fomulae for new speed
-       v(:,indices(1,:)) = (M(:,indices(1,:)).*v(:,indices(1,:)) + M(:,indices(2,:)).*v(:,indices(2,:)))./(M(:,indices(1,:))+M(:,indices(2,:)));
-       
-       %new mass is um of the masses
-       Mass(indices(1,:)) = Mass(indices(1,:)) + Mass(indices(2,:));
-       %speed of old particle is 0
-       v(:,indices(2,:)) = 0;
-       Mass(indices(2,:)) = 0;
-       
-       %keep track of latest collision index, so that the RMSE error for
-       %angular momentum and energy can be better defined.
-       colision_index = index;
+        
+        %ik ga uit van compleet inelastisch.
+        %new position is mass centre
+        
+        M = repmat(Mass,[3 1]);
+        p(:,indices(1,:)) = (M(:,indices(1,:)).*p(:,indices(1,:)) + M(:,indices(2,:)).*p(:,indices(2,:)))./(M(:,indices(1,:))+M(:,indices(2,:)));
+        
+        %use momentum fomulae for new speed
+        v(:,indices(1,:)) = (M(:,indices(1,:)).*v(:,indices(1,:)) + M(:,indices(2,:)).*v(:,indices(2,:)))./(M(:,indices(1,:))+M(:,indices(2,:)));
+        
+        %new mass is um of the masses
+        Mass(indices(1,:)) = Mass(indices(1,:)) + Mass(indices(2,:));
+        %speed of old particle is 0
+        v(:,indices(2,:)) = 0;
+        Mass(indices(2,:)) = 0;
+        
+        %keep track of latest collision index, so that the RMSE error for
+        %angular momentum and energy can be better defined.
+        colision_index = index;
     end
     
     if int_met == 1
@@ -232,7 +232,7 @@ for t = 0:dt:T
         v = v + a*dt/2;
         p = p + dt*v;
         a = acc_fun(p,Mass,N);
-
+        
         v = v + a*dt/2;
         
         if type == 2
@@ -244,10 +244,10 @@ for t = 0:dt:T
             v_k = v_k + dt/2*a_k;
             p_k = p_k + dt*v_k;
             a_k = kuiperacc(p,p_k,Mass);
-            v_k = v_k + a_k*dt/2;            
+            v_k = v_k + a_k*dt/2;
         end
     end
-
+    
     
     %fetch the kinetic and potential energy.
     [kin,pot] = EnergyTracer(p,N,v,Mass,G);
@@ -261,21 +261,21 @@ for t = 0:dt:T
     %make a angular momentum vector for plotting
     L_t(index) = (L(3)-L_0(3))/L_0(3);
     
-%     if type == 2 
-%         %make a momentum vector for plotting (only the norm)
-%         momentum(:,:,index) = Mass.*v; % momentum of all particles (3xNxtime)
-%         momentum_norm = vecnorm(nansum(momentum,2),2,1); %(1x1xtime)
-%         rel_momentum = momentum_norm./vecnorm(momentum(:,end-3,1),2,1); %momentum relative to jupiter
-% %         rel_momentum = momentum_norm./vecnorm(momentum(:,6,1),2,1); %momentum relative to jupiter
-%         rel_momentum = permute(rel_momentum,[3,2,1]);
-%     end
+    %     if type == 2
+    %         %make a momentum vector for plotting (only the norm)
+    %         momentum(:,:,index) = Mass.*v; % momentum of all particles (3xNxtime)
+    %         momentum_norm = vecnorm(nansum(momentum,2),2,1); %(1x1xtime)
+    %         rel_momentum = momentum_norm./vecnorm(momentum(:,end-3,1),2,1); %momentum relative to jupiter
+    % %         rel_momentum = momentum_norm./vecnorm(momentum(:,6,1),2,1); %momentum relative to jupiter
+    %         rel_momentum = permute(rel_momentum,[3,2,1]);
+    %     end
     
     [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass);
     
     ecc = sqrt(sum(ecc.^2,1))';
     
     semi_m_axis = semi_m_axis';
-
+    
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when plotting = true, (saves time)
     if gpuNeed
@@ -286,8 +286,8 @@ for t = 0:dt:T
     if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed)
         figure(1)
         if plot_ecc_a
-            %eccentricity vs semi-major axis: 
-            subplot(2,2,1) 
+            %eccentricity vs semi-major axis:
+            subplot(2,2,1)
             plot(semi_m_axis(2:end),ecc(2:end),'.')
             title(['time: ',num2str(round(t/31556926,1)),' y'])
             if t == 0
@@ -296,12 +296,12 @@ for t = 0:dt:T
                 xlabel('a[m]')
                 ax = gca;
                 ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
-
+                
             end
         end
         if plot_ang_mom
             %angular momentum
-            subplot(2,2,2)       
+            subplot(2,2,2)
             plot(L_t);
             if t == 0
                 
@@ -314,7 +314,7 @@ for t = 0:dt:T
                 ylabel('relative magnitude')
                 
                 ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
-
+                
             end
             
         end
@@ -332,10 +332,10 @@ for t = 0:dt:T
             %particle system
             subplot(2,2,3)
             axSys = gca;
-            plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
+            plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20);
             axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
             
-            plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20); 
+            plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20);
             
             
             %axis([-1 1 -1 1]*defaultRange*1.1);
@@ -348,7 +348,7 @@ for t = 0:dt:T
             %plot kuiperbelt if type == 2
             if type == 2
                 hold on
-                plot(plot_p_k(1,:),plot_p_k(2,:),'.r','MarkerSize',2); 
+                plot(plot_p_k(1,:),plot_p_k(2,:),'.r','MarkerSize',2);
                 axis([-1 1 -1 1]*50*AU);
                 hold off
                 
@@ -364,14 +364,14 @@ for t = 0:dt:T
             else
                 plot(p(1,2:end),p(3,2:end),'.k','MarkerSize',20);
             end
-
+            
             axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
             if plot_3d
-                plot3(p(1,1),p(2,1),p(3,1),'*y', 'MarkerSize',20); 
+                plot3(p(1,1),p(2,1),p(3,1),'*y', 'MarkerSize',20);
             else
-                plot(p(1,1),p(3,1),'*y', 'MarkerSize',20); 
+                plot(p(1,1),p(3,1),'*y', 'MarkerSize',20);
             end
-
+            
             
             
             %axis([-1 1 -1 1]*defaultRange*1.1);
@@ -384,14 +384,14 @@ for t = 0:dt:T
             axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
             
         end
-
+        
         if type == 2
             if plot_momentum
                 subplot(2,2,4)
-%                 plot(rel_momentum);
+                %                 plot(rel_momentum);
                 title('Rel momentum(norm), rel to jupiter')
                 axis([max(0,index-5000) index+500 -0.1 1]);
-
+                
                 xt = get(gca, 'XTick');
                 set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,1))
                 xlabel('time [years]')
@@ -407,52 +407,56 @@ end
 
 if gpuNeed
     pframesCPU = gather(pframes);
+    
     if plotting
+        
         for i = 1:size(pframesCPU,3)
-            p = pframes(:,:,i);
-            
-            figure(1)
-            if plot_system
-            T_neptune = 60182*3600*24; % seconds
-            omega_neptune = 2*pi/T_neptune;
-            A = [cos(omega_neptune*t), sin(omega_neptune*t);...
-                -sin(omega_neptune*t), cos(omega_neptune*t) ];
-            if type == 2
-                plot_p(1:2,:) = A*p(1:2,:);
-                plot_p_k(1:2,:) = A*p_k(1:2,:);
-            else
-                plot_p = p;
-            end
-            %particle system
-            subplot(2,2,3)
-            axSys = gca;
-            plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
-            axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
-            
-            plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20); 
-            
-            
-            %axis([-1 1 -1 1]*defaultRange*1.1);
-            title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
-            if t == 0
+            if mod(i,10) == 0
+                view(0,0)
                 
-                axis([-1 1 -1 1]*defaultRange*1.1);
+                p = pframes(:,:,i);
                 
-            end
-            %plot kuiperbelt if type == 2
-            if type == 2
-                hold on
-                plot(plot_p_k(1,:),plot_p_k(2,:),'.r','MarkerSize',2); 
-                axis([-1 1 -1 1]*50*AU);
-                hold off
-                
-            end
-            axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
-            
+                figure(1)
+                if plot_system
+                    T_neptune = 60182*3600*24; % seconds
+                    omega_neptune = 2*pi/T_neptune;
+                    A = [cos(omega_neptune*t), sin(omega_neptune*t);...
+                        -sin(omega_neptune*t), cos(omega_neptune*t) ];
+                    if type == 2
+                        plot_p(1:2,:) = A*p(1:2,:);
+                        plot_p_k(1:2,:) = A*p_k(1:2,:);
+                    else
+                        plot_p = p;
+                    end
+                    %particle system
+                    subplot(2,2,3)
+                    axSys = gca;
+                    plot3(plot_p(1,2:end),plot_p(2,2:end),plot_p(3,2:end),'.k','MarkerSize',20);
+                    axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
+                    
+                    plot3(plot_p(1,1),plot_p(2,1),plot_p(3,1),'*y', 'MarkerSize',20);
+                    
+                    
+                    axis([-1 1 -1 1 -1 1]*defaultRange*100);
+                    title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
+                    
+                    %plot kuiperbelt if type == 2
+                    if type == 2
+                        hold on
+                        plot(plot_p_k(1,:),plot_p_k(2,:),'.r','MarkerSize',2);
+                        axis([-1 1 -1 1]*50*AU);
+                        hold off
+                        
+                    end
+                    axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
+                end
+                pause
             end
         end
     end
 end
+view(0,0)
+
 
 if make_movie
     v = VideoWriter('testVideo.avi'); %Maak een video-file
