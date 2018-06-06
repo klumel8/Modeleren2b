@@ -46,7 +46,7 @@ function [Mass, p, v, N] = initialConditions(radius, N, type)
 %% Main Function
 
 % Define starting parameters 
-Mass_total = 2.6634e27; % [kg ] total mass in system (no sun)
+Mass_total = 2.6634e29; % [kg ] total mass in system (no sun)
 Mass_sun = 1.988e30; % [kg] mass of sun 
 G = 6.67408*10^-11; % [Nm^2kg^-2]
 
@@ -115,7 +115,7 @@ if type == 3 %sphere
     % create position and speed vectors
     theta   = 2*pi*rand(1,N); % create random angles
     phi     =   pi*rand(1,N);
-    r = radius * ( 0.5 + 0.1*randn(1,N) ); % create normally distributed angles
+    r = radius * ( 0.1 + 10*rand(1,N) ); % create normally distributed angles
 
     p = r.*[cos(theta).*sin(phi); sin(theta).*sin(phi); cos(phi)]; % position vector
 
