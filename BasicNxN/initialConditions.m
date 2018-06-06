@@ -95,7 +95,7 @@ if type == 2
     Mass(1) = Mass_sun;
     %for richardson error estimation
 %     theta = 2*pi*linspace(0,1,numel(r));
-    theta = 2*pi*rand(1,N); % create random angles
+    theta = 2*pi*[0 0.25]; % create random angles
     
     % create empty vectors
     p = zeros(3,N); v = p;

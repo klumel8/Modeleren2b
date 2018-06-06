@@ -34,7 +34,7 @@ end
 if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1; % Dummy variable
-    N_k = 1e3; % particles in kuiper belt
+    N_k = 5e3; % particles in kuiper belt
     dt = 3600*24*7*52; % in seconds 
     T = 1e12; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
@@ -293,10 +293,10 @@ for t = 0:dt:T
             
         end
         if plot_system
-            T_neptune = 60182*3600*24; % seconds
-            omega_neptune = 2*pi/T_neptune;
-            A = [cos(omega_neptune*t), sin(omega_neptune*t);...
-                -sin(omega_neptune*t), cos(omega_neptune*t) ];
+            d_theta = atan(p(2,2)/p(1,2));
+            d_theta = d_theta - pi*(p(1,2)<0)+pi/2;
+            A = [cos(d_theta), sin(d_theta);...
+                -sin(d_theta), cos(d_theta) ];
             if type == 2
                 plot_p(1:2,:) = A*p(1:2,:);
                 plot_p_k(1:2,:) = A*p_k(1:2,:);
