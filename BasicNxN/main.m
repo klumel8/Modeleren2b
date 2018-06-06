@@ -3,7 +3,9 @@ clear; close all;
 % 1 = early solar system
 % 2 = solar system and Kuyper belt
 % 3 = sphere
-type = 2;
+% 4 = 2 particles
+% 5 = solar system
+type = 3;
 
 gpuNeed = false;
 make_movie = false;
@@ -25,10 +27,10 @@ AU = 1.49597871e11; % [m]
 rng(121) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
-    N = 1e3;
+    N = 1e2;
     dt = 3600*24*7; % in seconds (dt = 1 day)
     T = 1e9;%5e10; % in seconds
-    [Mass, p, v, N] = initialConditions(defaultRange,N,1);
+    [Mass, p, v, N] = initialConditions(defaultRange,N,type);
 end
 
 if type == 2 % solar system and Kuyper belt
@@ -37,8 +39,30 @@ if type == 2 % solar system and Kuyper belt
     N_k = 1e3; % particles in kuiper belt
     dt = 3600*24*7*52; % in seconds 
     T = 1e12; % in seconds
-    [Mass, p, v, N] = initialConditions(defaultRange,N,2);
+    [Mass, p, v, N] = initialConditions(defaultRange,N,type);
     [p_k, v_k] = kuiperbelt(N_k);
+end
+if type  == 3 %sphere
+    defaultRange = 5*AU; % [m]
+    N = 5e2;
+    dt = 3600*24*7*20; % in seconds (dt = 1 day)
+    T = 5e11; % in seconds
+    [Mass, p, v, N] = initialConditions(defaultRange,N,type);
+    
+end
+if type == 4
+    defaultRange = 3*AU; % [m]
+    N = 2;
+    dt = 3600*24*7*30; % in seconds (dt = 1 day)
+    T = 5e10; % in seconds
+    [Mass, p, v, N] = initialConditions(defaultRange,N,type);
+end
+if type == 5 % solar system
+    defaultRange = 5e12; % [m]
+    N = 9; % Dummy variable
+    dt = 3600*24*7; % in seconds 
+    T = 1e12; % in seconds
+    [Mass, p, v, N] = initialConditions(defaultRange,N,type);
 end
 
 
@@ -126,7 +150,6 @@ for t = 0:dt:T
         v(:,indices) = repmat([0;0;0],1,numel(indices));%set velocity to 0
         Mass(indices) = 0;%set mass to 0
     end
-    
     %read fo.m first, but keeps track of whether there was a collision.
     c = col(p,v,Mass,N,dt);
     
@@ -292,7 +315,7 @@ for t = 0:dt:T
             end
             
         end
-        if plot_system
+        if plot_system & type~=3
             T_neptune = 60182*3600*24; % seconds
             omega_neptune = 2*pi/T_neptune;
             A = [cos(omega_neptune*t), sin(omega_neptune*t);...
@@ -329,7 +352,31 @@ for t = 0:dt:T
             end
             axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
             
+        elseif plot_system & type==3
+            %particle system
+            subplot(2,2,3)
+            axSys = gca;
+%             plot3(p(1,2:end),p(2,2:end),p(3,2:end),'.k','MarkerSize',20);
+            plot(p(1,2:end),p(3,2:end),'.k','MarkerSize',20);
+
+            axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
+            
+%             plot3(p(1,1),p(2,1),p(3,1),'*y', 'MarkerSize',20); 
+            plot(p(1,1),p(3,1),'*y', 'MarkerSize',20); 
+
+            
+            
+            %axis([-1 1 -1 1]*defaultRange*1.1);
+            title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
+            if t == 0
+                
+                axis([-1 1 -1 1]*defaultRange*1.1);
+                
+            end
+            axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
+            
         end
+        
 
         if type == 2
             if plot_momentum
