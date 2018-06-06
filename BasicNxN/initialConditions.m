@@ -88,7 +88,7 @@ if type == 2
 
 
 %          Sun Neptune
-    Mass= [0.1 10200   ] * 10^24;   % kg
+    Mass= 4*[0.1 10200   ] * 10^24;   % kg
     r   = [0.1 4495.1] * 10^9;    % m
     N   = length(Mass);
     

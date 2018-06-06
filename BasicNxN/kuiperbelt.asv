@@ -50,9 +50,9 @@ r_high = 48*AU;
 % create position and speed vectors
 theta = 2*pi*rand(1,N); % create random angles
 % r = r_low + (r_high-r_low).*rand(1,N); % create uniformly distributed radii
-r = (3/2)^(2/3)*4495e9;
-% r = 4495e9;
-ecc = rand(1,N)/8;
+% r = (3/2)^(2/3)*4495e9;
+r = 4495e9;
+ecc = rand(1,N)/2;
 a   = r;
 r = (a.*(1 - ecc.^2) ) ./ (1 + ecc.*cos(theta));
 v_abs = sqrt(G * Mass_sun .* (2./r - 1./a));
@@ -66,8 +66,8 @@ A = [cos(d_theta), sin(d_theta),zeros(1,1,N);...
     zeros(1,1,N),zeros(1,1,N),ones(1,1,N)];
 size(A)
 for i=1:N
-    v(:,i) = A(:,:,i)*v(:,i);
-    p(:,i) = A(:,:,i)*p(:,i);
+    v(:,1) = A(:,:,i)*v(:,1);
+    p(:,1) = A(:,:,i)*p(:,1);
 end
 %% Output Handling
 % -

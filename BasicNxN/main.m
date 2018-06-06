@@ -12,7 +12,7 @@ make_movie = false;
 %1: newton forward
 %2,4-6: runge kutta 
 %7: leapfrog
-int_met = 7;
+int_met = 4;
 %use barnes hut
 barnes_hut = false;
 theta = 0.5;%0 to test acc calculation: all particles are indiviually used,
@@ -25,7 +25,7 @@ AU = 1.49597871e11; % [m]
 rng(121) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
-    N = 1e3;
+    N = 1;
     dt = 3600*24*7; % in seconds (dt = 1 day)
     T = 1e9;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
@@ -33,10 +33,10 @@ end
 
 if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
-    N = 1; % Dummy variable
-    N_k = 5e3; % particles in kuiper belt
+    N = 1e4; % Dummy variable
+    N_k = 1e5; % particles in kuiper belt
     dt = 3600*24*7*52; % in seconds 
-    T = 1e12; % in seconds
+    T = 1e13; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k);
 end
@@ -177,6 +177,16 @@ for t = 0:dt:T
         k1 = dt^2*acc_fun(p,Mass,N);
         k2 = dt^2*acc_fun(p + 0.5*dt*v + 1/8*k1,Mass,N);
         k3 = dt^2*acc_fun(p + dt*v + .5*k2,Mass,N);
+        
+        %a_k = kuiperacc(p,p_k,Mass);
+        if type == 2
+            k1_k = dt^2*kuiperacc(p,p_k,Mass);
+            k2_k = dt^2*kuiperacc(p + 0.5*dt*v + 1/8*k1,p_k + 0.5*dt*v_k + 1/8*k1_k ,Mass);
+            k3_k = dt^2*kuiperacc(p + dt*v + .5*k2,p_k + dt*v_k + .5*k2_k,Mass);
+            p_k = p_k + v_k*dt + 1/6*(k1_k+2*k2_k);
+            v_k = v_k + 1/(6*dt)*(k1_k+4*k2_k+k3_k);
+        end
+        
         p = p + v*dt + 1/6*(k1+2*k2);
         v = v + 1/(6*dt)*(k1+4*k2+k3);
         
@@ -342,6 +352,18 @@ for t = 0:dt:T
                 set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,1))
                 xlabel('time [years]')
                 ylabel('relative magnitude')
+            end
+            
+            plot_hist = true;
+            if plot_hist
+                subplot(2,2,4)
+    %                plot(rel_momentum);
+                    title('histogram of all angles')
+                    xlabel('amount of particles')
+                    ylabel('angle (radians)')
+                theta = atan(plot_p_k(2,:)./plot_p_k(1,:));
+                theta = theta - pi*(plot_p_k(1,:)<0);
+                histogram(theta,36);
             end
         end
         drawnow
