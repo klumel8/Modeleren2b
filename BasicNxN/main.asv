@@ -1,1 +1,0 @@
-    [Mass, p, v, N] = initialConditions(defaultRange,N,type);
