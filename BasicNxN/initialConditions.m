@@ -101,18 +101,19 @@ if type == 2
     p = zeros(3,N); v = p;
       
     % neptune information
-    ecc = 0.009456;
+    ecc = [0,0.009456];
     a   = r;
     
-    r = (a*(1 - ecc^2) ) / (1 + ecc*cos(theta));
-    v_abs = sqrt(G * Mass(1) * (2./a - 1./r));
-    size(v_abs)
-    p = r * [cos(theta), sin(theta), zeros(1,N) ];
-    v = v_abs .* [-sin(theta), cos(theta), zeros(1,N) ];
+    r = (a.*(1 - ecc.^2) ) ./ (1 + ecc.*cos(theta));
+    v_abs = sqrt(G * Mass(1) * (2./r - 1./a));
+    p = r .* [cos(theta); sin(theta); zeros(1,N) ];
+    v = v_abs .* [-sin(theta); cos(theta); zeros(1,N) ];
     
     % pin sun to origin
     p(:,1) = [0;0;0]; v(:,1) = [0;0;0]; 
-    
+    momentum = nansum(Mass .* v,2);
+    v(:,1) = -momentum / Mass(1); %give sun position and velocity to make velocitiy of CoM 0
+    p(:,1) = -nansum(Mass.*p,2)/Mass(1);
 end
 
 if type == 3
