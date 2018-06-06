@@ -93,7 +93,7 @@ if type == 2 %kuiperbelt
     N   = length(Mass);
     
     Mass(1) = Mass_sun;
-    %for richardson error estimation
+    %for richardson error estimation:
 %     theta = 2*pi*linspace(0,1,numel(r));
     theta = 2*pi*rand(1,N); % create random angles
     p = r.*[cos(theta); sin(theta); zeros(1,N)]; % position vector

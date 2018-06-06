@@ -43,6 +43,8 @@ if type == 2 % solar system and Kuyper belt
     [p_k, v_k] = kuiperbelt(N_k);
 end
 if type  == 3 %sphere
+    plot_3d = false;
+    
     defaultRange = 5*AU; % [m]
     N = 5e2;
     dt = 3600*24*7*20; % in seconds (dt = 1 day)
@@ -356,21 +358,25 @@ for t = 0:dt:T
             %particle system
             subplot(2,2,3)
             axSys = gca;
-%             plot3(p(1,2:end),p(2,2:end),p(3,2:end),'.k','MarkerSize',20);
-            plot(p(1,2:end),p(3,2:end),'.k','MarkerSize',20);
+            if plot_3d
+                plot3(p(1,2:end),p(2,2:end),p(3,2:end),'.k','MarkerSize',20);
+            else
+                plot(p(2,2:end),p(3,2:end),'.k','MarkerSize',20);
+            end
 
             axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
-            
-%             plot3(p(1,1),p(2,1),p(3,1),'*y', 'MarkerSize',20); 
-            plot(p(1,1),p(3,1),'*y', 'MarkerSize',20); 
-
+            if plot_3d
+                plot3(p(1,1),p(2,1),p(3,1),'*y', 'MarkerSize',20); 
+            else
+                plot(p(2,1),p(3,1),'*y', 'MarkerSize',20);
+            end
             
             
             %axis([-1 1 -1 1]*defaultRange*1.1);
             title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
             if t == 0
                 
-                axis([-1 1 -1 1]*defaultRange*1.1);
+                axis([-1 1 -1 1]*defaultRange*1.1*10);
                 
             end
             axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
