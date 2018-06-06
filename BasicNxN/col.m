@@ -33,7 +33,8 @@ function Collision = col(p, v, Mass, N,dt)
     %check if the collision is in the interval [0,dt]
     col_time_correct = -dot(D,DV,3)./DV_norm.^2 < dt & -dot(D,DV,3)./DV_norm.^2>0;
     %check if they collide at the begin or endpoint:
-    col_begin_end = R.^2 < planetCombi.^2 | vecnorm(D + DV*dt,2,3).^2 <planetCombi.^2;
+    %col_begin_end = R.^2 < planetCombi.^2 | vecnorm(D + DV*dt,2,3).^2 <planetCombi.^2;
+    col_begin_end = R.^2 < planetCombi.^2 | sum((D + DV*dt).^2,3) <planetCombi.^2;
     
     %combine all checks & remove all collisions of a particle with itself
     Collision = ((col_somewhere & col_time_correct) | col_begin_end) & ~eye(N);

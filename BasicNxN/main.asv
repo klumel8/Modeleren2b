@@ -38,6 +38,12 @@ if type == 2 % solar system and Kuyper belt
     [p_k, v_k] = kuiperbelt(N_k);
 end
 
+gpuNeed = false;
+if gpuNeed
+%p = gpuArray(p);
+%Mass = gpuArray(Mass);
+%v = gpuArray(v);
+
 % plotting configuration
 fps = 10;
 plot_system = true;     %plot the particle system
@@ -104,7 +110,9 @@ for t = 0:dt:T
     vOud = v;
     
     %remove particles which are too far with a too high speed:
-    remove_crit = vecnorm(p)>100*defaultRange;
+    %remove_crit = vecnorm(p)>100*defaultRange;
+    remove_crit = sqrt(sum(p.^2,1))>100*defaultRange;
+    
     if any(remove_crit)
         disp('too far')
         indices = find(remove_crit);
@@ -232,7 +240,9 @@ for t = 0:dt:T
 %     end
     
     [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass);
-    ecc = vecnorm(ecc,2,1)';
+    
+    ecc = sqrt(sum(ecc.^2,1))';
+    
     semi_m_axis = semi_m_axis';
 
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
@@ -286,16 +296,18 @@ for t = 0:dt:T
             %particle system
             subplot(2,2,3)
             axSys = gca;
-            plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); hold(axSys,'on')
+            plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
+            axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
+            
             plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20); 
-            hold(axSys)
+            
             
             %axis([-1 1 -1 1]*defaultRange*1.1);
             title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
             if t == 0
                 
                 axis([-1 1 -1 1]*defaultRange*1.1);
-                axSYs.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
+                
             end
             %plot kuiperbelt if type == 2
             if type == 2
@@ -305,6 +317,8 @@ for t = 0:dt:T
                 hold off
                 
             end
+            axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
+            
         end
 
         if type == 2
@@ -322,7 +336,7 @@ for t = 0:dt:T
         end
         drawnow
         if make_movie
-            F(t/(TstepsPframe*dt)+1) = getframe(gcf);
+            F(t/(TstepsPframe*dt)+1) = getframe(gcf);curr_tree.Node{i}
         end
     end
 end

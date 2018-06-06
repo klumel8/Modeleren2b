@@ -22,9 +22,9 @@ AU = 1.49597871e11; % [m]
 rng(121) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
-    N = 1e2;
+    N = 1e3;
     dt = 3600*24*7; % in seconds (dt = 1 day)
-    T = 1e8;%5e10; % in seconds
+    T = 1e9;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
 end
 
@@ -37,6 +37,7 @@ if type == 2 % solar system and Kuyper belt
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k);
 end
+
 
 % plotting configuration
 fps = 10;
@@ -51,6 +52,15 @@ TstepsPframe = 3;
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
     F(frames) = struct('cdata',[],'colormap',[]);
+end
+
+gpuNeed = true;
+if gpuNeed
+    pframes = gpuArray(zeros([size(p),frames]));
+    p = gpuArray(p);
+    Mass = gpuArray(Mass);
+    v = gpuArray(v);
+    
 end
 
 
@@ -104,7 +114,9 @@ for t = 0:dt:T
     vOud = v;
     
     %remove particles which are too far with a too high speed:
-    remove_crit = vecnorm(p)>100*defaultRange;
+    %remove_crit = vecnorm(p)>100*defaultRange;
+    remove_crit = sqrt(sum(p.^2,1))>100*defaultRange;
+    
     if any(remove_crit)
         disp('too far')
         indices = find(remove_crit);
@@ -232,12 +244,19 @@ for t = 0:dt:T
 %     end
     
     [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass);
-    ecc = vecnorm(ecc,2,1)';
+    
+    ecc = sqrt(sum(ecc.^2,1))';
+    
     semi_m_axis = semi_m_axis';
 
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when plotting = true, (saves time)
-    if (plotting && (mod(t,TstepsPframe*dt)==0))
+    if gpuNeed
+        if (mod(t,TstepsPframe*dt)==0)
+            pframes(:,1:size(p,2),t/(TstepsPframe*dt)+1) = p;
+        end
+    end
+    if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed)
         figure(1)
         if plot_ecc_a
             %eccentricity vs semi-major axis: 
@@ -326,7 +345,56 @@ for t = 0:dt:T
         end
         drawnow
         if make_movie
-            F(t/(TstepsPframe*dt)+1) = getframe(gcf);
+            F(t/(TstepsPframe*dt)+1) = getframe(gcf);curr_tree.Node{i}
+        end
+    end
+end
+
+if gpuNeed
+    pframesCPU = gather(pframes);
+    if plotting
+        for i = 1:size(pframesCPU,3)
+            p = pframes(:,:,i);
+            
+            figure(1)
+            if plot_system
+            T_neptune = 60182*3600*24; % seconds
+            omega_neptune = 2*pi/T_neptune;
+            A = [cos(omega_neptune*t), sin(omega_neptune*t);...
+                -sin(omega_neptune*t), cos(omega_neptune*t) ];
+            if type == 2
+                plot_p(1:2,:) = A*p(1:2,:);
+                plot_p_k(1:2,:) = A*p_k(1:2,:);
+            else
+                plot_p = p;
+            end
+            %particle system
+            subplot(2,2,3)
+            axSys = gca;
+            plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
+            axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
+            
+            plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20); 
+            
+            
+            %axis([-1 1 -1 1]*defaultRange*1.1);
+            title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
+            if t == 0
+                
+                axis([-1 1 -1 1]*defaultRange*1.1);
+                
+            end
+            %plot kuiperbelt if type == 2
+            if type == 2
+                hold on
+                plot(plot_p_k(1,:),plot_p_k(2,:),'.r','MarkerSize',2); 
+                axis([-1 1 -1 1]*50*AU);
+                hold off
+                
+            end
+            axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
+            
+            end
         end
     end
 end

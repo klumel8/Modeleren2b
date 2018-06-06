@@ -11,9 +11,9 @@ function [e, a] = eccentricity_sma(p,v,m)
     G = 6.67408*10^-11; % [Nm^2kg^-2]
 
     mu = G * m(1);
-    e = (vecnorm(v).^2 ./ mu - vecnorm(p).^(-1)) .* p - dot(p, v,1) .* v ./ mu;
+    e = (sum(v.^2,1) ./ mu - sqrt(sum(p.^2,1)).^(-1)) .* p - dot(p, v,1) .* v ./ mu;
     
-    eps = vecnorm(v).^2 / 2 - mu ./ vecnorm(p);
+    eps = sum(v.^2,1) / 2 - mu ./ sqrt(sum(p.^2,1));
     
     a = -mu ./ (2 * eps);
 end

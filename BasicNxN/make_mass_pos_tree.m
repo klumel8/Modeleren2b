@@ -89,6 +89,7 @@ function [mass_tree, pos_tree] = make_mass_pos_tree(basic_tree,p,Mass,start_rang
 
     mass_pos_tree = pos_tree.treefun2(mass_tree,@(r,m) m.*r);
     mass_pos_tree = mass_pos_tree.recursivecumfun(@(x) sum(x,2),3);
+
     %fill the pos_tree (center of masses)
     pos_tree = mass_tree.treefun2(mass_pos_tree,@(m_tot,mr) mr./m_tot);
 end

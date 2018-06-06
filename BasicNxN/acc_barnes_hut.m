@@ -47,10 +47,10 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
             %get the index of the particle in this leaf
             [~, min_index] = min(distance_norm_tree.get(i));
             
-            far_enough = far_enough.set(i,(1:N ~= min_index)); % 0 at the min index, 1 elsewhere
+            far_enough.Node{i} = (1:N ~= min_index); % 0 at the min index, 1 elsewhere
         else
             for child = far_enough.getchildren(i)
-                far_enough = far_enough.set(i,far_enough.Node{i}.*far_enough.Node{child});
+                far_enough.Node{i} = far_enough.Node{i}.*far_enough.Node{child};
             end
 %         far_enough = far_enough.set(far_enough.getparent(i),far_enough.get(far_enough.getparent(i)).*far_enough.get(i));
             if any(far_enough.Node{i})
@@ -81,8 +81,8 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
     for k = iter(2:end) %exclude root from iteration, because it doesnt have a parent and should never be used to calculate the force
         far_enough.getparent(k);
         
-        parent_node = far_enough.get(far_enough.getparent(k));
-        node = far_enough.get(k); %node = 1xN matrix with 1 at place i when this CoM is far enough from particle i
+        parent_node = far_enough.Node{far_enough.getparent(k)};
+        node = far_enough.Node{k}; %node = 1xN matrix with 1 at place i when this CoM is far enough from particle i
         
         %{
         for i = 1:N %loop over particles
@@ -97,8 +97,8 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
                 
         end
         %}
-        distance = (pos_tree.get(k)-p(:,:)).*repmat(node.*(~parent_node),3,1);
-        acc_added = G.*mass_tree.get(k).*distance./(vecnorm(distance,2,1).^3);
+        distance = (pos_tree.Node{k}-p).*repmat(node.*(~parent_node),3,1);
+        acc_added = G.*mass_tree.Node{k}.*distance./(vecnorm(distance,2,1).^3);
         acc_added(isnan(acc_added)) = 0;
         a = a + acc_added;
     end
