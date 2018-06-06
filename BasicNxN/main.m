@@ -3,7 +3,10 @@ clear; close all;
 % 1 = early solar system
 % 2 = solar system and Kuyper belt
 % 3 = sphere
-type = 1;
+type = 2;
+
+gpuNeed = false;
+make_movie = false;
 
 %integration method
 %1: newton forward
@@ -11,7 +14,7 @@ type = 1;
 %7: leapfrog
 int_met = 7;
 %use barnes hut
-barnes_hut = true;
+barnes_hut = false;
 theta = 0.5;%0 to test acc calculation: all particles are indiviually used,
           %should be the same as without barnes hut
 
@@ -47,14 +50,12 @@ plot_ang_mom = true;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
 plotting = true;        %plot anything at all
 
-make_movie = false;
 TstepsPframe = 3;
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
     F(frames) = struct('cdata',[],'colormap',[]);
 end
 
-gpuNeed = true;
 if gpuNeed
     pframes = gpuArray(zeros([size(p),frames]));
     p = gpuArray(p);
