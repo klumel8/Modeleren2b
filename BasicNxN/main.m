@@ -3,7 +3,9 @@ clear; close all;
 % 1 = early solar system
 % 2 = solar system and Kuyper belt
 % 3 = sphere
-type = 1;
+% 4 = 2 particles (test)
+% 5 = solar system (normal, all planets)
+type = 3;
 
 %integration method
 %1: newton forward
@@ -37,6 +39,30 @@ if type == 2 % solar system and Kuyper belt
     T = 1e12; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k);
+end
+if type  == 3 %sphere
+    plot_3d = true;
+        
+    defaultRange = 5*AU; % [m]
+    N = 5e2;
+    dt = 3600*24*7*20; % in seconds (dt = 1 day)
+    T = 5e11; % in seconds
+    [Mass, p, v, N] = initialConditions(defaultRange,N,type);
+    
+end
+if type == 4
+    defaultRange = 3*AU; % [m]
+    N = 2;
+    dt = 3600*24*7*30; % in seconds (dt = 1 day)
+    T = 5e10; % in seconds
+    [Mass, p, v, N] = initialConditions(defaultRange,N,type);
+end
+if type == 5 % solar system
+    defaultRange = 5e12; % [m]
+    N = 9; % Dummy variable
+    dt = 3600*24*7; % in seconds 
+    T = 1e12; % in seconds
+    [Mass, p, v, N] = initialConditions(defaultRange,N,type);
 end
 
 
@@ -292,7 +318,7 @@ for t = 0:dt:T
             end
             
         end
-        if plot_system
+        if plot_system & type~=3
             T_neptune = 60182*3600*24; % seconds
             omega_neptune = 2*pi/T_neptune;
             A = [cos(omega_neptune*t), sin(omega_neptune*t);...
@@ -325,6 +351,34 @@ for t = 0:dt:T
                 plot(plot_p_k(1,:),plot_p_k(2,:),'.r','MarkerSize',2); 
                 axis([-1 1 -1 1]*50*AU);
                 hold off
+                
+            end
+            axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
+            
+        elseif plot_system & type==3
+            %particle system
+            subplot(2,2,3)
+            axSys = gca;
+            if plot_3d
+                plot3(p(1,2:end),p(2,2:end),p(3,2:end),'.k','MarkerSize',20);
+            else
+                plot(p(1,2:end),p(3,2:end),'.k','MarkerSize',20);
+            end
+
+            axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
+            if plot_3d
+                plot3(p(1,1),p(2,1),p(3,1),'*y', 'MarkerSize',20); 
+            else
+                plot(p(1,1),p(3,1),'*y', 'MarkerSize',20); 
+            end
+
+            
+            
+            %axis([-1 1 -1 1]*defaultRange*1.1);
+            title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
+            if t == 0
+                
+                axis([-1 1 -1 1]*defaultRange*1.1);
                 
             end
             axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
