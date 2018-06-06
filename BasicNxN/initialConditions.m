@@ -46,7 +46,7 @@ function [Mass, p, v, N] = initialConditions(radius, N, type)
 %% Main Function
 
 % Define starting parameters 
-Mass_total = 2.6634e29; % [kg ] total mass in system (no sun)
+Mass_total = 2.6634e27; % [kg ] total mass in system (no sun)
 Mass_sun = 1.988e30; % [kg] mass of sun 
 G = 6.67408*10^-11; % [Nm^2kg^-2]
 
@@ -109,23 +109,21 @@ if type == 2 %kuiperbelt
 end
 
 if type == 3 %sphere
-    Mass = ones(1,N) * Mass_total / N; % give each partical mass
-    Mass(1) = Mass_sun;
-
+    Mass = 100*ones(1,N) * Mass_total / N; % give each partical mass
+    
     % create position and speed vectors
     theta   = 2*pi*rand(1,N); % create random angles
     phi     =   pi*rand(1,N);
-    r = radius * ( 0.1 + 10*rand(1,N) ); % create normally distributed angles
+    r = radius * ( rand(1,N) ); % create normally distributed angles
 
     p = r.*[cos(theta).*sin(phi); sin(theta).*sin(phi); cos(phi)]; % position vector
 
-    v_abs = sqrt(G*Mass(1)./(r.*abs(sin(phi))));
-    v = v_abs .* [-sin(theta); cos(theta); zeros(1,N)];
-
-    p(:,1) = [0;0;0]; v(:,1) = [0;0;0]; % pin sun to origin   
-    momentum = nansum(Mass .* v,2);
-    v(:,1) = -momentum / Mass(1);
-    p(:,1) = -nansum(Mass.*p,2)/Mass(1);
+    
+    v = sqrt(3e4)* randn(3,N);
+    
+%     v_abs = sqrt(G*Mass(1)./(r.*abs(sin(phi))));
+%     v = v_abs .* [-sin(theta); cos(theta); zeros(1,N)];
+    
 
 end
 if type  == 4 %test to see whether calculations are correct

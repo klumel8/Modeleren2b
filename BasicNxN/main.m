@@ -45,7 +45,7 @@ if type  == 3 %sphere
     
     defaultRange = 5*AU; % [m]
     N = 5e2;
-    dt = 3600*24*7*20; % in seconds (dt = 1 day)
+    dt = 3600*24*10; % in seconds (dt = 1 day)
     T = 5e11; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,type);
     
@@ -377,8 +377,11 @@ for t = 0:dt:T
             %axis([-1 1 -1 1]*defaultRange*1.1);
             title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
             if t == 0
-                
-                axis([-1 1 -1 1]*defaultRange*1.1);
+                if plot_3d
+                    axis([-1 1 -1 1 -1 1]*defaultRange*1.1*10);
+                else
+                    axis([-1 1 -1 1]*defaultRange*1.1);
+                end
                 
             end
             axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
