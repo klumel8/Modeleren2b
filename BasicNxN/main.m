@@ -9,9 +9,9 @@ type = 1;
 %1: newton forward
 %2,4-6: runge kutta 
 %7: leapfrog
-int_met = 7;
+int_met = 4;
 %use barnes hut
-barnes_hut = true;
+barnes_hut = false;
 theta = 0.5;%0 to test acc calculation: all particles are indiviually used,
           %should be the same as without barnes hut
 
@@ -19,20 +19,21 @@ theta = 0.5;%0 to test acc calculation: all particles are indiviually used,
 G = 6.67408*10^-11; % [Nm^2kg^-2]
 AU = 1.49597871e11; % [m]
 
-rng(121) %rng(seed): Used to control random number generation
+rng(122) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
-    N = 1e3;
-    dt = 3600*24*7; % in seconds (dt = 1 day)
+    N = 2;
+    dt = 3600*24*7*10; % in seconds (dt = 1 day)
     T = 1e9;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
+
 end
 
 if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1; % Dummy variable
     N_k = 1e3; % particles in kuiper belt
-    dt = 3600*24*7*52; % in seconds 
+    dt = 3600*24*7*52*10; % in seconds 
     T = 1e12; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k);
@@ -54,7 +55,7 @@ if make_movie
     F(frames) = struct('cdata',[],'colormap',[]);
 end
 
-gpuNeed = true;
+gpuNeed = false;
 if gpuNeed
     pframes = gpuArray(zeros([size(p),frames]));
     p = gpuArray(p);

@@ -52,7 +52,7 @@ G = 6.67408*10^-11; % [Nm^2kg^-2]
 
 if type == 1
     % calculations
-    Mass = ones(1,N) * Mass_total / (N-1); % give each partical mass
+    Mass = ones(1,N) * Mass_total / N; % give each partical mass
     Mass(1) = Mass_sun;
 
     % create position and speed vectors
