@@ -106,12 +106,15 @@ if type == 2
     
     r = (a*(1 - ecc^2) ) / (1 + ecc*cos(theta));
     v_abs = sqrt(G * Mass(1) * (2./a - 1./r));
-    size(v_abs)
-    p = r * [cos(theta), sin(theta), zeros(1,N) ];
-    v = v_abs .* [-sin(theta), cos(theta), zeros(1,N) ];
     
-    % pin sun to origin
+    p = r * [cos(theta), sin(theta), 0];
+    v = v_abs * [-sin(theta), cos(theta), 0];
+    
+    % pin sun to origin and correct for momentum
     p(:,1) = [0;0;0]; v(:,1) = [0;0;0]; 
+    momentum = nansum(Mass .* v,2);
+    v(:,1) = -momentum / Mass(1);
+    p(:,1) = -nansum(Mass.*p,2)/Mass(1);
     
 end
 
