@@ -5,7 +5,7 @@ clear; close all;
 % 3 = sphere
 % 4 = 2 particles (test)
 % 5 = solar system (normal, all planets)
-type = 2;
+type = 1;
 
 %integration method
 %1: newton forward
@@ -24,9 +24,9 @@ AU = 1.49597871e11; % [m]
 rng(122) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
-    N = 2;
-    dt = 3600*24*7*10; % in seconds (dt = 1 day)
-    T = 1e9;%5e10; % in seconds
+    N = 1e3;
+    dt = 3600*24*7*52; % in seconds (dt = 1 day)
+    T = 1e10;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
     
 end
