@@ -3,7 +3,7 @@ clear; close all;
 % 1 = early solar system
 % 2 = solar system and Kuyper belt
 % 3 = sphere
-type = 2;
+type = 1;
 
 gpuNeed = false;
 make_movie = false;
@@ -25,16 +25,16 @@ AU = 1.49597871e11; % [m]
 rng(121) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
-    N = 1;
-    dt = 3600*24*7; % in seconds (dt = 1 day)
-    T = 1e9;%5e10; % in seconds
+    N = 1e2;
+    dt = 3600*24*7*52; % in seconds (dt = 1 day)
+    T = 1e10;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
 end
 
 if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1e4; % Dummy variable
-    N_k = 1e5; % particles in kuiper belt
+    N_k = 1e3; % particles in kuiper belt
     dt = 3600*24*7*52; % in seconds 
     T = 1e13; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
@@ -48,7 +48,7 @@ plot_system = true;     %plot the particle system
 plot_ecc_a = true;      %plot eccentricity vs semi major axis
 plot_ang_mom = true;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
-plotting = true;        %plot anything at all
+plotting = false;        %plot anything at all
 
 TstepsPframe = 3;
 frames = floor(T/(TstepsPframe*dt))+1;
@@ -106,9 +106,7 @@ for t = 0:dt:T
         if int_met == 7
             a = a(:,staying_indices);
         end
-%         if type == 2
-%             momentum = momentum(:,staying_indices,:);
-%         end
+
     end
     
     %later were gonna make some bounds on speed and range, this is needed.
@@ -129,7 +127,7 @@ for t = 0:dt:T
     
     %read fo.m first, but keeps track of whether there was a collision.
     c = col(p,v,Mass,N,dt);
-    
+       
     %#BUG will crash if multiple collisions in one timestep
     %check if the collision vector is empty    
     if max(max(c)) > 0
@@ -161,6 +159,29 @@ for t = 0:dt:T
        %angular momentum and energy can be better defined.
        colision_index = index;
     end
+    if type == 2
+        c_k = col_kuiper(p,p_k,v,v_k,Mass,dt);
+        if any(any(c_k))
+            disp('collision(kuiperbelt particle)')
+           %find indices of collided particles       
+           %re-rank the collision indexes
+           indices = [mod(find(c_k),N_k)'; ceil(find(c_k)/N)'];
+           indices(1,:) = (indices(1,:)==0)*N_k + indices(1,:);
+           removing_indices = zeros(1,N_k);
+           removing_indices(indices(1,:)) = 1;
+           %remove kuiper belt particles which collide
+            p_k = p_k(:,~removing_indices);
+            v_k = v_k(:,~removing_indices);
+            if t>0
+                clearvars plot_p_k
+            end
+            if int_met == 7
+                a_k = a_k(:,~removing_indices);
+            end
+            N_k = size(p_k,2);
+        end
+    end
+
     
     if int_met == 1
         %first order (newton forward)
@@ -372,7 +393,7 @@ for t = 0:dt:T
                     xlabel('amount of particles')
                     ylabel('angle (radians)')
                 theta = atan(plot_p_k(2,:)./plot_p_k(1,:));
-                theta = theta - pi*(plot_p_k(1,:)<0);
+                theta = theta - pi*(plot_p_k(1,:)<0)+pi/2;
                 histogram(theta,36);
             end
         end
