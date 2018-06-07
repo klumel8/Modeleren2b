@@ -11,9 +11,9 @@ type = 1;
 %1: newton forward
 %2,4-6: runge kutta
 %7: leapfrog
-int_met = 7;
+int_met = 4;
 %use barnes hut
-barnes_hut = true;
+barnes_hut = false;
 theta = 0.5;%0 to test acc calculation: all particles are indiviually used,
 %should be the same as without barnes hut
 
