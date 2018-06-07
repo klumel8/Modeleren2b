@@ -52,10 +52,6 @@ function a = acc_barnes_hut(p, Mass, G,N,theta)
             for child = far_enough.getchildren(i)
                 far_enough.Node{i} = far_enough.Node{i}.*far_enough.Node{child};
             end
-%         far_enough = far_enough.set(far_enough.getparent(i),far_enough.get(far_enough.getparent(i)).*far_enough.get(i));
-            if any(far_enough.Node{i})
-                %disp(far_enough.Node{i})
-            end
         end
     end
 

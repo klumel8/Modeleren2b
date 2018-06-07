@@ -278,23 +278,28 @@ for t = 0:dt:T
         if plot_ecc_a
             %eccentricity vs semi-major axis: 
             subplot(2,2,1) 
-            plot(semi_m_axis(2:end),ecc(2:end),'.')
+            plot(semi_m_axis(2:end),ecc(2:end),'.b')
             title(['time: ',num2str(round(t/31556926,1)),' y'])
             if t == 0
-                axis([0,1.1*defaultRange,0, 0.5])
+                axis([0,1.1*defaultRange*2,0, 0.5])
                 ylabel('$\varepsilon$','Interpreter','Latex')
                 xlabel('a[m]')
                 ax = gca;
-                ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
-
             end
+            ax = gca;
+
+            if type == 2
+                ax.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
+                plot(semi_m_axis_kuiper,ecc_kuiper,'.r')    
+            end
+            ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
+
         end
         if plot_ang_mom
             %angular momentum
             subplot(2,2,2)       
             plot(L_t);
             if t == 0
-                
                 ax = gca;
                 title('Angular momentum(z)')
                 axis([[max(0,index-5000) index+500] [1 1]*round(L_t(end))+[-1 1]]);
@@ -304,7 +309,6 @@ for t = 0:dt:T
                 ylabel('relative magnitude')
                 
                 ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
-
             end
             
         end

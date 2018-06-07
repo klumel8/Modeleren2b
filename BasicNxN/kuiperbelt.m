@@ -64,7 +64,7 @@ d_theta = permute(rand(1,N)*2*pi,[1,3,2]);
 A = [cos(d_theta), sin(d_theta),zeros(1,1,N);...
     -sin(d_theta), cos(d_theta),zeros(1,1,N);...
     zeros(1,1,N),zeros(1,1,N),ones(1,1,N)];
-size(A)
+
 for i=1:N
     v(:,i) = A(:,:,i)*v(:,i);
     p(:,i) = A(:,:,i)*p(:,i);
