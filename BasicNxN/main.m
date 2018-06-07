@@ -259,6 +259,12 @@ for t = 0:dt:T
     ecc = sqrt(sum(ecc.^2,1))';
     
     semi_m_axis = semi_m_axis';
+    if type == 2
+        [ecc_kuiper, semi_m_axis_kuiper] = eccentricity_sma(p_k,v_k,Mass);
+        ecc_kuiper = sqrt(sum(ecc_kuiper.^2,1))';
+    
+        semi_m_axis_kuiper = semi_m_axis_kuiper';
+    end
 
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when plotting = true, (saves time)
