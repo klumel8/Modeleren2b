@@ -271,10 +271,18 @@ for t = 0:dt:T
     %     end
     
     [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass);
-    
     ecc = sqrt(sum(ecc.^2,1))';
     
     semi_m_axis = semi_m_axis';
+    if type == 2
+        [ecc_kuiper, semi_m_axis_kuiper] = eccentricity_sma(p_k,v_k,Mass);
+        ecc_kuiper = sqrt(sum(ecc_kuiper.^2,1))';
+    
+        semi_m_axis_kuiper = semi_m_axis_kuiper';
+    end
+
+    
+
     
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when plotting = true, (saves time)
@@ -295,8 +303,11 @@ for t = 0:dt:T
                 ylabel('$\varepsilon$','Interpreter','Latex')
                 xlabel('a[m]')
                 ax = gca;
+            end
+            if type == 2
+                ax.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
+                plot(semi_m_axis_kuiper,ecc_kuiper,'.r')      
                 ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
-                
             end
         end
         if plot_ang_mom
@@ -316,6 +327,7 @@ for t = 0:dt:T
                 ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
                 
             end
+
             
         end
         if plot_system & type~=3
