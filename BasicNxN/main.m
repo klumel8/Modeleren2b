@@ -24,7 +24,7 @@ AU = 1.49597871e11; % [m]
 rng(122) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
-    N = 1e3;
+    N = 1e2;
     dt = 3600*24*7*52; % in seconds (dt = 1 day)
     T = 1e10;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
@@ -76,6 +76,7 @@ plotting = true;        %plot anything at all
 
 make_movie = false;
 TstepsPframe = 3;
+maxframes = 100; %gather the frames from GPU every maxframes number of frames
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
     F(frames) = struct('cdata',[],'colormap',[]);
@@ -289,6 +290,13 @@ for t = 0:dt:T
     if gpuNeed
         if (mod(t,TstepsPframe*dt)==0)
             pframes(:,1:size(p,2),t/(TstepsPframe*dt)+1) = p;
+            if mod(t,TstepsPframe*maxframes) == 0
+                pframesCPU(:,1:size(pframes,2),end:end+size(pframes,3)) = gather(pframes);
+                pframes = gpuArray(zeros([size(p),frames]));
+                p = gpuArray(p);
+                Mass = gpuArray(Mass);
+                v = gpuArray(v);
+            end   
         end
     end
     if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed)

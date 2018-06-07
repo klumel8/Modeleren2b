@@ -5,15 +5,15 @@ clear; close all;
 % 3 = sphere
 % 4 = 2 particles (test)
 % 5 = solar system (normal, all planets)
-type = 2;
+type = 1;
 
 %integration method
 %1: newton forward
 %2,4-6: runge kutta
 %7: leapfrog
-int_met = 7;
+int_met = 4;
 %use barnes hut
-barnes_hut = true;
+barnes_hut = false;
 theta = 0.5;%0 to test acc calculation: all particles are indiviually used,
 %should be the same as without barnes hut
 
@@ -24,9 +24,9 @@ AU = 1.49597871e11; % [m]
 rng(122) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
-    N = 2;
-    dt = 3600*24*7*10; % in seconds (dt = 1 day)
-    T = 1e9;%5e10; % in seconds
+    N = 1e3;
+    dt = 3600*24*7*52; % in seconds (dt = 1 day)
+    T = 1e10;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
     
 end
@@ -289,6 +289,13 @@ for t = 0:dt:T
     if gpuNeed
         if (mod(t,TstepsPframe*dt)==0)
             pframes(:,1:size(p,2),t/(TstepsPframe*dt)+1) = p;
+            if mod(t,TstepsPframe*maxframes) == 0
+                pframesCPU(:,1:size(pframes,2),end:end+size(pframes,3)) = gather(pframes);
+                pframes = gpuArray(zeros([size(p),frames]));
+                p = gpuArray(p);
+                Mass = gpuArray(Mass);
+                v = gpuArray(v);
+            end   
         end
     end
     if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed)
@@ -297,18 +304,17 @@ for t = 0:dt:T
             %eccentricity vs semi-major axis:
             subplot(2,2,1)
             plot(semi_m_axis(2:end),ecc(2:end),'.')
-            if type == 2
-                axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
-                plot(semi_m_axis_kuiper,ecc_kuiper,'.r')                ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
-
-            end
             title(['time: ',num2str(round(t/31556926,1)),' y'])
             if t == 0
                 axis([0,1.1*defaultRange,0, 0.5])
                 ylabel('$\varepsilon$','Interpreter','Latex')
                 xlabel('a[m]')
                 ax = gca;
-                
+            end
+            if type == 2
+                ax.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
+                plot(semi_m_axis_kuiper,ecc_kuiper,'.r')      
+                ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
             end
         end
         if plot_ang_mom
