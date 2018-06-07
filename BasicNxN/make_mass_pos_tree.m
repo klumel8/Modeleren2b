@@ -77,9 +77,6 @@ function [mass_tree, pos_tree] = make_mass_pos_tree(basic_tree,p,Mass,start_rang
             %sums are only needed if we are going to put multiple particles
             %in one cell, otherwise only p(:,all_right) is needed:(see
             %comment above)
-            if any(p(3,all_right)~=0)
-                disp(p(:,all_right))
-            end
             pos_tree.Node{i} = sum(Mass(all_right).*p(:,all_right),2)./sum(Mass(all_right));
         end 
     end

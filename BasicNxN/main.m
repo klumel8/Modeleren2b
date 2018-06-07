@@ -5,15 +5,15 @@ clear; close all;
 % 3 = sphere
 % 4 = 2 particles (test)
 % 5 = solar system (normal, all planets)
-type = 3;
+type = 2;
 
 %integration method
 %1: newton forward
 %2,4-6: runge kutta
 %7: leapfrog
-int_met = 4;
+int_met = 7;
 %use barnes hut
-barnes_hut = false;
+barnes_hut = true;
 theta = 0.5;%0 to test acc calculation: all particles are indiviually used,
 %should be the same as without barnes hut
 
@@ -35,7 +35,7 @@ if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1; % Dummy variable
     N_k = 1e3; % particles in kuiper belt
-    dt = 3600*24*7*52*10; % in seconds
+    dt = 3600*24*7*52; % in seconds
     T = 1e12; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k);
@@ -378,7 +378,7 @@ for t = 0:dt:T
             title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
             if t == 0
                 if plot_3d
-                    axis([-1 1 -1 1 -1 1]*defaultRange*1.1*10);
+                    axis([-1 1 -1 1 -1 1]*defaultRange*1.1);
                 else
                     axis([-1 1 -1 1]*defaultRange*1.1);
                 end
