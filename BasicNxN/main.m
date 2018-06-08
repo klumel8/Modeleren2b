@@ -3,7 +3,7 @@ clear; close all;
 % 1 = early solar system
 % 2 = solar system and Kuyper belt
 % 3 = sphere
-type = 1;
+type = 2;
 
 gpuNeed = false;
 make_movie = false;
@@ -33,8 +33,8 @@ end
 
 if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
-    N = 1e4; % Dummy variable
-    N_k = 1e3; % particles in kuiper belt
+    N = 1; % Dummy variable
+    N_k = 100; % particles in kuiper belt
     dt = 3600*24*7*52; % in seconds 
     T = 1e13; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
@@ -44,11 +44,12 @@ end
 
 % plotting configuration
 fps = 10;
+plotting = true;        %plot anything at all
 plot_system = true;     %plot the particle system
 plot_ecc_a = true;      %plot eccentricity vs semi major axis
 plot_ang_mom = true;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
-plotting = false;        %plot anything at all
+
 
 TstepsPframe = 3;
 frames = floor(T/(TstepsPframe*dt))+1;
@@ -336,6 +337,7 @@ for t = 0:dt:T
         if plot_system
             d_theta = atan(p(2,2)/p(1,2));
             d_theta = d_theta - pi*(p(1,2)<0)+pi/2;
+            d_theta = 0;
             A = [cos(d_theta), sin(d_theta);...
                 -sin(d_theta), cos(d_theta) ];
             if type == 2
@@ -368,7 +370,7 @@ for t = 0:dt:T
                 hold off
                 
             end
-            axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
+            %axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
             
         end
 
@@ -384,7 +386,10 @@ for t = 0:dt:T
                 xlabel('time [years]')
                 ylabel('relative magnitude')
             end
-            
+            subplot(2,2,4)
+                plot(vecnorm(p_k),'.')
+                axis([0 N_k 0*10^12 4*10^12])
+            %{
             plot_hist = true;
             if plot_hist
                 subplot(2,2,4)
@@ -396,6 +401,7 @@ for t = 0:dt:T
                 theta = theta - pi*(plot_p_k(1,:)<0)+pi/2;
                 histogram(theta,36);
             end
+            %}
         end
         drawnow
         if make_movie
@@ -443,10 +449,10 @@ if gpuNeed
                 hold on
                 plot(plot_p_k(1,:),plot_p_k(2,:),'.r','MarkerSize',2); 
                 axis([-1 1 -1 1]*50*AU);
-                hold off
+                %hold off
                 
             end
-            axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
+            %axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
             
             end
         end
