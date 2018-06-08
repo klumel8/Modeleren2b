@@ -50,7 +50,7 @@ r_high = 48*AU;
 % create position and speed vectors
 theta = 2*pi*rand(1,N); % create random angles
 % r = r_low + (r_high-r_low).*rand(1,N); % create uniformly distributed radii
-r = (3/2)^(2/3)*4495e9;
+r = (4/5)^(2/3)*4495e9;
 p = r.*[cos(theta); sin(theta); zeros(1,N)]; % position vector
 
 v_abs = sqrt(G*Mass_sun ./ r);

@@ -109,7 +109,7 @@ if type == 2 %kuiperbelt
 end
 
 if type == 3 %sphere
-    Mass = 100*ones(1,N) * Mass_total / N; % give each partical mass
+    Mass = 1000*rand(1,N) * Mass_total / N; % give each partical mass
     
     % create position and speed vectors
     theta   = 2*pi*rand(1,N); % create random angles
@@ -119,8 +119,8 @@ if type == 3 %sphere
     p = r.*[cos(theta).*sin(phi); sin(theta).*sin(phi); cos(phi)]; % position vector
 
     
-    v = sqrt(3e4)* randn(3,N);
-    
+    v = 10* randn(3,N) + sqrt(G*Mass./(100*radius)).*[-sin(theta);cos(theta);zeros(1,N)];
+    v = randn(3,N) + [-sin(theta);cos(theta);zeros(1,N)];
 %     v_abs = sqrt(G*Mass(1)./(r.*abs(sin(phi))));
 %     v = v_abs .* [-sin(theta); cos(theta); zeros(1,N)];
     

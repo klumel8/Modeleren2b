@@ -5,7 +5,7 @@ clear; close all;
 % 3 = sphere
 % 4 = 2 particles (test)
 % 5 = solar system (normal, all planets)
-type = 3;
+type = 1;
 
 %integration method
 %1: newton forward
@@ -24,9 +24,9 @@ AU = 1.49597871e11; % [m]
 rng(122) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
-    N = 2;
-    dt = 3600*24*7*10; % in seconds (dt = 1 day)
-    T = 1e9;%5e10; % in seconds
+    N = 1e2;
+    dt = 3600*24*7*52; % in seconds (dt = 1 day)
+    T = 1e10;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
     
 end
@@ -35,7 +35,7 @@ if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1; % Dummy variable
     N_k = 1e3; % particles in kuiper belt
-    dt = 3600*24*7*52*10; % in seconds
+    dt = 3600*24*7*52; % in seconds
     T = 1e12; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k);
@@ -76,6 +76,7 @@ plotting = true;        %plot anything at all
 
 make_movie = false;
 TstepsPframe = 3;
+maxframes = 100; %gather the frames from GPU every maxframes number of frames
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
     F(frames) = struct('cdata',[],'colormap',[]);
@@ -271,16 +272,31 @@ for t = 0:dt:T
     %     end
     
     [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass);
-    
     ecc = sqrt(sum(ecc.^2,1))';
     
     semi_m_axis = semi_m_axis';
+    if type == 2
+        [ecc_kuiper, semi_m_axis_kuiper] = eccentricity_sma(p_k,v_k,Mass);
+        ecc_kuiper = sqrt(sum(ecc_kuiper.^2,1))';
+    
+        semi_m_axis_kuiper = semi_m_axis_kuiper';
+    end
+
+    
+
     
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when plotting = true, (saves time)
     if gpuNeed
         if (mod(t,TstepsPframe*dt)==0)
             pframes(:,1:size(p,2),t/(TstepsPframe*dt)+1) = p;
+            if mod(t,TstepsPframe*maxframes) == 0
+                pframesCPU(:,1:size(pframes,2),end:end+size(pframes,3)) = gather(pframes);
+                pframes = gpuArray(zeros([size(p),frames]));
+                p = gpuArray(p);
+                Mass = gpuArray(Mass);
+                v = gpuArray(v);
+            end   
         end
     end
     if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed)
@@ -295,8 +311,11 @@ for t = 0:dt:T
                 ylabel('$\varepsilon$','Interpreter','Latex')
                 xlabel('a[m]')
                 ax = gca;
+            end
+            if type == 2
+                ax.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
+                plot(semi_m_axis_kuiper,ecc_kuiper,'.r')      
                 ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
-                
             end
         end
         if plot_ang_mom
@@ -316,6 +335,7 @@ for t = 0:dt:T
                 ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
                 
             end
+
             
         end
         if plot_system & type~=3
@@ -378,7 +398,7 @@ for t = 0:dt:T
             title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
             if t == 0
                 if plot_3d
-                    axis([-1 1 -1 1 -1 1]*defaultRange*1.1*10);
+                    axis([-1 1 -1 1 -1 1]*defaultRange*1.1);
                 else
                     axis([-1 1 -1 1]*defaultRange*1.1);
                 end
