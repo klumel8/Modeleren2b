@@ -25,9 +25,9 @@ AU = 1.49597871e11; % [m]
 rng(121) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
-    N = 1;
-    dt = 3600*24*7; % in seconds (dt = 1 day)
-    T = 1e9;%5e10; % in seconds
+    N = 1e2;
+    dt = 3600*24*7*52; % in seconds (dt = 1 day)
+    T = 1e10;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
 end
 
@@ -35,7 +35,7 @@ if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1e4; % Dummy variable
     N_k = 1e3; % particles in kuiper belt
-    dt = 3600*24*7*52*4; % in seconds 
+    dt = 3600*24*7*52; % in seconds 
     T = 1e13; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k);
@@ -48,7 +48,7 @@ plot_system = true;     %plot the particle system
 plot_ecc_a = true;      %plot eccentricity vs semi major axis
 plot_ang_mom = true;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
-plotting = true;        %plot anything at all
+plotting = false;        %plot anything at all
 
 TstepsPframe = 3;
 frames = floor(T/(TstepsPframe*dt))+1;
@@ -162,20 +162,23 @@ for t = 0:dt:T
     if type == 2
         c_k = col_kuiper(p,p_k,v,v_k,Mass,dt);
         if any(any(c_k))
-            disp('collision')
+            disp('collision(kuiperbelt particle)')
            %find indices of collided particles       
            %re-rank the collision indexes
            indices = [mod(find(c_k),N_k)'; ceil(find(c_k)/N)'];
            indices(1,:) = (indices(1,:)==0)*N_k + indices(1,:);
-           removing_indices = indices(1,:)
-           %this way, if a particle collides with the sun, the sun is still the first particle
-
-
-           %speed of old particle is 0
+           removing_indices = zeros(1,N_k);
+           removing_indices(indices(1,:)) = 1;
+           %remove kuiper belt particles which collide
             p_k = p_k(:,~removing_indices);
-
             v_k = v_k(:,~removing_indices);
-            a_k = a_k(:,~removing_indices);
+            if t>0
+                clearvars plot_p_k
+            end
+            if int_met == 7
+                a_k = a_k(:,~removing_indices);
+            end
+            N_k = size(p_k,2);
         end
     end
 

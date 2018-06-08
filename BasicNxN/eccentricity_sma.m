@@ -14,6 +14,6 @@ function [e, a] = eccentricity_sma(p,v,m)
     e = (sum(v.^2,1) ./ mu - sqrt(sum(p.^2,1)).^(-1)) .* p - dot(p, v,1) .* v ./ mu;
     
     eps = sum(v.^2,1) / 2 - mu ./ sqrt(sum(p.^2,1));
-    
+    e = sqrt(e);
     a = -mu ./ (2 * eps);
 end

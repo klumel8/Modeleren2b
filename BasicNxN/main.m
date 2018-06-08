@@ -3,7 +3,7 @@ clear; close all;
 % 1 = early solar system
 % 2 = solar system and Kuyper belt
 % 3 = sphere
-type = 1;
+type = 2;
 
 gpuNeed = false;
 make_movie = false;
@@ -12,7 +12,7 @@ make_movie = false;
 %1: newton forward
 %2,4-6: runge kutta 
 %7: leapfrog
-int_met = 4;
+int_met = 7;
 %use barnes hut
 barnes_hut = false;
 theta = 0.5;%0 to test acc calculation: all particles are indiviually used,
@@ -34,7 +34,7 @@ end
 if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1e4; % Dummy variable
-    N_k = 1e3; % particles in kuiper belt
+    N_k = 1000; % particles in kuiper belt
     dt = 3600*24*7*52; % in seconds 
     T = 1e13; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
@@ -48,7 +48,7 @@ plot_system = true;     %plot the particle system
 plot_ecc_a = true;      %plot eccentricity vs semi major axis
 plot_ang_mom = true;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
-plotting = false;        %plot anything at all
+plotting = true;        %plot anything at all
 
 TstepsPframe = 3;
 frames = floor(T/(TstepsPframe*dt))+1;
@@ -159,7 +159,7 @@ for t = 0:dt:T
        %angular momentum and energy can be better defined.
        colision_index = index;
     end
-    if type == 2
+    if type == 22
         c_k = col_kuiper(p,p_k,v,v_k,Mass,dt);
         if any(any(c_k))
             disp('collision(kuiperbelt particle)')
@@ -336,6 +336,7 @@ for t = 0:dt:T
         if plot_system
             d_theta = atan(p(2,2)/p(1,2));
             d_theta = d_theta - pi*(p(1,2)<0)+pi/2;
+            d_theta = 0;
             A = [cos(d_theta), sin(d_theta);...
                 -sin(d_theta), cos(d_theta) ];
             if type == 2

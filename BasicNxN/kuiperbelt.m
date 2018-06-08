@@ -48,27 +48,27 @@ r_low = 42*AU;
 r_high = 48*AU;
 
 % create position and speed vectors
-theta = 2*pi*rand(1,N); % create random angles
+theta = 2*pi*rand(1,N)*0; % create random angles
 % r = r_low + (r_high-r_low).*rand(1,N); % create uniformly distributed radii
-r = (2/3)^(2/3)*4495e9;
+r = (3/2)^(2/3)*4495e9;
 % r = 4495e9;
-ecc = rand(1,N)/8;
-a   = r;
-r = (a.*(1 - ecc.^2) ) ./ (1 + ecc.*cos(theta));
-v_abs = sqrt(G * Mass_sun .* (2./r - 1./a));
-p = r.*[cos(theta); sin(theta); zeros(1,N)]; % position vector
 
-v = v_abs .* [-sin(theta); cos(theta); zeros(1,N)];
-
-d_theta = permute(rand(1,N)*2*pi,[1,3,2]);
-A = [cos(d_theta), sin(d_theta),zeros(1,1,N);...
-    -sin(d_theta), cos(d_theta),zeros(1,1,N);...
-    zeros(1,1,N),zeros(1,1,N),ones(1,1,N)];
-
+ecc = rand(1,N)/10;
+a = r; %align semi-minor axis to be at the range R;
+b = a * sqrt(1 - ecc.^2);   
+p = [a.*cos(theta); b.*sin(theta)];
+u = G*Mass_sun;
+v_dir = [-a*sin(theta); b.*cos(theta)]./vecnorm([-a*sin(theta); b.*cos(theta)]);
+v = sqrt((1-ecc.^2) * u * a / vecnorm(p).^2) .* [v_dir];
+size(v)
 for i=1:N
-    v(:,i) = A(:,:,i)*v(:,i);
-    p(:,i) = A(:,:,i)*p(:,i);
+    phi = rand*2*pi;
+    rot = [cos(phi), -sin(phi); sin(phi), cos(phi)];
+    p(:,i) = [rot*p(:,i)];
+    v(:,i) = [rot*v(:,i)];
 end
+p = [p; zeros(1,N)];
+v = [v; zeros(1,N)];
 %% Output Handling
 % -
 
