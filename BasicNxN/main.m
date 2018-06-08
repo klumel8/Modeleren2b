@@ -44,7 +44,7 @@ if type  == 3 %sphere
     plot_3d = true;
     
     defaultRange = 5*AU; % [m]
-    N = 5e2;
+    N = 1e3;
     dt = 3600*24*10; % in seconds (dt = 1 day)
     T = 5e11; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,type);
@@ -81,9 +81,9 @@ if make_movie
     F(frames) = struct('cdata',[],'colormap',[]);
 end
 
-gpuNeed = false;
+gpuNeed = true;
 if gpuNeed
-    pframes = gpuArray(zeros([size(p),frames]));
+    pframes = gpuArray(zeros([size(p),200]));
     p = gpuArray(p);
     Mass = gpuArray(Mass);
     v = gpuArray(v);
