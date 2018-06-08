@@ -96,9 +96,6 @@ if type == 2
     %for richardson error estimation
 %     theta = 2*pi*linspace(0,1,numel(r));
     theta = 2*pi*[0 0.25]; % create random angles
-    
-    % create empty vectors
-    p = zeros(3,N); v = p;
       
     % neptune information
     ecc = [0,0.009456];

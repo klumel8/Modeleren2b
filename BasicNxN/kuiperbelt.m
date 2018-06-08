@@ -69,15 +69,14 @@ p(1,:) = p(1,:) - ecc * a;
 u = G*Mass_sun;
 v_dir = [-a*sin(theta); b.*cos(theta)]./vecnorm([-a*sin(theta); b.*cos(theta)]);
 r_dir = p./vecnorm(p);
-for i=1:N
-    vxr_unit(:,i) = cross([v_dir(:,i); 0],[r_dir(:,i); 0]);
-end
-v = sqrt((1-ecc.^2) * u * a ./ vecnorm(p).^2 ./ vecnorm(vxr_unit).^2) .* [v_dir];
+vxr_unit = cross([v_dir;zeros(1,N)],[r_dir(:,i);zeros(1,N)]);
+
+v = sqrt((1-ecc.^2) * u * a ./ vecnorm(p).^2 ./ vecnorm(vxr_unit).^2) .* v_dir;
 for i=1:N
     phi = rand*2*pi;
     rot = [cos(phi), -sin(phi); sin(phi), cos(phi)];
-    p(:,i) = [rot*p(:,i)];
-    v(:,i) = [rot*v(:,i)];
+    p(:,i) = rot*p(:,i);
+    v(:,i) = rot*v(:,i);
 end
 p = [p; zeros(1,N)];
 v = [v; zeros(1,N)];
