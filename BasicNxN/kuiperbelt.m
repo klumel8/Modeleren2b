@@ -48,19 +48,30 @@ r_low = 42*AU;
 r_high = 48*AU;
 
 % create position and speed vectors
-theta = 2*pi*rand(1,N)*0; % create random angles
+theta = 2*pi*rand(1,N); % create random angles
 % r = r_low + (r_high-r_low).*rand(1,N); % create uniformly distributed radii
 r = (3/2)^(2/3)*4495e9;
 % r = 4495e9;
 
-ecc = rand(1,N)/10;
-a = r; %align semi-minor axis to be at the range R;
-b = a * sqrt(1 - ecc.^2);   
+ecc = rand(1,N)*0.1;
+
+%use defualt gonio functions to make a physically valid semi-major/minor
+%axis a,b
+a = r;
+b = a * sqrt(1 - ecc.^2);
+
+%make sure it revolves around the sun....
 p = [a.*cos(theta); b.*sin(theta)];
+p(1,:) = p(1,:) - ecc*a; 
+
+
 u = G*Mass_sun;
 v_dir = [-a*sin(theta); b.*cos(theta)]./vecnorm([-a*sin(theta); b.*cos(theta)]);
-v = sqrt((1-ecc.^2) * u * a / vecnorm(p).^2) .* [v_dir];
-size(v)
+r_dir = p./vecnorm(p);
+for i=1:N
+    vxr_unit(:,i) = cross([v_dir(:,i); 0],[r_dir(:,i); 0]);
+end
+v = sqrt((1-ecc.^2) * u * a ./ vecnorm(p).^2 ./ vecnorm(vxr_unit).^2) .* [v_dir];
 for i=1:N
     phi = rand*2*pi;
     rot = [cos(phi), -sin(phi); sin(phi), cos(phi)];

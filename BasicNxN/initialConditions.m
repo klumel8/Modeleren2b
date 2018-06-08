@@ -88,7 +88,7 @@ if type == 2
 
 
 %          Sun Neptune
-    Mass= 100*[0.1 1e-10   ] * 10^24;   % kg % not anymore:mass of neptune is 4* 100 times higher than normal
+    Mass= 100*[0.1 102   ] * 10^24;   % kg % not anymore:mass of neptune is 4* 100 times higher than normal
     r   = [0.1 4495.1] * 10^9;    % m
     N   = length(Mass);
     

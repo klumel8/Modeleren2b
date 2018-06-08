@@ -7,7 +7,7 @@ type = 2;
 
 gpuNeed = false;
 make_movie = false;
-
+cycle_count = 0;
 %integration method
 %1: newton forward
 %2,4-6: runge kutta 
@@ -15,6 +15,7 @@ make_movie = false;
 int_met = 7;
 %use barnes hut
 barnes_hut = false;
+d_theta_old = 0;
 theta = 0.5;%0 to test acc calculation: all particles are indiviually used,
           %should be the same as without barnes hut
 
@@ -35,7 +36,7 @@ if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1e4; % Dummy variable
     N_k = 1000; % particles in kuiper belt
-    dt = 3600*24*7*52; % in seconds 
+    dt = 3600*24*7*52*2; % in seconds 
     T = 1e13; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k);
@@ -46,7 +47,7 @@ end
 fps = 10;
 plot_system = true;     %plot the particle system
 plot_ecc_a = true;      %plot eccentricity vs semi major axis
-plot_ang_mom = true;    %plot the angular momentum
+plot_ang_mom = false;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
 plotting = true;        %plot anything at all
 
@@ -89,6 +90,7 @@ E_0 = kin + pot;
 %define begin angular momentum
 L_0 = AngularMomentum(p,N,Mass,v);
 
+single_p = p_k(1:2,1);
 % a timer so we dont plot too often and slow down the script
 
 for t = 0:dt:T
@@ -282,8 +284,8 @@ for t = 0:dt:T
     semi_m_axis = semi_m_axis';
     if type == 2
         [ecc_kuiper, semi_m_axis_kuiper] = eccentricity_sma(p_k,v_k,Mass);
-        ecc_kuiper = sqrt(sum(ecc_kuiper.^2,1))';
-    
+        %ecc_kuiper = sqrt(sum(ecc_kuiper.^2,1))';
+        
         semi_m_axis_kuiper = semi_m_axis_kuiper';
     end
 
@@ -295,6 +297,8 @@ for t = 0:dt:T
         end
     end
     if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed)
+        d_theta = atan(p(2,2)/p(1,2));
+        d_theta = d_theta - pi*(p(1,2)<0)+pi/2
         figure(1)
         if plot_ecc_a
             %eccentricity vs semi-major axis: 
@@ -316,6 +320,22 @@ for t = 0:dt:T
             ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
 
         end
+        if ~plot_ang_mom
+            subplot(2,2,2)
+            A = [cos(d_theta), sin(d_theta); -sin(d_theta), cos(d_theta) ];
+            single_p = [single_p, A*p_k(1:2,3)];
+            if cycle_count < 4
+                if abs(d_theta_old - d_theta)>3
+                    cycle_count = cycle_count +1;
+                end
+            else
+                if abs(d_theta_old - d_theta)>3
+                    single_p = single_p(:,round(size(single_p,2)/4):end);
+                end
+            end
+            plot(single_p(1,:), single_p(2,:));
+            axis([-1.2 1.2 -1.2 1.2]*semi_m_axis_kuiper(1));
+        end
         if plot_ang_mom
             %angular momentum
             subplot(2,2,2)       
@@ -334,9 +354,6 @@ for t = 0:dt:T
             
         end
         if plot_system
-            d_theta = atan(p(2,2)/p(1,2));
-            d_theta = d_theta - pi*(p(1,2)<0)+pi/2;
-            d_theta = 0;
             A = [cos(d_theta), sin(d_theta);...
                 -sin(d_theta), cos(d_theta) ];
             if type == 2

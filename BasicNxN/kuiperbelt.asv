@@ -53,17 +53,28 @@ theta = 2*pi*rand(1,N); % create random angles
 r = (3/2)^(2/3)*4495e9;
 % r = 4495e9;
 
-ecc = rand(1,N)/8;
-a = r; %align semi-minor axis to be at the range R;
-b = a * sqrt(1 - ecc.^2);
-p = [a.*cos(theta); b.*sin(theta)];
-u = G*Mass_sun;
-v_norm = [0 1; -1 0]*p(1:2,:)./vecnorm(p(1:2,:));
-v = sqrt(u * (2./vecnorm(p) - 1/a)) .* [v_norm];
+ecc = rand(1,N)*0.2;
 
+%use defualt gonio functions to make a physically valid semi-major/minor
+%axis a,b
+a = r;
+b = a * sqrt(1 - ecc.^2);
+
+%make sure it revolves around the sun....
+p = [a.*cos(theta); b.*sin(theta)];
+p(1,:) = p(1,:) - ecc*a; 
+
+
+u = G*Mass_sun;
+v_dir = [-a*sin(theta); b.*cos(theta)]./vecnorm([-a*sin(theta); b.*cos(theta)]);
+r_dir = p./vecnorm(p);
 for i=1:N
-    phi = rand(1,1)*2*pi;
-    rot = [cos(phi), -sin(phi); sin(phi), cos(phi)]
+    vxr_unit(i) = cross(v_dir(:,i),r_dir(:,i));
+end
+v = sqrt((1-ecc.^2) * u * a ./ vecnorm(p).^2 / vxr_unit.^2) .* [v_dir];
+for i=1:N
+    phi = rand*2*pi;
+    rot = [cos(phi), -sin(phi); sin(phi), cos(phi)];
     p(:,i) = [rot*p(:,i)];
     v(:,i) = [rot*v(:,i)];
 end
