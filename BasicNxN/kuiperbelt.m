@@ -44,8 +44,8 @@ function [p, v] = kuiperbelt(N)
 Mass_sun = 1.988e30; % [kg] mass of sun 
 G = 6.67408*10^-11; % [Nm^2kg^-2]
 AU = 1.49597871e11;% [m]
-r_low = 42*AU;
-r_high = 48*AU;
+% r_low = 42*AU;
+% r_high = 48*AU;
 
 % create position and speed vectors
 theta = 2*pi*rand(1,N); % create random angles
@@ -62,7 +62,8 @@ b = a * sqrt(1 - ecc.^2);
 
 %make sure it revolves around the sun....
 p = [a.*cos(theta); b.*sin(theta)];
-p(1,:) = p(1,:) - ecc*a; 
+p(1,:) = p(1,:) - ecc * a; 
+
 
 
 u = G*Mass_sun;

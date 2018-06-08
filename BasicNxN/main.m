@@ -35,11 +35,12 @@ end
 if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1e4; % Dummy variable
-    N_k = 1000; % particles in kuiper belt
+    N_k = 300; % particles in kuiper belt
     dt = 3600*24*7*52*2; % in seconds 
     T = 1e13; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k);
+    max_orbit_length = 65; %determines how much of the orbit of a single particle is shown
 end
 
 
@@ -279,12 +280,12 @@ for t = 0:dt:T
     
     [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass);
     
-    ecc = sqrt(sum(ecc.^2,1))';
+    ecc = ecc';
     
     semi_m_axis = semi_m_axis';
     if type == 2
         [ecc_kuiper, semi_m_axis_kuiper] = eccentricity_sma(p_k,v_k,Mass);
-        %ecc_kuiper = sqrt(sum(ecc_kuiper.^2,1))';
+        ecc_kuiper = ecc_kuiper';
         
         semi_m_axis_kuiper = semi_m_axis_kuiper';
     end
@@ -298,7 +299,7 @@ for t = 0:dt:T
     end
     if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed)
         d_theta = atan(p(2,2)/p(1,2));
-        d_theta = d_theta - pi*(p(1,2)<0)+pi/2
+        d_theta = d_theta - pi*(p(1,2)<0)+pi/2;
         figure(1)
         if plot_ecc_a
             %eccentricity vs semi-major axis: 
@@ -324,15 +325,18 @@ for t = 0:dt:T
             subplot(2,2,2)
             A = [cos(d_theta), sin(d_theta); -sin(d_theta), cos(d_theta) ];
             single_p = [single_p, A*p_k(1:2,3)];
-            if cycle_count < 4
-                if abs(d_theta_old - d_theta)>3
-                    cycle_count = cycle_count +1;
-                end
-            else
-                if abs(d_theta_old - d_theta)>3
-                    single_p = single_p(:,round(size(single_p,2)/4):end);
-                end
+            if size(single_p,2)>max_orbit_length
+                single_p = single_p(:,2:end);
             end
+%             if cycle_count < 4
+%                 if abs(d_theta_old - d_theta)>3
+%                     cycle_count = cycle_count +1;
+%                 end
+%             else
+%                 if abs(d_theta_old - d_theta)>3
+%                     single_p = single_p(:,round(size(single_p,2)/4):end);
+%                 end
+%             end
             plot(single_p(1,:), single_p(2,:));
             axis([-1.2 1.2 -1.2 1.2]*semi_m_axis_kuiper(1));
         end
