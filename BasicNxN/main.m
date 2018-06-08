@@ -423,7 +423,7 @@ for t = 0:dt:T
         end
         drawnow
         if make_movie
-            F(t/(TstepsPframe*dt)+1) = getframe(gcf);curr_tree.Node{i}
+            F(t/(TstepsPframe*dt)+1) = getframe(gcf);
         end
     end
 end
