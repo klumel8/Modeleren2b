@@ -5,7 +5,7 @@ clear; close all;
 % 3 = sphere
 % 4 = 2 particles (test)
 % 5 = solar system (normal, all planets)
-type = 1;
+type = 3;
 
 %integration method
 %1: newton forward
@@ -76,7 +76,8 @@ plotting = true;        %plot anything at all
 
 make_movie = false;
 TstepsPframe = 3;
-maxframes = 100; %gather the frames from GPU every maxframes number of frames
+maxframes = 200; %gather the frames from GPU every maxframes number of frames
+curr_frame = 1; 
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
     F(frames) = struct('cdata',[],'colormap',[]);
@@ -84,7 +85,8 @@ end
 
 gpuNeed = true;
 if gpuNeed
-    pframes = gpuArray(zeros([size(p),200]));
+    CPUframes_save = zeros([size(p),frames]);
+    pframes = gpuArray(zeros([size(p),maxframes]));
     p = gpuArray(p);
     Mass = gpuArray(Mass);
     v = gpuArray(v);
@@ -289,14 +291,15 @@ for t = 0:dt:T
     %only plot when plotting = true, (saves time)
     if gpuNeed
         if (mod(t,TstepsPframe*dt)==0)
-            pframes(:,1:size(p,2),t/(TstepsPframe*dt)+1) = p;
-            if mod(t,TstepsPframe*maxframes) == 0
-                pframesCPU(:,1:size(pframes,2),end:end+size(pframes,3)) = gather(pframes);
-                pframes = gpuArray(zeros([size(p),frames]));
+            pframes(:,1:size(p,2),curr_frame) = p;
+            if mod(curr_frame, max_frames) == 0
+                CPUframes_save(:,1:size(pframes,2),curr_frame-max_frames+1:curr_frame) = gather(pframes);
+                pframes = gpuArray(zeros([size(p),max_frames]));
                 p = gpuArray(p);
                 Mass = gpuArray(Mass);
                 v = gpuArray(v);
             end   
+            curr_frame = curr_frame + 1;
         end
     end
     if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed)

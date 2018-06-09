@@ -5,7 +5,7 @@ clear; close all;
 % 3 = sphere
 % 4 = 2 particles (test)
 % 5 = solar system (normal, all planets)
-type = 1;
+type = 3;
 
 %integration method
 %1: newton forward
@@ -24,7 +24,7 @@ AU = 1.49597871e11; % [m]
 rng(122) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
-    N = 1e3;
+    N = 1e2;
     dt = 3600*24*7*52; % in seconds (dt = 1 day)
     T = 1e10;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
@@ -44,7 +44,7 @@ if type  == 3 %sphere
     plot_3d = true;
     
     defaultRange = 5*AU; % [m]
-    N = 5e2;
+    N = 1e3;
     dt = 3600*24*10; % in seconds (dt = 1 day)
     T = 5e11; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,type);
@@ -76,14 +76,17 @@ plotting = true;        %plot anything at all
 
 make_movie = false;
 TstepsPframe = 3;
+maxframes = 200; %gather the frames from GPU every maxframes number of frames
+curr_frame = 1; 
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
     F(frames) = struct('cdata',[],'colormap',[]);
 end
 
-gpuNeed = false;
+gpuNeed = true;
 if gpuNeed
-    pframes = gpuArray(zeros([size(p),frames]));
+    CPUframes_save = zeros([size(p),frames]);
+    pframes = gpuArray(zeros([size(p),maxframes]));
     p = gpuArray(p);
     Mass = gpuArray(Mass);
     v = gpuArray(v);
@@ -289,13 +292,14 @@ for t = 0:dt:T
     if gpuNeed
         if (mod(t,TstepsPframe*dt)==0)
             pframes(:,1:size(p,2),t/(TstepsPframe*dt)+1) = p;
-            if mod(t,TstepsPframe*maxframes) == 0
-                pframesCPU(:,1:size(pframes,2),end:end+size(pframes,3)) = gather(pframes);
-                pframes = gpuArray(zeros([size(p),frames]));
+            if mod(curr_frame, max_frames) == 0
+                CPUframes_save(:,1:size(pframes,2),curr_frame-max_frames:curr_frame) = gather(pframes);
+                pframes = gpuArray(zeros([size(p),max_frames]));
                 p = gpuArray(p);
                 Mass = gpuArray(Mass);
                 v = gpuArray(v);
             end   
+            
         end
     end
     if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed)
@@ -422,7 +426,7 @@ for t = 0:dt:T
         end
         drawnow
         if make_movie
-            F(t/(TstepsPframe*dt)+1) = getframe(gcf);curr_tree.Node{i}
+            F(t/(TstepsPframe*dt)+1) = getframe(gcf);
         end
     end
 end
