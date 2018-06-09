@@ -69,7 +69,7 @@ p(1,:) = p(1,:) - ecc * a;
 u = G*Mass_sun;
 v_dir = [-a*sin(theta); b.*cos(theta)]./vecnorm([-a*sin(theta); b.*cos(theta)]);
 r_dir = p./vecnorm(p);
-vxr_unit = cross([v_dir;zeros(1,N)],[r_dir(:,i);zeros(1,N)]);
+vxr_unit = cross([v_dir;zeros(1,N)],[r_dir;zeros(1,N)]);
 
 v = sqrt((1-ecc.^2) * u * a ./ vecnorm(p).^2 ./ vecnorm(vxr_unit).^2) .* v_dir;
 for i=1:N

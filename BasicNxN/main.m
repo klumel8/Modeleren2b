@@ -8,6 +8,9 @@ type = 2;
 gpuNeed = false;
 make_movie = false;
 cycle_count = 0;
+d_theta_old = 0;
+
+
 %integration method
 %1: newton forward
 %2,4-6: runge kutta 
@@ -15,7 +18,6 @@ cycle_count = 0;
 int_met = 7;
 %use barnes hut
 barnes_hut = false;
-d_theta_old = 0;
 theta = 0.5;%0 to test acc calculation: all particles are indiviually used,
           %should be the same as without barnes hut
 
@@ -36,11 +38,11 @@ if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1e4; % Dummy variable
     N_k = 300; % particles in kuiper belt
-    dt = 3600*24*7*52*2; % in seconds 
+    dt = 3600*24*7*52*3; % in seconds 
     T = 1e13; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k);
-    max_orbit_length = 65; %determines how much of the orbit of a single particle is shown
+    max_orbit_length = 200; %determines how much of the orbit of a single particle is shown
 end
 
 
