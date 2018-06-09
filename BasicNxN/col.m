@@ -22,12 +22,7 @@ function Collision = col(p, v, Mass, N,dt)
     
     %do some things to get the linear combination of all added ranges
     planetCombi = planetradius + planetradius';
-%     planetCombi = combvec(planetradius,planetradius);
-%     planetCombi = planetCombi(1,:) + planetCombi(2,:);
-%  
-%     %reshape it back to the standard NxN form
-%     planetCombi = reshape(planetCombi',[N N]);
-
+    
     %check whether they collide somewhere
     col_somewhere = (R.^2 - dot(D,DV,3).^2./DV_norm.^2 < planetCombi.^2);
     %check if the collision is in the interval [0,dt]
@@ -38,8 +33,5 @@ function Collision = col(p, v, Mass, N,dt)
     
     %combine all checks & remove all collisions of a particle with itself
     Collision = ((col_somewhere & col_time_correct) | col_begin_end) & ~eye(N);
-    
-    %old
-%     Collision = (R <planetCombi).* R>0;
     
 end

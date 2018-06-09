@@ -27,8 +27,7 @@ if type == 1 % early solar system
     N = 1e2;
     dt = 3600*24*7*52; % in seconds (dt = 1 day)
     T = 1e10;%5e10; % in seconds
-    [Mass, p, v, N] = initialConditions(defaultRange,N,1);
-    
+    [Mass, p, v, N] = initialConditions(defaultRange,N,1);   
 end
 
 if type == 2 % solar system and Kuyper belt
@@ -40,6 +39,7 @@ if type == 2 % solar system and Kuyper belt
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k);
 end
+
 if type  == 3 %sphere
     plot_3d = true;
     
@@ -167,22 +167,20 @@ for t = 0:dt:T
         %re-rank the collision indexes
         indices = [mod(find(c),N)'; ceil(find(c)/N)'];
         indices(1,:) = (indices(1,:)==0)*N + indices(1,:);
-        indices(:,find(indices(1,:) > indices(2,:))) = [];
+        indices(:,indices(1,:) > indices(2,:)) = [];
         %this way, if a particle collides with the sun, the sun is still the first particle
         
         
         %ik ga uit van compleet inelastisch.
-        %new position is mass centre
-        
-        M = repmat(Mass,[3 1]);
-        p(:,indices(1,:)) = (M(:,indices(1,:)).*p(:,indices(1,:)) + M(:,indices(2,:)).*p(:,indices(2,:)))./(M(:,indices(1,:))+M(:,indices(2,:)));
+        %new position is centre of mass        
+        p(:,indices(1,:)) = (Mass(indices(1,:)).*p(:,indices(1,:)) + Mass(indices(2,:)).*p(:,indices(2,:)))./(Mass(indices(1,:))+Mass(indices(2,:)));
         
         %use momentum fomulae for new speed
-        v(:,indices(1,:)) = (M(:,indices(1,:)).*v(:,indices(1,:)) + M(:,indices(2,:)).*v(:,indices(2,:)))./(M(:,indices(1,:))+M(:,indices(2,:)));
+        v(:,indices(1,:)) = (Mass(indices(1,:)).*v(:,indices(1,:)) + Mass(indices(2,:)).*v(:,indices(2,:)))./(Mass(indices(1,:))+Mass(indices(2,:)));
         
         %new mass is um of the masses
         Mass(indices(1,:)) = Mass(indices(1,:)) + Mass(indices(2,:));
-        %speed of old particle is 0
+        %speed of old particle is 0, to remove the particle
         v(:,indices(2,:)) = 0;
         Mass(indices(2,:)) = 0;
         
@@ -291,15 +289,15 @@ for t = 0:dt:T
     %only plot when plotting = true, (saves time)
     if gpuNeed
         if (mod(t,TstepsPframe*dt)==0)
-            pframes(:,1:size(p,2),t/(TstepsPframe*dt)+1) = p;
+            pframes(:,1:size(p,2),curr_frame) = p;
             if mod(curr_frame, max_frames) == 0
-                CPUframes_save(:,1:size(pframes,2),curr_frame-max_frames:curr_frame) = gather(pframes);
+                CPUframes_save(:,1:size(pframes,2),curr_frame-max_frames+1:curr_frame) = gather(pframes);
                 pframes = gpuArray(zeros([size(p),max_frames]));
                 p = gpuArray(p);
                 Mass = gpuArray(Mass);
                 v = gpuArray(v);
             end   
-            
+            curr_frame = curr_frame + 1;
         end
     end
     if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed)

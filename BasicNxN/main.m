@@ -27,8 +27,7 @@ if type == 1 % early solar system
     N = 1e2;
     dt = 3600*24*7*52; % in seconds (dt = 1 day)
     T = 1e10;%5e10; % in seconds
-    [Mass, p, v, N] = initialConditions(defaultRange,N,1);
-    
+    [Mass, p, v, N] = initialConditions(defaultRange,N,1);   
 end
 
 if type == 2 % solar system and Kuyper belt
@@ -40,6 +39,7 @@ if type == 2 % solar system and Kuyper belt
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k);
 end
+
 if type  == 3 %sphere
     plot_3d = true;
     
@@ -167,22 +167,20 @@ for t = 0:dt:T
         %re-rank the collision indexes
         indices = [mod(find(c),N)'; ceil(find(c)/N)'];
         indices(1,:) = (indices(1,:)==0)*N + indices(1,:);
-        indices(:,find(indices(1,:) > indices(2,:))) = [];
+        indices(:,indices(1,:) > indices(2,:)) = [];
         %this way, if a particle collides with the sun, the sun is still the first particle
         
         
         %ik ga uit van compleet inelastisch.
-        %new position is mass centre
-        
-        M = repmat(Mass,[3 1]);
-        p(:,indices(1,:)) = (M(:,indices(1,:)).*p(:,indices(1,:)) + M(:,indices(2,:)).*p(:,indices(2,:)))./(M(:,indices(1,:))+M(:,indices(2,:)));
+        %new position is centre of mass        
+        p(:,indices(1,:)) = (Mass(indices(1,:)).*p(:,indices(1,:)) + Mass(indices(2,:)).*p(:,indices(2,:)))./(Mass(indices(1,:))+Mass(indices(2,:)));
         
         %use momentum fomulae for new speed
-        v(:,indices(1,:)) = (M(:,indices(1,:)).*v(:,indices(1,:)) + M(:,indices(2,:)).*v(:,indices(2,:)))./(M(:,indices(1,:))+M(:,indices(2,:)));
+        v(:,indices(1,:)) = (Mass(indices(1,:)).*v(:,indices(1,:)) + Mass(indices(2,:)).*v(:,indices(2,:)))./(Mass(indices(1,:))+Mass(indices(2,:)));
         
         %new mass is um of the masses
         Mass(indices(1,:)) = Mass(indices(1,:)) + Mass(indices(2,:));
-        %speed of old particle is 0
+        %speed of old particle is 0, to remove the particle
         v(:,indices(2,:)) = 0;
         Mass(indices(2,:)) = 0;
         
@@ -235,9 +233,7 @@ for t = 0:dt:T
         v = v + a*dt/2;
         p = p + dt*v;
         a = acc_fun(p,Mass,N);
-        
         v = v + a*dt/2;
-        
         if type == 2
             if t == 0
                 %initialize acceleration for leapfrog
