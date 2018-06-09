@@ -43,6 +43,7 @@ if type == 2 % solar system and Kuyper belt
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k);
     max_orbit_length = 200; %determines how much of the orbit of a single particle is shown
+    kuipercollisions = false;
 end
 
 
@@ -164,7 +165,7 @@ for t = 0:dt:T
        %angular momentum and energy can be better defined.
        colision_index = index;
     end
-    if type == 22
+    if type == 2 && kuipercollisions
         c_k = col_kuiper(p,p_k,v,v_k,Mass,dt);
         if any(any(c_k))
             disp('collision(kuiperbelt particle)')
