@@ -53,7 +53,8 @@ theta = 2*pi*rand(1,N); % create random angles
 %r = (2)^(2/3)*4495e9;
  r = ((3/2)^(2/3))*4495e9;
 
-ecc = rand(1,N)*0.1;
+% ecc = rand(1,N)*0.4;
+ecc = ones(1,N)*0.3;
 
 %use defualt gonio functions to make a physically valid semi-major/minor
 %axis a,b

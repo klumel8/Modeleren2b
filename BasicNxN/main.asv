@@ -8,14 +8,16 @@ type = 2;
 gpuNeed = false;
 make_movie = false;
 cycle_count = 0;
+d_theta_old = 0;
+
+
 %integration method
 %1: newton forward
 %2,4-6: runge kutta 
 %7: leapfrog
-int_met = 7;
+int_met = 4;
 %use barnes hut
 barnes_hut = false;
-d_theta_old = 0;
 theta = 0.5;%0 to test acc calculation: all particles are indiviually used,
           %should be the same as without barnes hut
 
@@ -27,7 +29,7 @@ rng(121) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
     N = 1e2;
-    dt = 3600*24*7*52; % in seconds (dt = 1 day)
+    dt = 3600*24*7*52*5; % in seconds (dt = 1 day)
     T = 1e10;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
 end
@@ -35,11 +37,14 @@ end
 if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1e4; % Dummy variable
-    N_k = 1e4; % particles in kuiper belt
-    dt = 3600*24*7*52; % in seconds 
-    T = 1e13; % in seconds
+    N_k = 1e3; % particles in kuiper belt
+    dt = 3600*24*7*52*; % in seconds 
+    T = 1e20; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
-    [p_k, v_k] = kuiperbelt(N_k);
+    [p_k, v_k] = kuiperbelt(N_k, p);
+     max_orbit_length = 200; %determines how much of the orbit of a single particle is shown
+
+    kuipercollisions = false;
 end
 
 
@@ -162,7 +167,8 @@ for t = 0:dt:T
        %angular momentum and energy can be better defined.
        colision_index = index;
     end
-    if type == 2
+
+    if type == 2 && kuipercollisions
         c_k = col_kuiper(p,p_k,v,v_k,Mass,dt);
         if any(any(c_k))
             disp('collision(kuiperbelt particle)')
@@ -278,13 +284,15 @@ for t = 0:dt:T
 %         rel_momentum = permute(rel_momentum,[3,2,1]);
 %     end
     
-    [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass);
+    [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass, p);
+
     
+    ecc = ecc';
     
     semi_m_axis = semi_m_axis';
     if type == 2
-        [ecc_kuiper, semi_m_axis_kuiper] = eccentricity_sma(p_k,v_k,Mass);
-        %ecc_kuiper = sqrt(sum(ecc_kuiper.^2,1))';
+        [ecc_kuiper, semi_m_axis_kuiper] = eccentricity_sma(p_k,v_k,Mass,p);
+        ecc_kuiper = ecc_kuiper';
         
         semi_m_axis_kuiper = semi_m_axis_kuiper';
     end
@@ -299,19 +307,18 @@ for t = 0:dt:T
     if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed)
         d_theta = atan(p(2,2)/p(1,2));
         d_theta = d_theta - pi*(p(1,2)<0)+pi/2;
-        d_theta = 0;
         figure(1)
         if plot_RV
-            subplot(2,2,1) 
+            subplot(2,3,1) 
             plot(vecnorm(p_k),vecnorm(v_k),'.');
         end
         if plot_ecc_a
             %eccentricity vs semi-major axis: 
-            subplot(2,2,1) 
-            plot(semi_m_axis(2:end),ecc(2:end)-1.2,'.b')
+            subplot(2,3,1) 
+            plot(semi_m_axis(2:end),ecc(2:end),'.b')
             title(['time: ',num2str(round(t/31556926,1)),' y'])
             if t == 0
-                axis([0,1.1*defaultRange*2,0, 0.5])
+                axis([0,1.1*defaultRange*2,0, 0.11])
                 ylabel('$\varepsilon$','Interpreter','Latex')
                 xlabel('a[m]')
                 ax = gca;
@@ -326,24 +333,34 @@ for t = 0:dt:T
 
         end
         if ~plot_ang_mom
-            subplot(2,2,2)
+            subplot(2,3,2)
             A = [cos(d_theta), sin(d_theta); -sin(d_theta), cos(d_theta) ];
+            plot_p(1:2,:) = A*p(1:2,:);
             single_p = [single_p, A*p_k(1:2,3)];
-            if cycle_count < 4
-                if abs(d_theta_old - d_theta)>3
-                    cycle_count = cycle_count +1;
-                end
-            else
-                if abs(d_theta_old - d_theta)>3
-                    single_p = single_p(:,round(size(single_p,2)/4):end);
-                end
+            if size(single_p,2)>max_orbit_length
+                single_p = single_p(:,2:end);
             end
-            plot(single_p(1,:), single_p(2,:));
+%             if cycle_count < 4
+%                 if abs(d_theta_old - d_theta)>3
+%                     cycle_count = cycle_count +1;
+%                 end
+%             else
+%                 if abs(d_theta_old - d_theta)>3
+%                     single_p = single_p(:,round(size(single_p,2)/4):end);
+%                 end
+%             end
+
+            ax_single = gca;
+            plot(single_p(1,:), single_p(2,:),'-b');
+            ax_single.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
+
+            plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
+
             axis([-1.2 1.2 -1.2 1.2]*max(semi_m_axis_kuiper));
         end
         if plot_ang_mom
             %angular momentum
-            subplot(2,2,2)       
+            subplot(2,3,2)       
             plot(L_t);
             if t == 0
                 ax = gca;
@@ -368,7 +385,7 @@ for t = 0:dt:T
                 plot_p = p;
             end
             %particle system
-            subplot(2,2,3)
+            subplot(2,3,3)
             axSys = gca;
             plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
             axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
@@ -397,33 +414,48 @@ for t = 0:dt:T
 
         if type == 2
             if plot_momentum
-                subplot(2,2,4)
+                subplot(2,3,4)
 %                 plot(rel_momentum);
-                title('Rel momentum(norm), rel to jupiter')
+                title('Rel momentum(norm), rel to jupiter');
                 axis([max(0,index-5000) index+500 -0.1 1]);
 
                 xt = get(gca, 'XTick');
-                set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,1))
+                set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,1));
                 xlabel('time [years]')
                 ylabel('relative magnitude')
             end
             
+%             subplot(2,3,4);
+%                 plot(vecnorm(p_k),'.');
+%                 axis([0 N_k 6*10^12 8*10^12]);
+            
             plot_hist = true;
             if plot_hist
-                subplot(2,2,4)
-    %           %plot(rel_momentum);
+                subplot(2,3,4)
+                theta = atan(plot_p_k(2,:)./plot_p_k(1,:));
+                theta = theta - pi*(plot_p_k(1,:)<0)+pi/2;
+                histogram(theta,36);
                 title('histogram of all angles')
                 xlabel('amount of particles')
                 ylabel('angle (radians)')
-                angle_n = atan(plot_p_k(2,:)./plot_p_k(1,:));
-                angle_n = angle_n - pi*(plot_p_k(1,:)<0)+pi/2;
-                nbins = 36;
-                hist(angle_n,100);
+                
+                subplot(2,3,5)
+                histogram(ecc_kuiper,20);
+                title('Eccentricity')
+                xlabel('from 0 to 0.1')
+                ylabel('#correlating eccentricity')
+                
+                subplot(2,3,6)
+                histogram(semi_m_axis_kuiper,20);
+                title('Semi-major')
+                xlabel('from 0 to 0.1')
+                ylabel('#correlating eccentricity')
             end
+            %}
         end
         drawnow
         if make_movie
-            F(t/(TstepsPframe*dt)+1) = getframe(gcf);curr_tree.Node{i}
+            F(t/(TstepsPframe*dt)+1) = getframe(gcf);curr_tree.Node{i};
         end
     end
 end
@@ -433,8 +465,9 @@ if gpuNeed
     if plotting
         for i = 1:size(pframesCPU,3)
             p = pframes(:,:,i);
-            
-            figure(1)
+            if t == 0
+                figure(1)
+            end
             if plot_system
             T_neptune = 60182*3600*24; % seconds
             omega_neptune = 2*pi/T_neptune;
@@ -447,7 +480,7 @@ if gpuNeed
                 plot_p = p;
             end
             %particle system
-            subplot(2,2,3)
+            subplot(2,3,3)
             axSys = gca;
             plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
             axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
@@ -481,6 +514,6 @@ if make_movie
     v = VideoWriter('testVideo.avi'); %Maak een video-file
     v.FrameRate = 5;
     open(v)
-    writeVideo(v,F) %Sla de frames op in de video
+    writeVideo(v,F); %Sla de frames op in de video
     close(v)
 end

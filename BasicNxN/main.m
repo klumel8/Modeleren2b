@@ -29,7 +29,7 @@ rng(121) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
     N = 1e2;
-    dt = 3600*24*7*52; % in seconds (dt = 1 day)
+    dt = 3600*24*7*52*5; % in seconds (dt = 1 day)
     T = 1e10;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
 end
@@ -37,19 +37,19 @@ end
 if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1e4; % Dummy variable
-    N_k = 1e3; % particles in kuiper belt
+    N_k = 5; % particles in kuiper belt
     dt = 3600*24*7*52*5; % in seconds 
     T = 1e20; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k, p);
-     max_orbit_length = 200; %determines how much of the orbit of a single particle is shown
+     max_orbit_length = 100; %determines how much of the orbit of a single particle is shown
+     particle = 1;
 
     kuipercollisions = false;
 end
 
 
 % plotting configuration
-fps = 10;
 plot_system = true;     %plot the particle system
 plot_ecc_a = true;      %plot eccentricity vs semi major axis
 plot_ang_mom = false;    %plot the angular momentum
@@ -57,7 +57,7 @@ plot_momentum = false;   %plot the momentum, relative to jupiter(only for type =
 plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
 
-TstepsPframe = 3;
+TstepsPframe = 1/4; %fps
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
     F(frames) = struct('cdata',[],'colormap',[]);
@@ -96,7 +96,7 @@ E_0 = kin + pot;
 %define begin angular momentum
 L_0 = AngularMomentum(p,N,Mass,v);
 
-single_p = p_k(1:2,1);
+single_p = [];
 % a timer so we dont plot too often and slow down the script
 
 for t = 0:dt:T
@@ -307,7 +307,9 @@ for t = 0:dt:T
     if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed)
         d_theta = atan(p(2,2)/p(1,2));
         d_theta = d_theta - pi*(p(1,2)<0)+pi/2;
-        figure(1)
+        if t == 0
+            figure(1)
+        end
         if plot_RV
             subplot(2,3,1) 
             plot(vecnorm(p_k),vecnorm(v_k),'.');
@@ -335,7 +337,8 @@ for t = 0:dt:T
         if ~plot_ang_mom
             subplot(2,3,2)
             A = [cos(d_theta), sin(d_theta); -sin(d_theta), cos(d_theta) ];
-            single_p = [single_p, A*p_k(1:2,3)];
+            plot_p(1:2,:) = A*p(1:2,:);
+            single_p = [single_p, A*p_k(1:2,particle)];
             if size(single_p,2)>max_orbit_length
                 single_p = single_p(:,2:end);
             end
@@ -348,7 +351,13 @@ for t = 0:dt:T
 %                     single_p = single_p(:,round(size(single_p,2)/4):end);
 %                 end
 %             end
-            plot(single_p(1,:), single_p(2,:));
+
+            ax_single = gca;
+            plot(single_p(1,:), single_p(2,:),'-b');
+            ax_single.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
+
+            plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
+
             axis([-1.2 1.2 -1.2 1.2]*max(semi_m_axis_kuiper));
         end
         if plot_ang_mom
