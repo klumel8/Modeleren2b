@@ -29,7 +29,7 @@ rng(121) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
     N = 1e2;
-    dt = 3600*24*7*52*5; % in seconds (dt = 1 day)
+    dt = 3600*24*7*52; % in seconds (dt = 1 day)
     T = 1e10;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
 end
@@ -42,7 +42,7 @@ if type == 2 % solar system and Kuyper belt
     T = 1e20; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k, p);
-     max_orbit_length = 100; %determines how much of the orbit of a single particle is shown
+     max_orbit_length = 1000; %determines how much of the orbit of a single particle is shown
      particle = 1;
 
     kuipercollisions = false;
@@ -50,14 +50,16 @@ end
 
 
 % plotting configuration
-plot_system = true;     %plot the particle system
+plot_system = false;     %plot the particle system
 plot_ecc_a = true;      %plot eccentricity vs semi major axis
 plot_ang_mom = false;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
 plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
+plot_hist = false;
 
-TstepsPframe = 1/4; %fps
+fps = 1/1;
+TstepsPframe = 1/4; 
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
     F(frames) = struct('cdata',[],'colormap',[]);
@@ -98,7 +100,7 @@ L_0 = AngularMomentum(p,N,Mass,v);
 
 single_p = [];
 % a timer so we dont plot too often and slow down the script
-
+tic;
 for t = 0:dt:T
     index = index+1;
 
@@ -267,13 +269,13 @@ for t = 0:dt:T
     [kin,pot] = EnergyTracer(p,N,v,Mass,G);
     
     %make a Total kinetic energy vector for plotting.
-    E_tot(index) = (kin + pot - E_0) / E_0;
+%     E_tot(index) = (kin + pot - E_0) / E_0;
     
     %Calculate the Angular momentum
     L = AngularMomentum(p,N,Mass,v);
     
     %make a angular momentum vector for plotting
-    L_t(index) = (L(3)-L_0(3))/L_0(3);
+%     L_t(index) = (L(3)-L_0(3))/L_0(3);
     
 %     if type == 2 
 %         %make a momentum vector for plotting (only the norm)
@@ -296,6 +298,16 @@ for t = 0:dt:T
         
         semi_m_axis_kuiper = semi_m_axis_kuiper';
     end
+    d_theta = atan(p(2,2)/p(1,2));
+    d_theta = d_theta - pi*(p(1,2)<0)+pi/2;
+    
+    A = [cos(d_theta), sin(d_theta); -sin(d_theta), cos(d_theta) ];
+    single_p = [single_p, A*p_k(1:2,particle)];
+    if size(single_p,2)>max_orbit_length
+        single_p = single_p(:,2:end);
+    end
+    
+    
 
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when plotting = true, (saves time)
@@ -304,9 +316,9 @@ for t = 0:dt:T
             pframes(:,1:size(p,2),t/(TstepsPframe*dt)+1) = p;
         end
     end
-    if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed)
-        d_theta = atan(p(2,2)/p(1,2));
-        d_theta = d_theta - pi*(p(1,2)<0)+pi/2;
+    curr_time = toc;
+    if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed && curr_time>1/fps)
+
         if t == 0
             figure(1)
         end
@@ -336,12 +348,8 @@ for t = 0:dt:T
         end
         if ~plot_ang_mom
             subplot(2,3,2)
-            A = [cos(d_theta), sin(d_theta); -sin(d_theta), cos(d_theta) ];
             plot_p(1:2,:) = A*p(1:2,:);
-            single_p = [single_p, A*p_k(1:2,particle)];
-            if size(single_p,2)>max_orbit_length
-                single_p = single_p(:,2:end);
-            end
+
 %             if cycle_count < 4
 %                 if abs(d_theta_old - d_theta)>3
 %                     cycle_count = cycle_count +1;
@@ -359,6 +367,8 @@ for t = 0:dt:T
             plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
 
             axis([-1.2 1.2 -1.2 1.2]*max(semi_m_axis_kuiper));
+            ax_single.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
+
         end
         if plot_ang_mom
             %angular momentum
@@ -378,8 +388,7 @@ for t = 0:dt:T
             
         end
         if plot_system
-            A = [cos(d_theta), sin(d_theta);...
-                -sin(d_theta), cos(d_theta) ];
+
             if type == 2
                 plot_p(1:2,:) = A*p(1:2,:);
                 plot_p_k(1:2,:) = A*p_k(1:2,:);
@@ -431,7 +440,6 @@ for t = 0:dt:T
 %                 plot(vecnorm(p_k),'.');
 %                 axis([0 N_k 6*10^12 8*10^12]);
             
-            plot_hist = true;
             if plot_hist
                 subplot(2,3,4)
                 theta = atan(plot_p_k(2,:)./plot_p_k(1,:));
@@ -459,6 +467,7 @@ for t = 0:dt:T
         if make_movie
             F(t/(TstepsPframe*dt)+1) = getframe(gcf);curr_tree.Node{i};
         end
+        tic;
     end
 end
 
