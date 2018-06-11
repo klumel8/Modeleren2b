@@ -88,7 +88,7 @@ if type == 2
 
 
 %          Sun Neptune
-    Mass= 100*[0.1 102   ] * 10^24;   % kg % not anymore:mass of neptune is 4* 100 times higher than normal
+    Mass= [0.1 102   ] * 10^24;   % kg % not anymore:mass of neptune is 4* 100 times higher than normal
     r   = [0.1 4495.1] * 10^9;    % m
     N   = length(Mass);
     
@@ -96,9 +96,6 @@ if type == 2
     %for richardson error estimation
 %     theta = 2*pi*linspace(0,1,numel(r));
     theta = 2*pi*[0 0.25]; % create random angles
-    
-    % create empty vectors
-    p = zeros(3,N); v = p;
       
     % neptune information
     ecc = [0,0.009456];
