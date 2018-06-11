@@ -41,9 +41,9 @@ if type == 2 % solar system and Kuyper belt
     dt = 3600*24*7*52*2; % in seconds 
     T = 1e20; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
-    [p_k, v_k] = kuiperbelt(N_k, p);
-     max_orbit_length = 100000; %determines how much of the orbit of a single particle is shown
-     particle = 3;
+    [p_k, v_k, Mass_k] = kuiperbelt(N_k, p);
+     max_orbit_length = 10000; %determines how much of the orbit of a single particle is shown
+     particle = 1;
 
     kuipercollisions = false;
 end
@@ -58,7 +58,7 @@ plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
 plot_hist = false;
 
-fps = 1/10;
+fps = 1;
 TstepsPframe = 1/4; 
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
@@ -206,21 +206,38 @@ for t = 0:dt:T
         v = v + k1/dt;
     elseif int_met == 4
         %Runge Kutta 4
-        k1 = dt^2*acc_fun(p,Mass,N);
-        k2 = dt^2*acc_fun(p + 0.5*dt*v + 1/8*k1,Mass,N);
-        k3 = dt^2*acc_fun(p + dt*v + .5*k2,Mass,N);
-        
+        if type ~= 2
+            k1 = dt^2*acc_fun(p,Mass,N);
+            k2 = dt^2*acc_fun(p + 0.5*dt*v + 1/8*k1,Mass,N);
+            k3 = dt^2*acc_fun(p + dt*v + .5*k2,Mass,N);
+
+            p = p + v*dt + 1/6*(k1+2*k2);
+            v = v + 1/(6*dt)*(k1+4*k2+k3);
+        end
         %a_k = kuiperacc(p,p_k,Mass);
         if type == 2
-            k1_k = dt^2*kuiperacc(p,p_k,Mass);
-            k2_k = dt^2*kuiperacc(p + 0.5*dt*v + 1/8*k1,p_k + 0.5*dt*v_k + 1/8*k1_k ,Mass);
-            k3_k = dt^2*kuiperacc(p + dt*v + .5*k2,p_k + dt*v_k + .5*k2_k,Mass);
+            [k1_k,k1_pl] = kuiperacc(p,p_k,Mass,Mass_k);
+            k1_k = dt^2*k1_k;
+            k1 = dt^2*acc_fun(p,Mass,N);
+            k1 = k1+dt^2*k1_pl;
+            
+            [k2_k,k2_pl] = kuiperacc(p + 0.5*dt*v + 1/8*k1,p_k + 0.5*dt*v_k + 1/8*k1_k ,Mass,Mass_k);
+            k2_k = dt^2*k2_k;
+            k2 = dt^2*acc_fun(p + 0.5*dt*v + 1/8*k1,Mass,N);
+            k2 = k2+dt^2*k2_pl;
+            
+            [k3_k,k3_pl] = kuiperacc(p + dt*v + .5*k2,p_k + dt*v_k + .5*k2_k,Mass,Mass_k);
+            k3_k = dt^2*k3_k;
+            k3 = dt^2*acc_fun(p + dt*v + .5*k2,Mass,N);
+            k3 = k3+dt^2*k3_pl;
+
             p_k = p_k + v_k*dt + 1/6*(k1_k+2*k2_k);
             v_k = v_k + 1/(6*dt)*(k1_k+4*k2_k+k3_k);
+
+            p = p + v*dt + 1/6*(k1+2*k2);
+            v = v + 1/(6*dt)*(k1+4*k2+k3);
         end
-        
-        p = p + v*dt + 1/6*(k1+2*k2);
-        v = v + 1/(6*dt)*(k1+4*k2+k3);
+
         
     elseif int_met == 5
         %Runge Kutta 5a see file I (floris) send over whatsapp
@@ -240,27 +257,37 @@ for t = 0:dt:T
         p = p + dt*v + (7*k1 +24*k2 + 6*k3 + 8*k4)/90;
         v = v + (7*k1 + 32*k2 + 12*k3 + 32*k4 + 7*k5)/(90*dt);
     elseif int_met == 7
-        if t == 0
-            %initialize acceleration for leapfrog
+        if type ~=2
+            if t == 0
+                %initialize acceleration for leapfrog
+                a = acc_fun(p,Mass,N);
+            end
+            %leapfrog
+            v = v + a*dt/2;
+            p = p + dt*v;
             a = acc_fun(p,Mass,N);
-        end
-        %leapfrog
-        v = v + a*dt/2;
-        p = p + dt*v;
-        a = acc_fun(p,Mass,N);
 
-        v = v + a*dt/2;
+            v = v + a*dt/2;
+        end
         
         if type == 2
             if t == 0
                 %initialize acceleration for leapfrog
-                a_k = kuiperacc(p,p_k,Mass);
+                [a_k,a_pl] = kuiperacc(p,p_k,Mass,Mass_k);
+                a = acc_fun(p,Mass,N)+a_pl;
             end
             %leapfrog
+            v = v + a*dt/2;
+            p = p + dt*v;
+            a = acc_fun(p,Mass,N);
+            v = v + a*dt/2;
+            
             v_k = v_k + dt/2*a_k;
             p_k = p_k + dt*v_k;
-            a_k = kuiperacc(p,p_k,Mass);
-            v_k = v_k + a_k*dt/2;            
+            [a_k,a_pl] = kuiperacc(p,p_k,Mass,Mass_k);
+            a = a + a_pl;
+            v_k = v_k + a_k*dt/2;    
+
         end
     end
 
@@ -302,12 +329,12 @@ for t = 0:dt:T
     d_theta = d_theta - pi*(p(1,2)<0)+pi/2;
     
     A = [cos(d_theta), sin(d_theta); -sin(d_theta), cos(d_theta) ];
-%     single_p = [single_p, A*p_k(1:2,particle)];
-    single_p = [single_p, A*p(1:2,particle)];
+    single_p = [single_p, A*p_k(1:2,particle)];
 
     if size(single_p,2)>max_orbit_length
         single_p = single_p(:,2:end);
     end
+
     
     
 
@@ -364,6 +391,9 @@ for t = 0:dt:T
             ax_single = gca;
             plot(single_p(1,:), single_p(2,:),'-b','LineWidth',0.05);
             ax_single.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
+
+            plot(single_p_pl(1,:), single_p_pl(2,:),'-r','LineWidth',0.05);
+
 
             plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
 

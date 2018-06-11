@@ -89,18 +89,26 @@ if type == 2
 
 
 %          Sun Neptune
-    Mass= [0.1 102 0.013] * 10^24;   % kg % not anymore:mass of neptune is 4* 100 times higher than normal
+%     Mass= [0.1 102 0.013] * 10^24;   % kg % pluto
+    Mass= [0.1 102] * 10^24;   % kg
+
 %     r   = [0.1 4495.1] * 10^9;    % m
-    r   = [0.1 30.110387*AU 39.4*AU];
+%     r   = [0.1 30.110387*AU 39.4*AU]; % pluto
+    r   = [0.1 30.110387*AU];
+
     N   = length(Mass);
     
     Mass(1) = Mass_sun;
     %for richardson error estimation
 %     theta = 2*pi*linspace(0,1,numel(r));
-    theta = 2*pi*[0 0 180/360]; % create random angles
+%     theta = 2*pi*[0 0 180/360]; % create random angles %pluto
+    theta = 2*pi*[0 0]; % create random angles
+
       
     % neptune information
-    ecc = [0,0.009456 0.25];
+%     ecc = [0,0.009456 0.25]; %pluto
+    ecc = [0,0.009456];
+
     a   = r;
 %     b = a.*sqrt(1-ecc.^2);
 %     r = (a.*(1 - ecc.^2) ) ./ (1 + ecc.*cos(theta));
@@ -138,6 +146,7 @@ v = [v; zeros(1,N)];
     momentum = nansum(Mass .* v,2);
     v(:,1) = -momentum / Mass(1); %give sun position and velocity to make velocitiy of CoM 0
     p(:,1) = -nansum(Mass.*p,2)/Mass(1);
+
 end
 
 if type == 3
