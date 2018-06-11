@@ -88,24 +88,30 @@ if type == 2 %kuiperbelt
 
 
 %          Sun Neptune
-    Mass= [0.1 10200   ] * 10^24;   % kg
+    Mass= [0.1 102] * 10^24;   % kg % not anymore:mass of neptune is 4* 100 times higher than normal
     r   = [0.1 4495.1] * 10^9;    % m
     N   = length(Mass);
     
     Mass(1) = Mass_sun;
     %for richardson error estimation:
 %     theta = 2*pi*linspace(0,1,numel(r));
-    theta = 2*pi*rand(1,N); % create random angles
-    p = r.*[cos(theta); sin(theta); zeros(1,N)]; % position vector
 
-    v_abs = sqrt(G*Mass(1)./r);
-    v = v_abs .* [-sin(theta); cos(theta); zeros(1,N)];
-
-    p(:,1) = [0;0;0]; v(:,1) = [13;0;0]; % pin sun to origin
-    momentum = nansum(Mass .* v,2);
-    v(:,1) = -momentum / Mass(1);
-    p(:,1) = -nansum(Mass.*p,2)/Mass(1);
+    theta = 2*pi*[0 0.25]; % create random angles
+      
+    % neptune information
+    ecc = [0,0.009456];
+    a   = r;
+    b = a.*sqrt(1-ecc.^2);
+    r = (a.*(1 - ecc.^2) ) ./ (1 + ecc.*cos(theta));
+    v_abs = sqrt(G * Mass(1) * (2./r - 1./a));
+    p = [a.*cos(theta); b.*sin(theta); zeros(1,N) ];
+    v = v_abs .* [a.*-sin(theta); b.*cos(theta); zeros(1,N) ]./(vecnorm([a.*-sin(theta); b.*cos(theta); zeros(1,N) ]));
     
+    % pin sun to origin
+    p(:,1) = [0;0;0]; v(:,1) = [0;0;0]; 
+    momentum = nansum(Mass .* v,2);
+    v(:,1) = -momentum / Mass(1); %give sun position and velocity to make velocitiy of CoM 0
+    p(:,1) = -nansum(Mass.*p,2)/Mass(1);
 end
 
 if type == 3 %sphere
