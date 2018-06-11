@@ -100,11 +100,11 @@ if type == 2
     % neptune information
     ecc = [0,0.009456];
     a   = r;
-    
+    b = a.*sqrt(1-ecc.^2);
     r = (a.*(1 - ecc.^2) ) ./ (1 + ecc.*cos(theta));
     v_abs = sqrt(G * Mass(1) * (2./r - 1./a));
-    p = r .* [cos(theta); sin(theta); zeros(1,N) ];
-    v = v_abs .* [-sin(theta); cos(theta); zeros(1,N) ];
+    p = [a.*cos(theta); b.*sin(theta); zeros(1,N) ];
+    v = v_abs .* [a.*-sin(theta); b.*cos(theta); zeros(1,N) ]./(vecnorm([a.*-sin(theta); b.*cos(theta); zeros(1,N) ]));
     
     % pin sun to origin
     p(:,1) = [0;0;0]; v(:,1) = [0;0;0]; 
