@@ -392,8 +392,6 @@ for t = 0:dt:T
             plot(single_p(1,:), single_p(2,:),'-b','LineWidth',0.05);
             ax_single.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
 
-            plot(single_p_pl(1,:), single_p_pl(2,:),'-r','LineWidth',0.05);
-
 
             plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
 
