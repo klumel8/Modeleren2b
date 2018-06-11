@@ -42,7 +42,7 @@ if type == 2 % solar system and Kuyper belt
     N = 1e4; % Dummy variable
     N_k = 5; % particles in kuiper belt
     dt = 3600*24*7*52*5; % in seconds 
-    T = 1e12; % in seconds
+    T = 1e14; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k, p);
      max_orbit_length = 1000; %determines how much of the orbit of a single particle is shown
@@ -78,13 +78,13 @@ end
 
 
 % plotting configuration
-plot_system = false;     %plot the particle system
+plot_system = true;     %plot the particle system
 plot_ecc_a = true;      %plot eccentricity vs semi major axis
 plot_ang_mom = false;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
 plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
-plot_hist = false;
+plot_hist = true;
 
 
 maxframes = 200; %gather the frames from GPU every maxframes number of frames
@@ -354,7 +354,7 @@ for t = 0:dt:T
         end
     end
     curr_time = toc;
-    if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed && curr_time>1/fps)
+    if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed && (curr_time>1/fps || t==0))
 
         if t == 0
             figure(1)
@@ -373,16 +373,15 @@ for t = 0:dt:T
                 axis([0,1.1*defaultRange*2,0, 0.11])
                 ylabel('$\varepsilon$','Interpreter','Latex')
                 xlabel('a[m]')
-                ax = gca;
             end
 
-            ax = gca;
+            ax_ecc = gca;
 
             if type == 2
-                ax.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
+                ax_ecc.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
                 plot(semi_m_axis_kuiper,ecc_kuiper,'.r')    
             end
-            ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
+            ax_ecc.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
 
         end
         if ~plot_ang_mom

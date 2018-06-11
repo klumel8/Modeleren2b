@@ -42,7 +42,7 @@ if type == 2 % solar system and Kuyper belt
     N = 1e4; % Dummy variable
     N_k = 5; % particles in kuiper belt
     dt = 3600*24*7*52*5; % in seconds 
-    T = 1e20; % in seconds
+    T = 1e14; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k, p);
      max_orbit_length = 1000; %determines how much of the orbit of a single particle is shown
@@ -78,13 +78,13 @@ end
 
 
 % plotting configuration
-plot_system = false;     %plot the particle system
+plot_system = true;     %plot the particle system
 plot_ecc_a = true;      %plot eccentricity vs semi major axis
 plot_ang_mom = false;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
 plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
-plot_hist = false;
+plot_hist = true;
 
 
 maxframes = 200; %gather the frames from GPU every maxframes number of frames
@@ -97,7 +97,6 @@ if make_movie
     F(frames) = struct('cdata',[],'colormap',[]);
 end
 
-gpuNeed = true;
 if gpuNeed
     max_frames = 100;
     CPUframes_save = zeros([size(p),frames]);
@@ -553,39 +552,8 @@ if gpuNeed
     if plotting
         
         for i = 1:size(pframesCPU,3)
-<<<<<<< HEAD
             if mod(i,10) == 0
-                view(0,0)
-=======
-            p = pframes(:,:,i);
-            if t == 0
-                figure(1)
-            end
-            if plot_system
-            T_neptune = 60182*3600*24; % seconds
-            omega_neptune = 2*pi/T_neptune;
-            A = [cos(omega_neptune*t), sin(omega_neptune*t);...
-                -sin(omega_neptune*t), cos(omega_neptune*t) ];
-            if type == 2
-                plot_p(1:2,:) = A*p(1:2,:);
-                plot_p_k(1:2,:) = A*p_k(1:2,:);
-            else
-                plot_p = p;
-            end
-            %particle system
-            subplot(2,3,3)
-            axSys = gca;
-            plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
-            axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
-            
-            plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20); 
-            
-            
-            %axis([-1 1 -1 1]*defaultRange*1.1);
-            title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
-            if t == 0
->>>>>>> Fl_kuiper
-                
+                view(0,0)                
                 p = pframes(:,:,i);
                 
                 figure(1)
