@@ -51,7 +51,7 @@ AU = 1.49597871e11;% [m]
 theta = 2*pi*rand(1,N); % create random angles
 % r = r_low + (r_high-r_low).*rand(1,N); % create uniformly distributed radii
 %r = (2)^(2/3)*4495e9;
- r = 3/2*4495e9;
+ r = ((3/2)^(2/3))*4495e9;
 
 ecc = rand(1,N)*0.1;
 
@@ -63,7 +63,7 @@ b = a * sqrt(1 - ecc.^2);
 %make sure it revolves around the sun....
 p = [a.*cos(theta); b.*sin(theta)];
 p(1,:) = p(1,:) - ecc*a; 
-p = p - p_planet(1:2,1);
+%p = p - p_planet(1:2,1);
 
 
 

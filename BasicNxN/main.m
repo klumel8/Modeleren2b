@@ -38,8 +38,8 @@ if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
     N = 1e4; % Dummy variable
     N_k = 1e3; % particles in kuiper belt
-    dt = 3600*24*7*52; % in seconds 
-    T = 1e13; % in seconds
+    dt = 3600*24*7*52*5; % in seconds 
+    T = 1e20; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k, p);
      max_orbit_length = 200; %determines how much of the orbit of a single particle is shown
@@ -284,14 +284,14 @@ for t = 0:dt:T
 %         rel_momentum = permute(rel_momentum,[3,2,1]);
 %     end
     
-    [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass);
+    [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass, p);
 
     
     ecc = ecc';
     
     semi_m_axis = semi_m_axis';
     if type == 2
-        [ecc_kuiper, semi_m_axis_kuiper] = eccentricity_sma(p_k,v_k,Mass);
+        [ecc_kuiper, semi_m_axis_kuiper] = eccentricity_sma(p_k,v_k,Mass,p);
         ecc_kuiper = ecc_kuiper';
         
         semi_m_axis_kuiper = semi_m_axis_kuiper';
@@ -309,12 +309,12 @@ for t = 0:dt:T
         d_theta = d_theta - pi*(p(1,2)<0)+pi/2;
         figure(1)
         if plot_RV
-            subplot(2,2,1) 
+            subplot(2,3,1) 
             plot(vecnorm(p_k),vecnorm(v_k),'.');
         end
         if plot_ecc_a
             %eccentricity vs semi-major axis: 
-            subplot(2,2,1) 
+            subplot(2,3,1) 
             plot(semi_m_axis(2:end),ecc(2:end),'.b')
             title(['time: ',num2str(round(t/31556926,1)),' y'])
             if t == 0
@@ -333,7 +333,7 @@ for t = 0:dt:T
 
         end
         if ~plot_ang_mom
-            subplot(2,2,2)
+            subplot(2,3,2)
             A = [cos(d_theta), sin(d_theta); -sin(d_theta), cos(d_theta) ];
             single_p = [single_p, A*p_k(1:2,3)];
             if size(single_p,2)>max_orbit_length
@@ -353,7 +353,7 @@ for t = 0:dt:T
         end
         if plot_ang_mom
             %angular momentum
-            subplot(2,2,2)       
+            subplot(2,3,2)       
             plot(L_t);
             if t == 0
                 ax = gca;
@@ -378,7 +378,7 @@ for t = 0:dt:T
                 plot_p = p;
             end
             %particle system
-            subplot(2,2,3)
+            subplot(2,3,3)
             axSys = gca;
             plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
             axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
@@ -407,7 +407,7 @@ for t = 0:dt:T
 
         if type == 2
             if plot_momentum
-                subplot(2,2,4)
+                subplot(2,3,4)
 %                 plot(rel_momentum);
                 title('Rel momentum(norm), rel to jupiter');
                 axis([max(0,index-5000) index+500 -0.1 1]);
@@ -418,20 +418,31 @@ for t = 0:dt:T
                 ylabel('relative magnitude')
             end
             
-%             subplot(2,2,4);
+%             subplot(2,3,4);
 %                 plot(vecnorm(p_k),'.');
 %                 axis([0 N_k 6*10^12 8*10^12]);
             
             plot_hist = true;
             if plot_hist
-                subplot(2,2,4)
-    %                plot(rel_momentum);
-                    title('histogram of all angles')
-                    xlabel('amount of particles')
-                    ylabel('angle (radians)')
+                subplot(2,3,4)
                 theta = atan(plot_p_k(2,:)./plot_p_k(1,:));
                 theta = theta - pi*(plot_p_k(1,:)<0)+pi/2;
                 histogram(theta,36);
+                title('histogram of all angles')
+                xlabel('amount of particles')
+                ylabel('angle (radians)')
+                
+                subplot(2,3,5)
+                histogram(ecc_kuiper,20);
+                title('Eccentricity')
+                xlabel('from 0 to 0.1')
+                ylabel('#correlating eccentricity')
+                
+                subplot(2,3,6)
+                histogram(semi_m_axis_kuiper,20);
+                title('Semi-major')
+                xlabel('from 0 to 0.1')
+                ylabel('#correlating eccentricity')
             end
             %}
         end
@@ -447,8 +458,9 @@ if gpuNeed
     if plotting
         for i = 1:size(pframesCPU,3)
             p = pframes(:,:,i);
-            
-            figure(1)
+            if t == 0
+                figure(1)
+            end
             if plot_system
             T_neptune = 60182*3600*24; % seconds
             omega_neptune = 2*pi/T_neptune;
@@ -461,7 +473,7 @@ if gpuNeed
                 plot_p = p;
             end
             %particle system
-            subplot(2,2,3)
+            subplot(2,3,3)
             axSys = gca;
             plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
             axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren

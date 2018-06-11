@@ -1,4 +1,4 @@
-function [e, a] = eccentricity_sma(p,v,m)
+function [e, a] = eccentricity_sma(p,v,m, pp)
 %Calculate the eccentricity and the semi major axis
 %input arguments:
 %   p       : (3xN) position vector
@@ -9,8 +9,8 @@ function [e, a] = eccentricity_sma(p,v,m)
 %   a       : (1xN) semi major axis
 %no nonstandard functions required
     G = 6.67408*10^-11; % [Nm^2kg^-2]
-
     mu = G * m(1);
+    p = p - pp(:,1);
     eps = vecnorm(v).^2 / 2 - mu./vecnorm(p); 
     a = -mu ./ (2 * eps);
     e = sqrt(1 - sum(cross(p,v).^2)./(mu*a));
