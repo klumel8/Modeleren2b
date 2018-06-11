@@ -13,6 +13,5 @@ function [e, a] = eccentricity_sma(p,v,m)
     mu = G * m(1);
     eps = vecnorm(v).^2 / 2 - mu./vecnorm(p); 
     a = -mu ./ (2 * eps);
-
     e = sqrt(1 - sum(cross(p,v).^2)./(mu*a));
 end

@@ -43,6 +43,7 @@ if type == 2 % solar system and Kuyper belt
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k, p);
      max_orbit_length = 200; %determines how much of the orbit of a single particle is shown
+
     kuipercollisions = false;
 end
 
