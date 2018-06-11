@@ -85,11 +85,13 @@ end
 
 gpuNeed = true;
 if gpuNeed
+    max_frames = 100;
     CPUframes_save = zeros([size(p),frames]);
-    pframes = gpuArray(zeros([size(p),maxframes]));
+    pframes = gpuArray(zeros([size(p),max_frames]));
     p = gpuArray(p);
     Mass = gpuArray(Mass);
     v = gpuArray(v);
+    
     
 end
 
@@ -289,11 +291,9 @@ for t = 0:dt:T
         if (mod(t,TstepsPframe*dt)==0)
             pframes(:,1:size(p,2),curr_frame) = p;
             if mod(curr_frame, max_frames) == 0
+                
                 CPUframes_save(:,1:size(pframes,2),curr_frame-max_frames+1:curr_frame) = gather(pframes);
                 pframes = gpuArray(zeros([size(p),max_frames]));
-                p = gpuArray(p);
-                Mass = gpuArray(Mass);
-                v = gpuArray(v);
             end   
             curr_frame = curr_frame + 1;
         end

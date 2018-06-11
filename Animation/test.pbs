@@ -1,0 +1,4 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=16
+module load matlab/2017b
+matlab -r AnimationTest
