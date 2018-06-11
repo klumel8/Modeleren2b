@@ -29,21 +29,21 @@ rng(121) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
     N = 1e2;
-    dt = 3600*24*7*52; % in seconds (dt = 1 day)
+    dt = 3600*24*7*52/10; % in seconds (dt = 1 day)
     T = 1e10;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
 end
 
 if type == 2 % solar system and Kuyper belt
-    defaultRange = 5e12; % [m]
+    defaultRange = 50*AU; % [m]
     N = 1e4; % Dummy variable
-    N_k = 5; % particles in kuiper belt
-    dt = 3600*24*7*52*5; % in seconds 
+    N_k = 1; % particles in kuiper belt
+    dt = 3600*24*7*52*2; % in seconds 
     T = 1e20; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k, p);
-     max_orbit_length = 1000; %determines how much of the orbit of a single particle is shown
-     particle = 1;
+     max_orbit_length = 100000; %determines how much of the orbit of a single particle is shown
+     particle = 3;
 
     kuipercollisions = false;
 end
@@ -58,7 +58,7 @@ plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
 plot_hist = false;
 
-fps = 1/1;
+fps = 1/10;
 TstepsPframe = 1/4; 
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
@@ -302,7 +302,9 @@ for t = 0:dt:T
     d_theta = d_theta - pi*(p(1,2)<0)+pi/2;
     
     A = [cos(d_theta), sin(d_theta); -sin(d_theta), cos(d_theta) ];
-    single_p = [single_p, A*p_k(1:2,particle)];
+%     single_p = [single_p, A*p_k(1:2,particle)];
+    single_p = [single_p, A*p(1:2,particle)];
+
     if size(single_p,2)>max_orbit_length
         single_p = single_p(:,2:end);
     end
@@ -317,7 +319,7 @@ for t = 0:dt:T
         end
     end
     curr_time = toc;
-    if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed && curr_time>1/fps)
+    if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed && (curr_time>1/fps || t == 0))
 
         if t == 0
             figure(1)
@@ -335,7 +337,6 @@ for t = 0:dt:T
                 axis([0,1.1*defaultRange*2,0, 0.11])
                 ylabel('$\varepsilon$','Interpreter','Latex')
                 xlabel('a[m]')
-                ax = gca;
             end
             ax = gca;
 
@@ -361,12 +362,12 @@ for t = 0:dt:T
 %             end
 
             ax_single = gca;
-            plot(single_p(1,:), single_p(2,:),'-b');
+            plot(single_p(1,:), single_p(2,:),'-b','LineWidth',0.05);
             ax_single.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
 
             plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
 
-            axis([-1.2 1.2 -1.2 1.2]*max(semi_m_axis_kuiper));
+            axis([-1.2 1.2 -1.2 1.2]*defaultRange);
             ax_single.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
 
         end

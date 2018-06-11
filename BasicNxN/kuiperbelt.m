@@ -51,25 +51,25 @@ AU = 1.49597871e11;% [m]
 theta = 2*pi*rand(1,N); % create random angles
 % r = r_low + (r_high-r_low).*rand(1,N); % create uniformly distributed radii
 %r = (2)^(2/3)*4495e9;
- r = ((3/2)^(2/3))*4495e9;
+r = ((3/2)^(2/3))*(30.110387*AU);
 
 % ecc = rand(1,N)*0.4;
-ecc = ones(1,N)*0.3;
+ecc = ones(1,N)*0.25;
 
 %use defualt gonio functions to make a physically valid semi-major/minor
-%axis a,b
+%axis a
 a = r;
 b = a * sqrt(1 - ecc.^2);
 
 %make sure it revolves around the sun....
 p = [a.*cos(theta); b.*sin(theta)];
 p(1,:) = p(1,:) - ecc*a; 
-%p = p - p_planet(1:2,1);
+% p = p - p_planet(1:2,1);
 
 
 
 u = G*Mass_sun;
-v_dir = [-a*sin(theta); b.*cos(theta)]./vecnorm([-a*sin(theta); b.*cos(theta)]);
+v_dir = [-a.*sin(theta); b.*cos(theta)]./vecnorm([-a.*sin(theta); b.*cos(theta)]);
 r_dir = p./vecnorm(p);
 vxr_unit = cross([v_dir;zeros(1,N)],[r_dir;zeros(1,N)]);
 
