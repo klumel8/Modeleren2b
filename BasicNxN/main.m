@@ -6,7 +6,7 @@ clear; close all;
 type = 2;
 
 gpuNeed = false;
-make_movie = false;
+make_movie = true;
 cycle_count = 0;
 d_theta = 0;
 ac_theta = 0;
@@ -40,7 +40,7 @@ if type == 2 % solar system and Kuyper belt
     N = 1e4; % Dummy variable
     N_k = 1; % particles in kuiper belt
     dt = 3600*24*365/10; % in seconds 
-    T = 1e20; % in seconds
+    T = 3600*24*7*52*10000; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k, p);
      max_orbit_length = 6000; %determines how much of the orbit of a single particle is shown
@@ -52,15 +52,15 @@ end
 
 % plotting configuration
 plot_system = false;     %plot the particle system
-plot_ecc_a = true;      %plot eccentricity vs semi major axis
+plot_ecc_a = false;      %plot eccentricity vs semi major axis
 plot_ang_mom = false;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
 plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
 plot_hist = false;
 
-fps = 1;
-TstepsPframe = 1/4; 
+fps = 30;
+TstepsPframe = 4; 
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
     F(frames) = struct('cdata',[],'colormap',[]);
@@ -370,7 +370,8 @@ for t = 0:dt:T
 
         end
         if ~plot_ang_mom
-            subplot(2,3,2)
+%             subplot(2,3,2)
+            title(['time: ',num2str(round(t/31556926,1)),' y'])
             plot_p(1:2,:) = A*p(1:2,:);
 
 %             if cycle_count < 4
@@ -382,13 +383,18 @@ for t = 0:dt:T
 %                     single_p = single_p(:,round(size(single_p,2)/4):end);
 %                 end
 %             end
-
+%Produce figures with a LaTeX interpreter
+set(0,'defaulttextinterpreter','latex');
+set(0,'defaultaxesfontsize',14);
+set(gca, 'ticklabelinterpreter','latex');
+            xlabel('$x$ [m]');ylabel('$y$ [m]');
             ax_single = gca;
             plot(single_p(1,:), single_p(2,:),'-b','LineWidth',0.05);
             ax_single.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
 
             plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
-
+            
+            plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20); 
             axis([-1.2 1.2 -1.2 1.2]*defaultRange);
             ax_single.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
 
@@ -418,6 +424,9 @@ for t = 0:dt:T
             else
                 plot_p = p;
             end
+            
+
+            
             %particle system
             subplot(2,3,3)
             axSys = gca;
@@ -488,7 +497,7 @@ for t = 0:dt:T
         end
         drawnow
         if make_movie
-            F(t/(TstepsPframe*dt)+1) = getframe(gcf);curr_tree.Node{i};
+            F(round(t/(TstepsPframe*dt))+1) = getframe(gcf);
         end
         tic;
     end
@@ -545,8 +554,9 @@ if gpuNeed
 end
 
 if make_movie
-    v = VideoWriter('testVideo.avi'); %Maak een video-file
-    v.FrameRate = 5;
+    v = VideoWriter('Pluto.avi'); %Maak een video-file
+    v.FrameRate = 60;
+    v.Quality = 100;
     open(v)
     writeVideo(v,F); %Sla de frames op in de video
     close(v)
