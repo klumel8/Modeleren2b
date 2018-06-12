@@ -39,8 +39,8 @@ if type == 2 % solar system and Kuyper belt
     defaultRange = 50*AU; % [m]
     N = 1e4; % Dummy variable
     N_k = 1; % particles in kuiper belt
-    dt = 3600*24*365/10; % in seconds 
-    T = 3600*24*7*52*10000; % in seconds
+    dt = 3600*24*365; % in seconds 
+    T = 3600*24*7*52*6000; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k, p);
      max_orbit_length = 6000; %determines how much of the orbit of a single particle is shown
