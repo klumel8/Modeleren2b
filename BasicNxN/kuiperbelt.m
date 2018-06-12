@@ -54,8 +54,9 @@ theta = 2*pi*rand(1,N); % create random angles
 % theta(1) = pi;
 % r = r_low + (r_high-r_low).*rand(1,N); % create uniformly distributed radii
 %r = (2)^(2/3)*4495e9;
-% r = ((3/2)^(2/3))*(30.110387*AU);
-r = 39.4*AU;
+r = ((5/2)^(2/3))*(30.110387*AU);
+% r = (2)^(2/3) * 30.110387*AU;
+% r = 39.4*AU;
 
 % ecc = rand(1,N)*0.4;
 ecc = ones(1,N)*0.25;
