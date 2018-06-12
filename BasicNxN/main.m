@@ -40,7 +40,7 @@ if type == 2 % solar system and Kuyper belt
     N = 1e4; % Dummy variable
     N_k = 1; % particles in kuiper belt
     dt = 3600*24*365/10; % in seconds 
-    T = 3600*24*7*52*6000; % in seconds
+    T = 3600*24*7*52*4500; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k, p);
      max_orbit_length = 6000; %determines how much of the orbit of a single particle is shown
@@ -60,11 +60,11 @@ plotting = true;        %plot anything at all
 plot_hist = false;
 
 fps = 1/4;
-TstepsPframe = 4; 
+TstepsPframe = 100; 
 frames = floor(T/(TstepsPframe*dt))+1;
-% if make_movie
-%     F(frames) = struct('cdata',[],'colormap',[]);
-% end
+if make_movie
+    F(1:frames) = struct('cdata',[],'colormap',[]);
+end
 
 if gpuNeed
     pframes = gpuArray(zeros([size(p),frames]));
@@ -556,7 +556,6 @@ end
 if make_movie
     v = VideoWriter('Pluto.avi'); %Maak een video-file
     v.FrameRate = 30;
-    v.Quality = 100;
     open(v)
     writeVideo(v,F); %Sla de frames op in de video
     close(v)
