@@ -6,7 +6,7 @@ clear; close all;
 type = 2;
 
 gpuNeed = false;
-make_movie = false;
+make_movie = true;
 cycle_count = 0;
 d_theta_old = 0;
 
@@ -36,14 +36,15 @@ end
 
 if type == 2 % solar system and Kuyper belt
     defaultRange = 50*AU; % [m]
+    trojans = true;
     N = 1e4; % Dummy variable
-    N_k = 1; % particles in kuiper belt
-    dt = 3600*24*7*52*3; % in seconds 
-    T = 1e20; % in seconds
+    N_k = 100; % particles in kuiper belt
+    dt = 3600*24*7*52; % in seconds 
+    T = 3600*24*7*52*100; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
-    [p_k, v_k, Mass_k] = kuiperbelt(N_k, p);
+    [p_k, v_k, Mass_k] = kuiperbelt(N_k, p(:,2),trojans);
      max_orbit_length = 10000; %determines how much of the orbit of a single particle is shown
-     particle = 1;
+     particles = 1:2;
 
     kuipercollisions = false;
 end
@@ -51,15 +52,15 @@ end
 
 % plotting configuration
 plot_system = false;     %plot the particle system
-plot_ecc_a = true;      %plot eccentricity vs semi major axis
+plot_ecc_a = false;      %plot eccentricity vs semi major axis
 plot_ang_mom = false;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
 plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
 plot_hist = false;
 
-fps = 1;
-TstepsPframe = 1/4; 
+fps = 30;
+TstepsPframe = 4; 
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
     F(frames) = struct('cdata',[],'colormap',[]);
@@ -324,14 +325,15 @@ for t = 0:dt:T
         
         semi_m_axis_kuiper = semi_m_axis_kuiper';
     end
+    
     d_theta = atan(p(2,2)/p(1,2));
     d_theta = d_theta - pi*(p(1,2)<0)+pi/2;
     
     A = [cos(d_theta), sin(d_theta); -sin(d_theta), cos(d_theta) ];
-    single_p = [single_p, A*p_k(1:2,particle)];
+    single_p = [single_p, permute(A*p_k(1:2,particles),[1,3,2])];
 
     if size(single_p,2)>max_orbit_length
-        single_p = single_p(:,2:end);
+        single_p = single_p(:,2:end,:);
     end
     
     
@@ -347,7 +349,7 @@ for t = 0:dt:T
         end
     end
     curr_time = toc;
-    if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed && (curr_time>1/fps || t == 0))
+    if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed && (make_movie ||curr_time>1/fps || t == 0))
 
         if t == 0
             figure(1)
@@ -376,19 +378,19 @@ for t = 0:dt:T
 
         end
         if ~plot_ang_mom
-            subplot(2,3,2)
+%             subplot(2,3,2)
             plot_p(1:2,:) = A*p(1:2,:);
 
             ax_single = gca;
-            plot(single_p(1,:), single_p(2,:),'-b','LineWidth',0.05);
+            plot(permute(single_p(1,:,:),[2,3,1]), permute(single_p(2,:,:),[2,3,1]),'LineWidth',0.05);
             ax_single.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
 
-
             plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
-
+            title(['time: ',num2str(round(t/31556926,1)),' y'])
+            xlabel('x[m]')
+            ylabel('y[m]')
             axis([-1.2 1.2 -1.2 1.2]*defaultRange);
             ax_single.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
-
         end
         if plot_ang_mom
             %angular momentum
@@ -485,7 +487,7 @@ for t = 0:dt:T
         end
         drawnow
         if make_movie
-            F(t/(TstepsPframe*dt)+1) = getframe(gcf);curr_tree.Node{i};
+            F(round(t/(TstepsPframe*dt)+1)) = getframe(gcf);
         end
         tic;
     end
