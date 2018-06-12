@@ -6,7 +6,7 @@ clear; close all;
 % 4 = 2 particles (test)
 % 5 = solar system (normal, all planets)
 
-type = 2;
+type = 5;
 
 gpuNeed = false;
 make_movie = false;
@@ -68,6 +68,7 @@ if type == 4
     T = 5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,type);
 end
+
 if type == 5 % solar system
     defaultRange = 5e12; % [m]
     N = 9; % Dummy variable
@@ -333,11 +334,12 @@ for t = 0:dt:T
     end
     d_theta = atan(p(2,2)/p(1,2));
     d_theta = d_theta - pi*(p(1,2)<0)+pi/2;
-    
-    A = [cos(d_theta), sin(d_theta); -sin(d_theta), cos(d_theta) ];
-    single_p = [single_p, A*p_k(1:2,particle)];
-    if size(single_p,2)>max_orbit_length
-        single_p = single_p(:,2:end);
+    if type == 2
+        A = [cos(d_theta), sin(d_theta); -sin(d_theta), cos(d_theta) ];
+        single_p = [single_p, A*p_k(1:2,particle)];
+        if size(single_p,2)>max_orbit_length
+            single_p = single_p(:,2:end);
+        end
     end
     
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
@@ -384,7 +386,7 @@ for t = 0:dt:T
             ax_ecc.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
 
         end
-        if ~plot_ang_mom
+        if ~plot_ang_mom & type == 2
             subplot(2,3,2)
             plot_p(1:2,:) = A*p(1:2,:);
 
@@ -444,11 +446,11 @@ for t = 0:dt:T
             plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20);
             
             
-            axis([-1 1 -1 1]*max(semi_m_axis_kuiper)*1.1);
+            axis([-1 1 -1 1]*defaultRange*1.1);
             title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
             if t == 0
                 
-                axis([-1 1 -1 1]*max(semi_m_axis_kuiper)*1.1);
+                axis([-1 1 -1 1]*defaultRange*1.1);
                 
             end
             %plot kuiperbelt if type == 2
