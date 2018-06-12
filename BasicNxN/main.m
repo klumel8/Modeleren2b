@@ -39,7 +39,7 @@ if type == 2 % solar system and Kuyper belt
     defaultRange = 50*AU; % [m]
     N = 1e4; % Dummy variable
     N_k = 1; % particles in kuiper belt
-    dt = 3600*24*365; % in seconds 
+    dt = 3600*24*365/10; % in seconds 
     T = 3600*24*7*52*6000; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k, p);
@@ -59,7 +59,7 @@ plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
 plot_hist = false;
 
-fps = 30;
+fps = 1/4;
 TstepsPframe = 4; 
 frames = floor(T/(TstepsPframe*dt))+1;
 % if make_movie
@@ -555,7 +555,7 @@ end
 
 if make_movie
     v = VideoWriter('Pluto.avi'); %Maak een video-file
-    v.FrameRate = 60;
+    v.FrameRate = 30;
     v.Quality = 100;
     open(v)
     writeVideo(v,F); %Sla de frames op in de video
