@@ -94,6 +94,7 @@ if type == 2
     p = [a.*cos(theta); b.*sin(theta)];
     p(1,:) = p(1,:) - ecc.*a; 
 
+<<<<<<< HEAD
     % Calculate speed and distance to origin
     v_abs = vecnorm([-a.*sin(theta); b.*cos(theta)]);
     p_abs = vecnorm(p);
@@ -109,11 +110,71 @@ if type == 2
     v = [v; zeros(1,N)];
     
     % pin sun to origin
+=======
+%          Sun Neptune
+%     Mass= [0.1 102 0.013] * 10^24;   % kg % pluto
+    Mass= [0.1 102] * 10^24;   % kg
+
+%     r   = [0.1 4495.1] * 10^9;    % m
+%     r   = [0.1 30.110387*AU 39.4*AU]; % pluto
+    r   = [0.1 30.110387*AU];
+
+    N   = length(Mass);
+    
+    Mass(1) = Mass_sun;
+    %for richardson error estimation
+%     theta = 2*pi*linspace(0,1,numel(r));
+%     theta = 2*pi*[0 0 180/360]; % create random angles %pluto
+    theta = 2*pi*[0 0]; % create random angles
+
+      
+    % neptune information
+    ecc = [0,0.009456 0.25]; %pluto
+%     ecc = [0,0.009456];
+
+    a   = r;
+%     b = a.*sqrt(1-ecc.^2);
+%     r = (a.*(1 - ecc.^2) ) ./ (1 + ecc.*cos(theta));
+%     v_abs = sqrt(G * Mass(1) * (2./r - 1./a));
+%     p = [a.*cos(theta); b.*sin(theta); zeros(1,N) ];
+%     v = v_abs .* [a.*-sin(theta); b.*cos(theta); zeros(1,N) ]./(vecnorm([a.*-sin(theta); b.*cos(theta); zeros(1,N) ]));
+%     
+%     % pin sun to origin
+%     p(:,1) = [0;0;0]; v(:,1) = [0;0;0]; 
+%     momentum = nansum(Mass .* v,2);
+%     v(:,1) = -momentum / Mass(1); %give sun position and velocity to make velocitiy of CoM 0
+%     p(:,1) = -nansum(Mass.*p,2)/Mass(1);
+    
+    %use defualt gonio functions to make a physically valid semi-major/minor
+%axis a
+a = r;
+b = a .* sqrt(1 - ecc.^2);
+
+%make sure it revolves around the sun....
+p = [a.*cos(theta); b.*sin(theta)];
+p(1,:) = p(1,:) - ecc.*a; 
+% p = p - p_planet(1:2,1);
+
+
+
+u = G*Mass_sun;
+v_dir = [-a.*sin(theta); b.*cos(theta)]./vecnorm([-a.*sin(theta); b.*cos(theta)]);
+r_dir = p./vecnorm(p);
+vxr_unit = cross([v_dir;zeros(1,N)],[r_dir;zeros(1,N)]);
+v = sqrt((1-ecc.^2) .* u .* a ./ vecnorm(p).^2 ./ vecnorm(vxr_unit).^2) .* v_dir;
+p = [p; zeros(1,N)];
+v = [v; zeros(1,N)];
+%     % pin sun to origin
+>>>>>>> 7cc1d12de21188eee10e3bddab9a493806aff19b
     p(:,1) = [0;0;0]; v(:,1) = [0;0;0]; 
     momentum = nansum(Mass .* v,2);
     v(:,1) = -momentum / Mass(1); %give sun position and velocity to make velocitiy of CoM 0
     p(:,1) = -nansum(Mass.*p,2)/Mass(1);
+<<<<<<< HEAD
     disp(p);disp(v)
+=======
+
+>>>>>>> 7cc1d12de21188eee10e3bddab9a493806aff19b
 end
 
 if type == 3

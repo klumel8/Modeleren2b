@@ -1,4 +1,4 @@
-function a = kuiperacc(p, p_k, Mass)
+function [a_k,a] = kuiperacc(p, p_k, Mass,Mass_k)
 % Calculate the acceleration of all the particles based on the
 % another system of particles with mass
 %input arguments:
@@ -7,33 +7,35 @@ function a = kuiperacc(p, p_k, Mass)
 %   G       : (scalar) gravitational constant
 %   N       : (scalar)number of particles
 %output arguments:
-%   a       : (3xN) acceleration matrix
+%   a_k       : (3xN) acceleration matrix of kuiper particles
+%   a         : (3xN) acceleration matrix of planets
 %required functions(non-standard):
 %   dispVec
 
     G = 6.67408*10^-11; % [Nm^2kg^-2]
-    N = size(p,2);
-    N_k = size(p_k,2);
-    a = zeros(3,N_k,N);
-    %get the distances between the particles
-    for i = 1
-    D = repmat(p(:,i), [1,N_k]) - p_k;
-    R = vecnorm(D);
+
+
+    D_new = permute(p,[1,3,2]) - p_k;%3xN_kxN;
+    R_new = sqrt(sum(D_new.^2,1)); %1xN_kxN;
+
 
     %Make a simple mathematical expression for everything distance related,
     %later to be used in the force formulae.
-    temp= repmat(R, [3,1]);
+%     temp= repmat(R, [3,1]);
     %gpuTemp = gpuArray(temp);
     %gpuD = gpuArray(D);
     %gpuDisp = gpuD./(gpuTemp.*gpuTemp.*gpuTemp);
     
-    dispComp = D./(temp.^3);
+    dispComp_new = D_new./(R_new.^3);
     
     %calculate the force in each direction (x,y,z).
     %no minus sign because somewhere I misplaced a minus sign (dont worry
     %I anticipated this)
-    a(:,:,i) = G*repmat(Mass(i), [3,1]).*dispComp;
-    end
-    a = sum(a,3);
+
+    a_k = sum(G*permute(Mass,[1,3,2]).*dispComp_new,3);
+    a = sum(-G*Mass_k.*dispComp_new,2);
+    a = permute(a,[1,3,2]);
+
+
 end
 

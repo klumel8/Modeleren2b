@@ -115,7 +115,6 @@ if type == 2
     momentum = nansum(Mass .* v,2);
     v(:,1) = -momentum / Mass(1); %give sun position and velocity to make velocitiy of CoM 0
     p(:,1) = -nansum(Mass.*p,2)/Mass(1);
-    disp(p);disp(v)
 end
 
 if type == 3
