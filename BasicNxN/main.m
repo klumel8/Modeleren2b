@@ -37,13 +37,13 @@ end
 if type == 2 % solar system and Kuyper belt
     defaultRange = 50*AU; % [m]
     N = 1e4; % Dummy variable
-    N_k = 1; % particles in kuiper belt
-    dt = 3600*24*7*52*3; % in seconds 
+    N_k = 0; % particles in kuiper belt
+    dt = 3600*24*7*52*3*1e-2; % in seconds 
     T = 1e20; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k, Mass_k] = kuiperbelt(N_k, p);
-     max_orbit_length = 10000; %determines how much of the orbit of a single particle is shown
-     particle = 1;
+     max_orbit_length = 20000; %determines how much of the orbit of a single particle is shown
+     particle = 3; % plot path of Pluto
 
     kuipercollisions = false;
 end
@@ -328,7 +328,7 @@ for t = 0:dt:T
     d_theta = d_theta - pi*(p(1,2)<0)+pi/2;
     
     A = [cos(d_theta), sin(d_theta); -sin(d_theta), cos(d_theta) ];
-    single_p = [single_p, A*p_k(1:2,particle)];
+    single_p = [single_p, A*p(1:2,particle)];
 
     if size(single_p,2)>max_orbit_length
         single_p = single_p(:,2:end);
