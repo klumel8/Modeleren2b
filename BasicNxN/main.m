@@ -39,11 +39,11 @@ if type == 2 % solar system and Kuyper belt
     trojans = true;
     N = 1e4; % Dummy variable
     N_k = 100; % particles in kuiper belt
-    dt = 3600*24*7*52; % in seconds 
-    T = 3600*24*7*52*100; % in seconds
+    dt = 3600*24*7*52*3; % in seconds 
+    T = 3600*24*7*52*8000; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k, Mass_k] = kuiperbelt(N_k, p(:,2),trojans);
-     max_orbit_length = 10000; %determines how much of the orbit of a single particle is shown
+     max_orbit_length = 1000; %determines how much of the orbit of a single particle is shown
      particles = 1:2;
 
 
@@ -382,10 +382,10 @@ for t = 0:dt:T
         if ~plot_ang_mom
 %             subplot(2,3,2)
             plot_p(1:2,:) = A*p(1:2,:);
-
             ax_single = gca;
             plot(permute(single_p(1,:,:),[2,3,1]), permute(single_p(2,:,:),[2,3,1]),'LineWidth',0.05);
             ax_single.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
+            plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20); 
 
             plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
             title(['time: ',num2str(round(t/31556926,1)),' y'])
@@ -546,8 +546,8 @@ if gpuNeed
 end
 
 if make_movie
-    v = VideoWriter('testVideo.avi'); %Maak een video-file
-    v.FrameRate = 5;
+    v = VideoWriter('Trojan.avi'); %Maak een video-file
+    v.FrameRate = 30;
     open(v)
     writeVideo(v,F); %Sla de frames op in de video
     close(v)
