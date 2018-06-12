@@ -8,7 +8,8 @@ type = 2;
 gpuNeed = false;
 make_movie = false;
 cycle_count = 0;
-d_theta_old = 0;
+d_theta = 0;
+ac_theta = 0;
 
 
 %integration method
@@ -38,11 +39,11 @@ if type == 2 % solar system and Kuyper belt
     defaultRange = 50*AU; % [m]
     N = 1e4; % Dummy variable
     N_k = 1; % particles in kuiper belt
-    dt = 3600*24*7*52*2; % in seconds 
+    dt = 3600*24*365/10; % in seconds 
     T = 1e20; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k] = kuiperbelt(N_k, p);
-     max_orbit_length = 100000; %determines how much of the orbit of a single particle is shown
+     max_orbit_length = 6000; %determines how much of the orbit of a single particle is shown
      particle = 3;
 
     kuipercollisions = false;
@@ -58,7 +59,7 @@ plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
 plot_hist = false;
 
-fps = 1/10;
+fps = 1;
 TstepsPframe = 1/4; 
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
@@ -101,6 +102,8 @@ L_0 = AngularMomentum(p,N,Mass,v);
 single_p = [];
 % a timer so we dont plot too often and slow down the script
 tic;
+tStart = tic;
+
 for t = 0:dt:T
     index = index+1;
 
@@ -137,7 +140,7 @@ for t = 0:dt:T
     
     %read fo.m first, but keeps track of whether there was a collision.
     c = col(p,v,Mass,N,dt);
-       
+            
     %#BUG will crash if multiple collisions in one timestep
     %check if the collision vector is empty    
     if max(max(c)) > 0
@@ -298,9 +301,28 @@ for t = 0:dt:T
         
         semi_m_axis_kuiper = semi_m_axis_kuiper';
     end
-    d_theta = atan(p(2,2)/p(1,2));
-    d_theta = d_theta - pi*(p(1,2)<0)+pi/2;
-    
+    d_old = ac_theta;
+    ac_theta = atan(p(2,2)/p(1,2));
+    q1 = (p(1,2) > 0)*(p(2,2) > 0) * (ac_theta);
+    q2 = (p(1,2) < 0)*(p(2,2) > 0) * (pi + ac_theta);
+    q3 = (p(1,2) < 0)*(p(2,2) < 0) * (pi + ac_theta);
+    q4 = (p(1,2) > 0)*(p(2,2) < 0) * (2*pi + ac_theta);
+    ac_theta = q1+q2+q3+q4;
+    delta = ac_theta - d_old;
+    if toc(tStart) < 10
+        fps = 24;
+        d_theta = 0;
+        theta_factor = 0;
+    elseif toc(tStart) < 20
+        fps = 24;
+        theta_factor = (toc(tStart) - 10)/10;    
+    else
+        theta_factor = 1;
+    end
+    if(abs(delta) > 0.01)
+        delta = 0.0038;
+    end
+    d_theta = d_theta + delta * theta_factor;
     A = [cos(d_theta), sin(d_theta); -sin(d_theta), cos(d_theta) ];
 %     single_p = [single_p, A*p_k(1:2,particle)];
     single_p = [single_p, A*p(1:2,particle)];
