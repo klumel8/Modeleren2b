@@ -38,7 +38,7 @@ if type == 2 % solar system and Kuyper belt
     defaultRange = 50*AU; % [m]
     N = 1e4; % Dummy variable
     N_k = 0; % particles in kuiper belt
-    dt = 3600*24*7*52*3*1e-2; % in seconds 
+    dt = 3600*24*7*52*3; % in seconds 
     T = 1e20; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k, Mass_k] = kuiperbelt(N_k, p);
@@ -51,14 +51,14 @@ end
 
 % plotting configuration
 plot_system = false;     %plot the particle system
-plot_ecc_a = true;      %plot eccentricity vs semi major axis
+plot_ecc_a = false;      %plot eccentricity vs semi major axis
 plot_ang_mom = false;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
 plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
 plot_hist = false;
 
-fps = 1;
+fps = 1/30;
 TstepsPframe = 1/4; 
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
@@ -376,7 +376,11 @@ for t = 0:dt:T
 
         end
         if ~plot_ang_mom
-            subplot(2,3,2)
+            figure(2);
+            %Produce figures with a LaTeX interpreter
+            set(0,'defaulttextinterpreter','latex');
+            set(0,'defaultaxesfontsize',14);
+            set(gca, 'ticklabelinterpreter','latex');
             plot_p(1:2,:) = A*p(1:2,:);
 
             ax_single = gca;
@@ -384,10 +388,12 @@ for t = 0:dt:T
             ax_single.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
 
 
-            plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
-
+            plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); hold on;
+            plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20); 
             axis([-1.2 1.2 -1.2 1.2]*defaultRange);
             ax_single.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
+            title({'Resonances in Kuiper belt',strcat('time: ',num2str(round(t/31556926,1)),' y')})
+            xlabel('$x$ [m]'); ylabel('$y$ [m]')
 
         end
         if plot_ang_mom
@@ -489,62 +495,4 @@ for t = 0:dt:T
         end
         tic;
     end
-end
-
-if gpuNeed
-    pframesCPU = gather(pframes);
-    if plotting
-        for i = 1:size(pframesCPU,3)
-            p = pframes(:,:,i);
-            if t == 0
-                figure(1)
-            end
-            if plot_system
-            T_neptune = 60182*3600*24; % seconds
-            omega_neptune = 2*pi/T_neptune;
-            A = [cos(omega_neptune*t), sin(omega_neptune*t);...
-                -sin(omega_neptune*t), cos(omega_neptune*t) ];
-            if type == 2
-                plot_p(1:2,:) = A*p(1:2,:);
-                plot_p_k(1:2,:) = A*p_k(1:2,:);
-            else
-                plot_p = p;
-            end
-            %particle system
-            subplot(2,3,3)
-            axSys = gca;
-            plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
-            axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
-            
-            plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20); 
-            
-            
-            %axis([-1 1 -1 1]*defaultRange*1.1);
-            title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
-            if t == 0
-                
-                axis([-1 1 -1 1]*defaultRange*1.1);
-                
-            end
-            %plot kuiperbelt if type == 2
-            if type == 2
-                hold on
-                plot(plot_p_k(1,:),plot_p_k(2,:),'.r','MarkerSize',2); 
-                axis([-1 1 -1 1]*50*AU);
-                hold off
-                
-            end
-            axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
-            
-            end
-        end
-    end
-end
-
-if make_movie
-    v = VideoWriter('testVideo.avi'); %Maak een video-file
-    v.FrameRate = 5;
-    open(v)
-    writeVideo(v,F); %Sla de frames op in de video
-    close(v)
 end
