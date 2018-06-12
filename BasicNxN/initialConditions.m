@@ -10,7 +10,8 @@ function [Mass, p, v, N] = initialConditions(radius, N, type)
 %           * radius  = "Radius of the orbit of the disc"     (1)[m]
 %           * N       = "Number of particles to be simulated" (1)[-]
 %           * type    = "1 = loose particles only,
-%                        2 = solar system"                    (1)[-]
+%                        2 = solar system"   
+%                        3 = sphere                           (1)[-]
 %   Output:
 %           * Mass    = "Mass vector"     (1:N)[kg]
 %           * p       = "position vector" (3:N)[m]
@@ -20,7 +21,7 @@ function [Mass, p, v, N] = initialConditions(radius, N, type)
 %   Example(s):
 %
 %       A system of 1.000.000 particles can be creates by
-%               [Mass, p, v] = initialConditions(228e9,1e6)
+%               [Mass, p, v, N ] = initialConditions(228e9,1e6, 1)
 %
 %   Dependencies: [-]
 %

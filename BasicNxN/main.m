@@ -46,6 +46,7 @@ if type == 2 % solar system and Kuyper belt
      max_orbit_length = 10000; %determines how much of the orbit of a single particle is shown
      particles = 1:2;
 
+
     kuipercollisions = false;
 end
 
@@ -331,6 +332,7 @@ for t = 0:dt:T
     
     A = [cos(d_theta), sin(d_theta); -sin(d_theta), cos(d_theta) ];
     single_p = [single_p, permute(A*p_k(1:2,particles),[1,3,2])];
+
 
     if size(single_p,2)>max_orbit_length
         single_p = single_p(:,2:end,:);
