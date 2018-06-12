@@ -47,15 +47,16 @@ AU = 1.49597871e11;% [m]
 % r_low = 42*AU;
 % r_high = 48*AU;
 Mass_k = ones(1,N)*Mass_sun * 1e-10;
-Mass_k(1) = 0.013 * 1e24;
+% Mass_k(1) = 0.013 * 1e24;
 
 % create position and speed vectors
 theta = 2*pi*rand(1,N); % create random angles
-theta(1) = pi;
+% theta(1) = pi;
 % r = r_low + (r_high-r_low).*rand(1,N); % create uniformly distributed radii
 %r = (2)^(2/3)*4495e9;
-% r = ((3/2)^(2/3))*(30.110387*AU);
-r = 39.4*AU;
+r = ((5/2)^(2/3))*(30.110387*AU);
+% r = (2)^(2/3) * 30.110387*AU;
+% r = 39.4*AU;
 
 % ecc = rand(1,N)*0.4;
 ecc = ones(1,N)*0.25;

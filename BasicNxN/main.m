@@ -333,6 +333,8 @@ for t = 0:dt:T
     if size(single_p,2)>max_orbit_length
         single_p = single_p(:,2:end);
     end
+    
+    
 
     
     
@@ -376,16 +378,6 @@ for t = 0:dt:T
         if ~plot_ang_mom
             subplot(2,3,2)
             plot_p(1:2,:) = A*p(1:2,:);
-
-%             if cycle_count < 4
-%                 if abs(d_theta_old - d_theta)>3
-%                     cycle_count = cycle_count +1;
-%                 end
-%             else
-%                 if abs(d_theta_old - d_theta)>3
-%                     single_p = single_p(:,round(size(single_p,2)/4):end);
-%                 end
-%             end
 
             ax_single = gca;
             plot(single_p(1,:), single_p(2,:),'-b','LineWidth',0.05);
