@@ -6,7 +6,7 @@ clear; close all;
 type = 2;
 
 gpuNeed = false;
-make_movie = true;
+make_movie = false;
 cycle_count = 0;
 d_theta_old = 0;
 
@@ -35,17 +35,17 @@ if type == 1 % early solar system
 end
 
 if type == 2 % solar system and Kuyper belt
-    defaultRange = 50*AU; % [m]
-    trojans = true;
+    defaultRange = 5.5*AU; % [m]
+    trojans = false;
     N = 1e4; % Dummy variable
-    N_k = 100; % particles in kuiper belt
-    dt = 3600*24*7*52*3; % in seconds 
-    T = 3600*24*7*52*8000; % in seconds
+    N_k = 1e4; % particles in kuiper belt
+    dt = 3600*24*7*52/10; % in seconds 
+    T = 3600*24*7*52*120000; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k, Mass_k] = kuiperbelt(N_k, p(:,2),trojans);
      max_orbit_length = 1000; %determines how much of the orbit of a single particle is shown
      particles = 1:2;
-
+    
 
     kuipercollisions = false;
 end
@@ -58,9 +58,9 @@ plot_ang_mom = false;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
 plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
-plot_hist = false;
+plot_hist = true;
 
-fps = 30;
+fps = 1/30;
 TstepsPframe = 4; 
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
@@ -380,7 +380,8 @@ for t = 0:dt:T
 
         end
         if ~plot_ang_mom
-%             subplot(2,3,2)
+            figure(1);
+            subplot(2,3,2)
             plot_p(1:2,:) = A*p(1:2,:);
             ax_single = gca;
             plot(permute(single_p(1,:,:),[2,3,1]), permute(single_p(2,:,:),[2,3,1]),'LineWidth',0.05);
@@ -428,18 +429,18 @@ for t = 0:dt:T
             plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20); 
             
             
-            axis([-1 1 -1 1]*max(semi_m_axis_kuiper)*1.1);
+            axis([-1 1 -1 1]*defaultRange*1.1);
             title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
             if t == 0
                 
-                axis([-1 1 -1 1]*max(semi_m_axis_kuiper)*1.1);
+                axis([-1 1 -1 1]*defaultRange*1.1);
                 
             end
             %plot kuiperbelt if type == 2
             if type == 2
                 hold on
                 plot(plot_p_k(1,:),plot_p_k(2,:),'.r','MarkerSize',2); 
-                axis([-1 1 -1 1]*max(semi_m_axis_kuiper)*1.1);
+                axis([-1 1 -1 1]*defaultRange*1.1);
                 hold off
                 
             end
@@ -465,25 +466,33 @@ for t = 0:dt:T
 %                 axis([0 N_k 6*10^12 8*10^12]);
             
             if plot_hist
-                subplot(2,3,4)
-                theta = atan(plot_p_k(2,:)./plot_p_k(1,:));
-                theta = theta - pi*(plot_p_k(1,:)<0)+pi/2;
-                histogram(theta,36);
-                title('histogram of all angles')
-                xlabel('amount of particles')
-                ylabel('angle (radians)')
+%                 subplot(2,3,4)
+%                 theta = atan(plot_p_k(2,:)./plot_p_k(1,:));
+%                 theta = theta - pi*(plot_p_k(1,:)<0)+pi/2;
+%                 histogram(theta,36);
+%                 title('histogram of all angles')
+%                 xlabel('amount of particles')
+%                 ylabel('angle (radians)')
+%                 
+%                 subplot(2,3,5)
+%                 histogram(ecc_kuiper,20);
+%                 title('Eccentricity')
+%                 xlabel('from 0 to 0.1')
+%                 ylabel('#correlating eccentricity')
                 
-                subplot(2,3,5)
-                histogram(ecc_kuiper,20);
-                title('Eccentricity')
-                xlabel('from 0 to 0.1')
-                ylabel('#correlating eccentricity')
-                
-                subplot(2,3,6)
-                histogram(semi_m_axis_kuiper,20);
-                title('Semi-major')
-                xlabel('from 0 to 0.1')
-                ylabel('#correlating eccentricity')
+%                 subplot(2,3,6)
+                figure(2);
+                histogram(semi_m_axis_kuiper,80);
+                title('Histogram of semi-major axis and number of particles')
+                xlabel('semimajor axis')
+                ylabel('number of particles')
+                xt = get(gca, 'XTick');
+                set(gca, 'XTick', xt, 'XTickLabel', round(xt/AU,1))
+                set(0,'defaulttextinterpreter','latex');
+                set(0,'defaultaxesfontsize',14);
+                ylim([0 500])
+                xlim([1 3.5]*AU)
+                disp(['time: ',num2str(round(t/31556926,1)),' y'])
             end
             %}
         end

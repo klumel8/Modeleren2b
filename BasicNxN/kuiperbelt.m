@@ -57,22 +57,23 @@ theta = 2*pi*rand(1,N); % create random angles
 if trojans
     r = 30.110387*AU;
 else
-    r = ((5/2)^(2/3))*(30.110387*AU);
+%     r = ((5/2)^(2/3))*(30.110387*AU);
+r = (2 + (3.5-2)*rand(1,N))*AU;
 % r = (2)^(2/3) * 30.110387*AU;
 % r = 39.4*AU;
 end
 
-ecc = rand(1,N)*0.1;
+ecc = rand(1,N)*0.01;
 % ecc = ones(1,N)*0.1;
 
 %use defualt gonio functions to make a physically valid semi-major/minor
 %axis a
 a = r;
-b = a * sqrt(1 - ecc.^2);
+b = a .* sqrt(1 - ecc.^2);
 
 %make sure it revolves around the sun....
 p = [a.*cos(theta); b.*sin(theta)];
-p(1,:) = p(1,:) - ecc*a; 
+p(1,:) = p(1,:) - ecc.*a; 
 
 
 
@@ -81,7 +82,7 @@ v_dir = [-a.*sin(theta); b.*cos(theta)]./vecnorm([-a.*sin(theta); b.*cos(theta)]
 r_dir = p./vecnorm(p);
 vxr_unit = cross([v_dir;zeros(1,N)],[r_dir;zeros(1,N)]);
 
-v = sqrt((1-ecc.^2) * u * a ./ vecnorm(p).^2 ./ vecnorm(vxr_unit).^2) .* v_dir;
+v = sqrt((1-ecc.^2) .* u .* a ./ vecnorm(p).^2 ./ vecnorm(vxr_unit).^2) .* v_dir;
 for i=1:N
     phi = rand*2*pi;
     if i == 1
