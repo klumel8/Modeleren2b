@@ -17,7 +17,7 @@ d_theta_old = 0;
 %1: newton forward
 %2,4-6: runge kutta
 %7: leapfrog
-int_met = 4;
+int_met = 7;
 %use barnes hut
 barnes_hut = false;
 theta = 0.5;%0 to test acc calculation: all particles are indiviually used,
@@ -56,7 +56,7 @@ if type  == 3 %sphere
     
     defaultRange = AU; % [m]
     N = 1e3;
-    dt = 3600*24*365*10; % in seconds
+    dt = 3600*24*7*5; % in seconds
     T = 5e12; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,type);
     MassGas = 10;
@@ -86,6 +86,7 @@ plot_momentum = false;   %plot the momentum, relative to jupiter(only for type =
 plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
 plot_hist = true;
+plot_all_dt = true;     %plot all time steps
 
 
 make_movie = true;
@@ -110,8 +111,6 @@ if gpuNeed
     p = gpuArray(p);
     Mass = gpuArray(Mass);
     v = gpuArray(v);
-    
-    
 end
 
 
@@ -174,7 +173,7 @@ for t = 0:dt:T
         disp('too far')
         indices = find(remove_crit);
         disp(['Number of removed particles: ',num2str(numel(indices))])
-        p(:,indices) = p(:,indices)./20;%bring particle back in the system
+        p(:,indices) = p(:,indices)./5000;%bring particle back in the system
         v(:,indices) = repmat([0;0;0],1,numel(indices));%set velocity to 0
         Mass(indices) = 0;%set mass to 0
     end
@@ -197,7 +196,12 @@ for t = 0:dt:T
         total_mass = sum(Mass);
         %new way of finding collisions:
         c = c+eye(size(c));
+        c = c(sum(c,2)>1,:);
+        disp(size(c));
         collisions = c(1,:);
+%         collision = tic;
+        %both the while and the for loop works, i dont know which one is
+        %faster
         for i = 2:size(c,1)
            if any(any(collisions.*c(i,:)))
                [row, ~] = find(collisions.*c(i,:));
@@ -206,7 +210,23 @@ for t = 0:dt:T
                collisions(end+1,:) = c(i,:);
            end
         end
-        disp(size(collisions,1))
+%         while i<size(collisions,1)
+%             temp = collisions(end,:).*c;
+%             rows = any(temp,2);
+%             if any(rows)
+%                 collisions(end,:) = sum(c(rows,:),1)>0;
+%             end
+%             c = c(~rows,:);
+%             if size(c,1)>0
+%                 collisions(end+1,:) = c(1,:);
+%                 c = c(2:end,:);
+%             end
+%             if size(c,1)==0
+%                 break
+%             end
+%             i = i +1;
+%         end
+%         toc(collision)
         collisions = logical(collisions);
         for j = 1:size(collisions,1)
             
@@ -223,7 +243,7 @@ for t = 0:dt:T
             end
             
         end
-        disp(total_mass-sum(Mass))
+        disp(['percentage of mass loss: ',num2str((total_mass-sum(Mass))/total_mass,'%10.3e')])
 %         %find indices of collided particles
 %         %re-rank the collision indexes
 %         indices = [mod(find(c),N)'; ceil(find(c)/N)'];
@@ -402,7 +422,7 @@ for t = 0:dt:T
         end
     end
     curr_time = toc;
-    if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed && (curr_time>1/fps || t==0))
+    if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed && (curr_time>1/fps || t==0)) || plot_all_dt
 
         if t == 0
             figure(1)
@@ -492,11 +512,11 @@ for t = 0:dt:T
             plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20);
             
             
-            axis([-1 1 -1 1]*defaultRange*1.1);
+            axis([-1 1 -1 1]*max(max(abs(p)))*1.1);
             title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
             if t == 0
                 
-                axis([-1 1 -1 1]*defaultRange*1.1);
+                axis([-1 1 -1 1]*max(max(abs(p)))*1.1);
                 
             end
             %plot kuiperbelt if type == 2
