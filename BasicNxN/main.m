@@ -6,7 +6,7 @@ clear; close all;
 % 4 = 2 particles (test)
 % 5 = solar system (normal, all planets)
 
-type = 5;
+type = 3;
 
 gpuNeed = false;
 make_movie = false;
@@ -200,8 +200,12 @@ for t = 0:dt:T
         indices(1,:) = (indices(1,:)==0)*N + indices(1,:);
         indices(:,indices(1,:) > indices(2,:)) = [];
         %this way, if a particle collides with the sun, the sun is still the first particle
-        
-        
+        swap_index = find(ismember(indices(1,:), indices(2,:)'));
+        %indices(:,swap_index) = [indices(2,swap_index); indices(2:-1:1,swap_index)];
+        start = indices(1,1);
+        chain = chain_finder(start, indices);
+        indices
+        indices(:,chain)
         %ik ga uit van compleet inelastisch.
         %new position is centre of mass        
         p(:,indices(1,:)) = (Mass(indices(1,:)).*p(:,indices(1,:)) + Mass(indices(2,:)).*p(:,indices(2,:)))./(Mass(indices(1,:))+Mass(indices(2,:)));

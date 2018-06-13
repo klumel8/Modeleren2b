@@ -5,7 +5,13 @@ clear; close all;
 % 3 = sphere
 % 4 = 2 particles (test)
 % 5 = solar system (normal, all planets)
+
 type = 3;
+
+gpuNeed = false;
+make_movie = false;
+cycle_count = 0;
+d_theta_old = 0;
 
 %integration method
 %1: newton forward
@@ -32,12 +38,17 @@ end
 
 if type == 2 % solar system and Kuyper belt
     defaultRange = 5e12; % [m]
-    N = 1; % Dummy variable
-    N_k = 1e3; % particles in kuiper belt
-    dt = 3600*24*7*52; % in seconds
-    T = 1e12; % in seconds
+
+    N = 1e4; % Dummy variable
+    N_k = 5; % particles in kuiper belt
+    dt = 3600*24*7*52*5; % in seconds 
+    T = 1e14; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
-    [p_k, v_k] = kuiperbelt(N_k);
+    [p_k, v_k] = kuiperbelt(N_k, p);
+     max_orbit_length = 1000; %determines how much of the orbit of a single particle is shown
+     particle = 1;
+
+    kuipercollisions = false;
 end
 
 if type  == 3 %sphere
@@ -49,9 +60,6 @@ if type  == 3 %sphere
     T = 5e12; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,type);
     MassGas = 10;
-    linPGas = -10*AU:10^9:10*AU;
-    pGas = combvec(linPGas,linPGas,linPGas);
-    
 end
 if type == 4
     defaultRange = 3*AU; % [m]
@@ -60,6 +68,7 @@ if type == 4
     T = 5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,type);
 end
+
 if type == 5 % solar system
     defaultRange = 5e12; % [m]
     N = 9; % Dummy variable
@@ -70,23 +79,28 @@ end
 
 
 % plotting configuration
-fps = 10;
 plot_system = true;     %plot the particle system
 plot_ecc_a = true;      %plot eccentricity vs semi major axis
-plot_ang_mom = true;    %plot the angular momentum
+plot_ang_mom = false;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
+plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
+plot_hist = true;
+
 
 make_movie = true;
 TstepsPframe = 3;
+
 maxframes = 200; %gather the frames from GPU every maxframes number of frames
 curr_frame = 1; 
+fps = 1/1;
+TstepsPframe = 1/4; 
+
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
     F(frames) = struct('cdata',[],'colormap',[]);
 end
 
-gpuNeed = true;
 if gpuNeed
     max_frames = 151;
     CPUframes_save = zeros([size(p),frames]);
@@ -125,8 +139,9 @@ E_0 = kin + pot;
 %define begin angular momentum
 L_0 = AngularMomentum(p,N,Mass,v);
 
+single_p = [];
 % a timer so we dont plot too often and slow down the script
-
+tic;
 for t = 0:dt:T
     index = index+1;
     
@@ -145,6 +160,7 @@ for t = 0:dt:T
         %         if type == 2
         %             momentum = momentum(:,staying_indices,:);
         %         end
+
     end
     
     %later were gonna make some bounds on speed and range, this is needed.
@@ -164,10 +180,13 @@ for t = 0:dt:T
     end
     
     %read fo.m first, but keeps track of whether there was a collision.
+    %{
     if type == 3
-        v = colGas(p,v,Mass,N,dt,MassGas,pGas);
+        v = colGas(p,v,Mass,N,dt,MassGas);
     end
+    %}
     c = col(p,v,Mass,N,dt);
+
     %#BUG will crash if multiple collisions in one timestep
     %check if the collision vector is empty
     if numel(Mass)<100
@@ -181,8 +200,10 @@ for t = 0:dt:T
         indices(1,:) = (indices(1,:)==0)*N + indices(1,:);
         indices(:,indices(1,:) > indices(2,:)) = [];
         %this way, if a particle collides with the sun, the sun is still the first particle
-        
-        
+        swap_index = find(ismember(indices(1,:), indices(2,:)'));
+        %indices(:,swap_index) = [indices(2,swap_index); indices(2:-1:1,swap_index)];
+        marked = zeros(1,size(indices,2));
+        chain_finder()
         %ik ga uit van compleet inelastisch.
         %new position is centre of mass        
         p(:,indices(1,:)) = (Mass(indices(1,:)).*p(:,indices(1,:)) + Mass(indices(2,:)).*p(:,indices(2,:)))./(Mass(indices(1,:))+Mass(indices(2,:)));
@@ -200,6 +221,30 @@ for t = 0:dt:T
         %angular momentum and energy can be better defined.
         colision_index = index;
     end
+
+    if type == 2 && kuipercollisions
+        c_k = col_kuiper(p,p_k,v,v_k,Mass,dt);
+        if any(any(c_k))
+            disp('collision(kuiperbelt particle)')
+           %find indices of collided particles       
+           %re-rank the collision indexes
+           indices = [mod(find(c_k),N_k)'; ceil(find(c_k)/N)'];
+           indices(1,:) = (indices(1,:)==0)*N_k + indices(1,:);
+           removing_indices = zeros(1,N_k);
+           removing_indices(indices(1,:)) = 1;
+           %remove kuiper belt particles which collide
+            p_k = p_k(:,~removing_indices);
+            v_k = v_k(:,~removing_indices);
+            if t>0
+                clearvars plot_p_k
+            end
+            if int_met == 7
+                a_k = a_k(:,~removing_indices);
+            end
+            N_k = size(p_k,2);
+        end
+    end
+
     
     if int_met == 1
         %first order (newton forward)
@@ -216,6 +261,16 @@ for t = 0:dt:T
         k1 = dt^2*acc_fun(p,Mass,N);
         k2 = dt^2*acc_fun(p + 0.5*dt*v + 1/8*k1,Mass,N);
         k3 = dt^2*acc_fun(p + dt*v + .5*k2,Mass,N);
+        
+        %a_k = kuiperacc(p,p_k,Mass);
+        if type == 2
+            k1_k = dt^2*kuiperacc(p,p_k,Mass);
+            k2_k = dt^2*kuiperacc(p + 0.5*dt*v + 1/8*k1,p_k + 0.5*dt*v_k + 1/8*k1_k ,Mass);
+            k3_k = dt^2*kuiperacc(p + dt*v + .5*k2,p_k + dt*v_k + .5*k2_k,Mass);
+            p_k = p_k + v_k*dt + 1/6*(k1_k+2*k2_k);
+            v_k = v_k + 1/(6*dt)*(k1_k+4*k2_k+k3_k);
+        end
+        
         p = p + v*dt + 1/6*(k1+2*k2);
         v = v + 1/(6*dt)*(k1+4*k2+k3);
         
@@ -264,13 +319,13 @@ for t = 0:dt:T
     [kin,pot] = EnergyTracer(p,N,v,Mass,G);
     
     %make a Total kinetic energy vector for plotting.
-    E_tot(index) = (kin + pot - E_0) / E_0;
+%     E_tot(index) = (kin + pot - E_0) / E_0;
     
     %Calculate the Angular momentum
     L = AngularMomentum(p,N,Mass,v);
     
     %make a angular momentum vector for plotting
-    L_t(index) = (L(3)-L_0(3))/L_0(3);
+%     L_t(index) = (L(3)-L_0(3))/L_0(3);
     
     %     if type == 2
     %         %make a momentum vector for plotting (only the norm)
@@ -281,19 +336,26 @@ for t = 0:dt:T
     %         rel_momentum = permute(rel_momentum,[3,2,1]);
     %     end
     
-    [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass);
-    ecc = sqrt(sum(ecc.^2,1))';
+    [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass, p);
+    
+    ecc = ecc';
     
     semi_m_axis = semi_m_axis';
     if type == 2
-        [ecc_kuiper, semi_m_axis_kuiper] = eccentricity_sma(p_k,v_k,Mass);
-        ecc_kuiper = sqrt(sum(ecc_kuiper.^2,1))';
-    
+        [ecc_kuiper, semi_m_axis_kuiper] = eccentricity_sma(p_k,v_k,Mass,p);
+        ecc_kuiper = ecc_kuiper';
+        
         semi_m_axis_kuiper = semi_m_axis_kuiper';
     end
-
-    
-
+    d_theta = atan(p(2,2)/p(1,2));
+    d_theta = d_theta - pi*(p(1,2)<0)+pi/2;
+    if type == 2
+        A = [cos(d_theta), sin(d_theta); -sin(d_theta), cos(d_theta) ];
+        single_p = [single_p, A*p_k(1:2,particle)];
+        if size(single_p,2)>max_orbit_length
+            single_p = single_p(:,2:end);
+        end
+    end
     
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when plotting = true, (saves time)
@@ -307,31 +369,67 @@ for t = 0:dt:T
             curr_frame = curr_frame + 1;
         end
     end
-    if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed)
-        figure(1)
+    curr_time = toc;
+    if (plotting && (mod(t,TstepsPframe*dt)==0) && ~gpuNeed && (curr_time>1/fps || t==0))
+
+        if t == 0
+            figure(1)
+        end
+        if plot_RV
+            subplot(2,3,1) 
+            plot(vecnorm(p_k),vecnorm(v_k),'.');
+        end
         if plot_ecc_a
-            %eccentricity vs semi-major axis:
-            subplot(2,2,1)
-            plot(semi_m_axis(2:end),ecc(2:end),'.')
+
+            %eccentricity vs semi-major axis: 
+            subplot(2,3,1) 
+            plot(semi_m_axis(2:end),ecc(2:end),'.b')
             title(['time: ',num2str(round(t/31556926,1)),' y'])
             if t == 0
-                axis([0,1.1*defaultRange,0, 0.5])
+                axis([0,1.1*defaultRange*2,0, 0.11])
                 ylabel('$\varepsilon$','Interpreter','Latex')
                 xlabel('a[m]')
-                ax = gca;
             end
+
+            ax_ecc = gca;
+
             if type == 2
-                ax.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
-                plot(semi_m_axis_kuiper,ecc_kuiper,'.r')      
-                ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
+                ax_ecc.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
+                plot(semi_m_axis_kuiper,ecc_kuiper,'.r')    
             end
+            ax_ecc.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
+
+        end
+        if ~plot_ang_mom & type == 2
+            subplot(2,3,2)
+            plot_p(1:2,:) = A*p(1:2,:);
+
+%             if cycle_count < 4
+%                 if abs(d_theta_old - d_theta)>3
+%                     cycle_count = cycle_count +1;
+%                 end
+%             else
+%                 if abs(d_theta_old - d_theta)>3
+%                     single_p = single_p(:,round(size(single_p,2)/4):end);
+%                 end
+%             end
+
+            ax_single = gca;
+            plot(single_p(1,:), single_p(2,:),'-b');
+            ax_single.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
+
+            plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
+
+            axis([-1.2 1.2 -1.2 1.2]*max(semi_m_axis_kuiper));
+            ax_single.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
+
         end
         if plot_ang_mom
             %angular momentum
-            subplot(2,2,2)
+
+            subplot(2,3,2)       
             plot(L_t);
             if t == 0
-                
                 ax = gca;
                 title('Angular momentum(z)')
                 axis([[max(0,index-5000) index+500] [1 1]*round(L_t(end))+[-1 1]]);
@@ -341,16 +439,12 @@ for t = 0:dt:T
                 ylabel('relative magnitude')
                 
                 ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
-                
             end
 
             
         end
-        if plot_system & type~=3
-            T_neptune = 60182*3600*24; % seconds
-            omega_neptune = 2*pi/T_neptune;
-            A = [cos(omega_neptune*t), sin(omega_neptune*t);...
-                -sin(omega_neptune*t), cos(omega_neptune*t) ];
+        if plot_system
+
             if type == 2
                 plot_p(1:2,:) = A*p(1:2,:);
                 plot_p_k(1:2,:) = A*p_k(1:2,:);
@@ -358,7 +452,7 @@ for t = 0:dt:T
                 plot_p = p;
             end
             %particle system
-            subplot(2,2,3)
+            subplot(2,3,3)
             axSys = gca;
             plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20);
             axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
@@ -366,7 +460,7 @@ for t = 0:dt:T
             plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20);
             
             
-            %axis([-1 1 -1 1]*defaultRange*1.1);
+            axis([-1 1 -1 1]*defaultRange*1.1);
             title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
             if t == 0
                 
@@ -376,8 +470,9 @@ for t = 0:dt:T
             %plot kuiperbelt if type == 2
             if type == 2
                 hold on
-                plot(plot_p_k(1,:),plot_p_k(2,:),'.r','MarkerSize',2);
-                axis([-1 1 -1 1]*50*AU);
+%                 axis([-1 1 -1 1]*50*AU);
+                plot(plot_p_k(1,:),plot_p_k(2,:),'.r','MarkerSize',2); 
+                axis([-1 1 -1 1]*max(semi_m_axis_kuiper)*1.1);
                 hold off
                 
             end
@@ -418,21 +513,51 @@ for t = 0:dt:T
         
         if type == 2
             if plot_momentum
-                subplot(2,2,4)
-                %                 plot(rel_momentum);
-                title('Rel momentum(norm), rel to jupiter')
+
+                subplot(2,3,4)
+%                 plot(rel_momentum);
+                title('Rel momentum(norm), rel to jupiter');
                 axis([max(0,index-5000) index+500 -0.1 1]);
                 
                 xt = get(gca, 'XTick');
-                set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,1))
+                set(gca, 'XTick', xt, 'XTickLabel', round(xt*dt/31556926,1));
                 xlabel('time [years]')
                 ylabel('relative magnitude')
             end
+            
+%             subplot(2,3,4);
+%                 plot(vecnorm(p_k),'.');
+%                 axis([0 N_k 6*10^12 8*10^12]);
+            
+            if plot_hist
+                subplot(2,3,4)
+                theta = atan(plot_p_k(2,:)./plot_p_k(1,:));
+                theta = theta - pi*(plot_p_k(1,:)<0)+pi/2;
+                histogram(theta,36);
+                title('histogram of all angles')
+                xlabel('amount of particles')
+                ylabel('angle (radians)')
+                
+                subplot(2,3,5)
+                histogram(ecc_kuiper,20);
+                title('Eccentricity')
+                xlabel('from 0 to 0.1')
+                ylabel('#correlating eccentricity')
+                
+                subplot(2,3,6)
+                histogram(semi_m_axis_kuiper,20);
+                title('Semi-major')
+                xlabel('from 0 to 0.1')
+                ylabel('#correlating eccentricity')
+            end
+            %}
         end
         drawnow
         if make_movie
             F(t/(TstepsPframe*dt)+1) = getframe(gcf);
+
         end
+        tic;
     end
 end
 
@@ -443,7 +568,6 @@ if gpuNeed
         
         for i = 1:size(pframesCPU,3)
             if mod(i,10) == 0
-                
                 
                 pCPU = pframesCPU(:,:,i);
                 
@@ -495,8 +619,8 @@ end
 
 if make_movie
     v = VideoWriter('testVideo.avi'); %Maak een video-file
-    v.FrameRate = 5;
+    v.FrameRate = 15;
     open(v)
-    writeVideo(v,F) %Sla de frames op in de video
+    writeVideo(v,F); %Sla de frames op in de video
     close(v)
 end
