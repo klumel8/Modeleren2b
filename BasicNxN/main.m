@@ -196,16 +196,20 @@ for t = 0:dt:T
         disp('collision')
         total_mass = sum(Mass);
         %new way of finding collisions:
+        c = c+eye(size(c));
         collisions = c(1,:);
         for i = 2:size(c,1)
-           if any(collisions.*c(i,:))
+           if any(any(collisions.*c(i,:)))
                [row, ~] = find(collisions.*c(i,:));
                collisions(row,:) = collisions(row,:) | c(i,:);
            else
                collisions(end+1,:) = c(i,:);
            end
         end
+        disp(size(collisions,1))
+        collisions = logical(collisions);
         for j = 1:size(collisions,1)
+            
             if sum(collisions(j,:))>1
                 end_particle_index = find(collisions(j,:),1,'first');
                 p(:,end_particle_index) = sum(p(:,collisions(j,:)).*Mass(collisions(j,:)),2)/sum(Mass(collisions(j,:)));

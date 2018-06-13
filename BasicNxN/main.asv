@@ -194,7 +194,7 @@ for t = 0:dt:T
     end
     if max(max(c)) > 0
         disp('collision')
-        total_mass = sum(Mass)
+        total_mass = sum(Mass);
         %new way of finding collisions:
         collisions = c(1,:);
         for i = 2:size(c,1)
@@ -205,16 +205,18 @@ for t = 0:dt:T
                collisions(end+1,:) = c(i,:);
            end
         end
+        disp(size(c
         for j = 1:size(collisions,1)
+            
             if sum(collisions(j,:))>1
                 end_particle_index = find(collisions(j,:),1,'first');
-                p(:,end_particle_index) = sum(p(:,collisions(j,:),2).*Mass(collisions(j,:)))/sum(Mass(collisions(j,:)));
-                v(:,end_particle_index) = sum(v(:,collisions(j,:),2).*Mass(collisions(j,:)))/sum(Mass(collisions(j,:)));
+                p(:,end_particle_index) = sum(p(:,collisions(j,:)).*Mass(collisions(j,:)),2)/sum(Mass(collisions(j,:)));
+                v(:,end_particle_index) = sum(v(:,collisions(j,:)).*Mass(collisions(j,:)),2)/sum(Mass(collisions(j,:)));
                 Mass(end_particle_index) = sum(Mass(collisions(j,:)));
                 collisions(j,end_particle_index) = 0;
 
-                p(:,collisions(j,:)) = [0;0;0];
-                v(:,collisions(j,:)) = [0;0;0];
+                p(:,collisions(j,:)) = repmat([0;0;0],[1,sum(collisions(j,:))]);
+                v(:,collisions(j,:)) = repmat([0;0;0],[1,sum(collisions(j,:))]);
                 Mass(collisions(j,:)) = 0;
             end
             
