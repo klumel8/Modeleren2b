@@ -16,7 +16,7 @@ function [D,R] = dispVec(p,~)
     
 %     D = permute(repVec,[2,1,3])-repVec; %Transpose and subtract the vectors
     %That way subtracting all the different combinations
-    
+
     D = permute(p,[2,3,1])-permute(p,[3,2,1]);
     %Calculate the range between each particle (stored in NxN matrix).
     R = realsqrt(sum(D.^2,3));
