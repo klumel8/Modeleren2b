@@ -1,4 +1,4 @@
-function [D,R] = dispVec(p,N)
+function [D,R] = dispVec(p,~)
 %DISPVEC calculate the distance(cartesian coordinates) and the
 %distance(norm) between the particles
 %input arguments:
