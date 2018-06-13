@@ -8,7 +8,7 @@ clear; close all;
 
 type = 3;
 
-gpuNeed = false;
+gpuNeed = true;
 make_movie = false;
 cycle_count = 0;
 d_theta_old = 0;
