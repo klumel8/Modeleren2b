@@ -601,7 +601,7 @@ view(0,0)
 
 if make_movie
     v = VideoWriter('testVideo.avi'); %Maak een video-file
-    v.FrameRate = 5;
+    v.FrameRate = 15;
     open(v)
     writeVideo(v,F); %Sla de frames op in de video
     close(v)
