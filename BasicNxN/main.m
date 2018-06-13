@@ -6,9 +6,9 @@ clear; close all;
 % 4 = 2 particles (test)
 % 5 = solar system (normal, all planets)
 
-type = 5;
+type = 3;
 
-gpuNeed = false;
+gpuNeed = true;
 make_movie = false;
 cycle_count = 0;
 d_theta_old = 0;
