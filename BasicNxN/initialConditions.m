@@ -115,7 +115,7 @@ if type == 2 %kuiperbelt
 end
 
 if type == 3 %sphere
-    Mass_total = 2.6634e28;
+    Mass_total = 2.6634e31;
     Mass = rand(1,N)/N; % give each partical mass
     Mass = Mass*Mass_total/(sum(Mass));
     % create position and speed vectors

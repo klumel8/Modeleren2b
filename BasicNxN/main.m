@@ -8,7 +8,7 @@ clear; close all;
 
 type = 3;
 
-gpuNeed = true;
+gpuNeed = false;
 make_movie = false;
 cycle_count = 0;
 d_theta_old = 0;
@@ -194,33 +194,59 @@ for t = 0:dt:T
     end
     if max(max(c)) > 0
         disp('collision')
-        %find indices of collided particles
-        %re-rank the collision indexes
-        indices = [mod(find(c),N)'; ceil(find(c)/N)'];
-        indices(1,:) = (indices(1,:)==0)*N + indices(1,:);
-        indices(:,indices(1,:) > indices(2,:)) = [];
-        %this way, if a particle collides with the sun, the sun is still the first particle
-        swap_index = find(ismember(indices(1,:), indices(2,:)'));
-        %indices(:,swap_index) = [indices(2,swap_index); indices(2:-1:1,swap_index)];
-        start = indices(1,1);
-        chain = chain_finder(start, indices);
-        indices
-        indices(:,chain)
-        %ik ga uit van compleet inelastisch.
-        %new position is centre of mass        
-        p(:,indices(1,:)) = (Mass(indices(1,:)).*p(:,indices(1,:)) + Mass(indices(2,:)).*p(:,indices(2,:)))./(Mass(indices(1,:))+Mass(indices(2,:)));
-        
-        %use momentum fomulae for new speed
-        v(:,indices(1,:)) = (Mass(indices(1,:)).*v(:,indices(1,:)) + Mass(indices(2,:)).*v(:,indices(2,:)))./(Mass(indices(1,:))+Mass(indices(2,:)));
-        
-        %new mass is um of the masses
-        Mass(indices(1,:)) = Mass(indices(1,:)) + Mass(indices(2,:));
-        %speed of old particle is 0, to remove the particle
-        v(:,indices(2,:)) = 0;
-        Mass(indices(2,:)) = 0;
-        
-        %keep track of latest collision index, so that the RMSE error for
-        %angular momentum and energy can be better defined.
+        total_mass = sum(Mass);
+        %new way of finding collisions:
+        collisions = c(1,:);
+        for i = 2:size(c,1)
+           if any(collisions.*c(i,:))
+               [row, ~] = find(collisions.*c(i,:));
+               collisions(row,:) = collisions(row,:) | c(i,:);
+           else
+               collisions(end+1,:) = c(i,:);
+           end
+        end
+        for j = 1:size(collisions,1)
+            if sum(collisions(j,:))>1
+                end_particle_index = find(collisions(j,:),1,'first');
+                p(:,end_particle_index) = sum(p(:,collisions(j,:)).*Mass(collisions(j,:)),2)/sum(Mass(collisions(j,:)));
+                v(:,end_particle_index) = sum(v(:,collisions(j,:)).*Mass(collisions(j,:)),2)/sum(Mass(collisions(j,:)));
+                Mass(end_particle_index) = sum(Mass(collisions(j,:)));
+                collisions(j,end_particle_index) = 0;
+
+                p(:,collisions(j,:)) = repmat([0;0;0],[1,sum(collisions(j,:))]);
+                v(:,collisions(j,:)) = repmat([0;0;0],[1,sum(collisions(j,:))]);
+                Mass(collisions(j,:)) = 0;
+            end
+            
+        end
+        disp(total_mass-sum(Mass))
+%         %find indices of collided particles
+%         %re-rank the collision indexes
+%         indices = [mod(find(c),N)'; ceil(find(c)/N)'];
+%         indices(1,:) = (indices(1,:)==0)*N + indices(1,:);
+%         indices(:,indices(1,:) > indices(2,:)) = [];
+%         %this way, if a particle collides with the sun, the sun is still the first particle
+%         swap_index = find(ismember(indices(1,:), indices(2,:)'));
+%         %indices(:,swap_index) = [indices(2,swap_index); indices(2:-1:1,swap_index)];
+%         start = indices(1,1);
+%         chain = chain_finder(start, indices);
+%         indices
+%         indices(:,chain)
+%         %ik ga uit van compleet inelastisch.
+%         %new position is centre of mass        
+%         p(:,indices(1,:)) = (Mass(indices(1,:)).*p(:,indices(1,:)) + Mass(indices(2,:)).*p(:,indices(2,:)))./(Mass(indices(1,:))+Mass(indices(2,:)));
+%         
+%         %use momentum fomulae for new speed
+%         v(:,indices(1,:)) = (Mass(indices(1,:)).*v(:,indices(1,:)) + Mass(indices(2,:)).*v(:,indices(2,:)))./(Mass(indices(1,:))+Mass(indices(2,:)));
+%         
+%         %new mass is um of the masses
+%         Mass(indices(1,:)) = Mass(indices(1,:)) + Mass(indices(2,:));
+%         %speed of old particle is 0, to remove the particle
+%         v(:,indices(2,:)) = 0;
+%         Mass(indices(2,:)) = 0;
+%         
+%         %keep track of latest collision index, so that the RMSE error for
+%         %angular momentum and energy can be better defined.
         colision_index = index;
     end
 
