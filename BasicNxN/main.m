@@ -28,19 +28,19 @@ AU = 1.49597871e11; % [m]
 rng(121) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
-    N = 1e2;
+    N = 1e4;
     dt = 3600*24*7*52; % in seconds (dt = 1 day)
     T = 1e10;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
 end
 
 if type == 2 % solar system and Kuyper belt
-    defaultRange = 5.5*AU; % [m]
+    defaultRange = 5*AU; % [m]
     trojans = false;
     N = 1e4; % Dummy variable
     N_k = 1e4; % particles in kuiper belt
-    dt = 3600*24*7*52/10; % in seconds 
-    T = 3600*24*7*52*120000; % in seconds
+    dt = 3600*24*7*52/15; % in seconds 
+    T = 3600*24*7*52*12*12000; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k, Mass_k] = kuiperbelt(N_k, p(:,2),trojans);
      max_orbit_length = 1000; %determines how much of the orbit of a single particle is shown
@@ -52,7 +52,7 @@ end
 
 
 % plotting configuration
-plot_system = false;     %plot the particle system
+plot_system = true;     %plot the particle system
 plot_ecc_a = false;      %plot eccentricity vs semi major axis
 plot_ang_mom = false;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
@@ -60,7 +60,7 @@ plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
 plot_hist = true;
 
-fps = 1/30;
+fps = 1/60;
 TstepsPframe = 4; 
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
@@ -482,15 +482,15 @@ for t = 0:dt:T
                 
 %                 subplot(2,3,6)
                 figure(2);
-                histogram(semi_m_axis_kuiper,80);
+                histogram(semi_m_axis_kuiper,100);
                 title('Histogram of semi-major axis and number of particles')
-                xlabel('semimajor axis')
+                xlabel('semimajor axis [AU]')
                 ylabel('number of particles')
                 xt = get(gca, 'XTick');
                 set(gca, 'XTick', xt, 'XTickLabel', round(xt/AU,1))
                 set(0,'defaulttextinterpreter','latex');
                 set(0,'defaultaxesfontsize',14);
-                ylim([0 500])
+                ylim([0 200])
                 xlim([1 3.5]*AU)
                 disp(['time: ',num2str(round(t/31556926,1)),' y'])
             end

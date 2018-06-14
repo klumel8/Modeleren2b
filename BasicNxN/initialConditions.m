@@ -89,7 +89,7 @@ if type == 2
 %     ecc   = [0   0.009456  0.25                    ];
 %     theta = [0   0         180/360                 ] * 2*pi;    % radians
   
-    Mass  = [0   1898       ] * 10^24;   % kg
+    Mass  = [0   1898      ] * 10^24;   % kg
     r     = [0.1 5.2 ] * AU;      % AU
     ecc   = [0   0.05];
     theta = [0   0   ] * 2*pi;    % radians

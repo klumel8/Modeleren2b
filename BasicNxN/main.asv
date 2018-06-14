@@ -35,12 +35,12 @@ if type == 1 % early solar system
 end
 
 if type == 2 % solar system and Kuyper belt
-    defaultRange = 5.5*AU; % [m]
+    defaultRange = 60*AU; % [m]
     trojans = false;
     N = 1e4; % Dummy variable
     N_k = 1e4; % particles in kuiper belt
-    dt = 3600*24*7*52/10; % in seconds 
-    T = 3600*24*7*52*12000; % in seconds
+    dt = 3600*24*7*52*3; % in seconds 
+    T = 3600*24*7*52*170*1000; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k, Mass_k] = kuiperbelt(N_k, p(:,2),trojans);
      max_orbit_length = 1000; %determines how much of the orbit of a single particle is shown
@@ -52,7 +52,7 @@ end
 
 
 % plotting configuration
-plot_system = false;     %plot the particle system
+plot_system = true;     %plot the particle system
 plot_ecc_a = false;      %plot eccentricity vs semi major axis
 plot_ang_mom = false;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
@@ -60,7 +60,7 @@ plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
 plot_hist = true;
 
-fps = 1/10;
+fps = 1/;
 TstepsPframe = 4; 
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
@@ -380,7 +380,7 @@ for t = 0:dt:T
 
         end
         if ~plot_ang_mom
-            f
+            figure(1);
             subplot(2,3,2)
             plot_p(1:2,:) = A*p(1:2,:);
             ax_single = gca;
@@ -491,7 +491,7 @@ for t = 0:dt:T
                 set(0,'defaulttextinterpreter','latex');
                 set(0,'defaultaxesfontsize',14);
                 ylim([0 500])
-                xlim([1 3.5]*AU)
+                xlim([40 55]*AU)
                 disp(['time: ',num2str(round(t/31556926,1)),' y'])
             end
             %}
