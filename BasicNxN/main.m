@@ -15,7 +15,7 @@ d_theta_old = 0;
 %1: newton forward
 %2,4-6: runge kutta 
 %7: leapfrog
-int_met = 4;
+int_met = 7;
 %use barnes hut
 barnes_hut = false;
 theta = 0.5;%0 to test acc calculation: all particles are indiviually used,
@@ -39,8 +39,8 @@ if type == 2 % solar system and Kuyper belt
     trojans = false;
     N = 1e4; % Dummy variable
     N_k = 1e4; % particles in kuiper belt
-    dt = 3600*24*7*52/15; % in seconds 
-    T = 3600*24*7*52*12*12000; % in seconds
+    dt = 3600*24*7*52/30; % in seconds 
+    T = 3600*24*7*52*12*4500; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k, Mass_k] = kuiperbelt(N_k, p(:,2),trojans);
      max_orbit_length = 1000; %determines how much of the orbit of a single particle is shown
@@ -60,7 +60,7 @@ plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
 plot_hist = true;
 
-fps = 1/60;
+fps = 1/10;
 TstepsPframe = 4; 
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
