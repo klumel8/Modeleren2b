@@ -37,13 +37,13 @@ if type == 2 % solar system and Kuyper belt
     defaultRange = 30*AU; % [m]
     trojans = true;
     N = 1e0; % Dummy variable
-    N_k = 1e3; % particles in kuiper belt
-    dt = 3600*24*7*52*3; % in seconds 
+    N_k = 1e1; % particles in kuiper belt
+    dt = 3600*24*7*52; % in seconds 
     T = 3600*24*7*52*165*1000; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k, Mass_k,colors_k,begin_thetas_k] = kuiperbelt(N_k, p(:,2),trojans);
      max_orbit_length = 1000; %determines how much of the orbit of a single particle is shown
-     particles = 1;
+     particles = [1,4];
      used_colors = {'.r','.b','.g','.c'};
      marker_sizes = [3,5,10,3];
     
@@ -54,15 +54,15 @@ max_theta = 0;
 
 
 % plotting configuration
-plot_system = true;     %plot the particle system
+plot_system = false;     %plot the particle system
 plot_ecc_a = false;      %plot eccentricity vs semi major axis
 plot_ang_mom = false;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
 plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
-plot_hist = true;
+plot_hist = false;
 
-fps = 1/5;
+fps = 1/1;
 TstepsPframe = 4; 
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
@@ -487,8 +487,8 @@ for t = 0:dt:T
 %                 axis([0 N_k 6*10^12 8*10^12]);
             
             if plot_hist
-%                 subplot(2,3,4)
-                figure(2);
+                subplot(2,3,4)
+%                 figure(2);
 %                 theta = atan(plot_p_k(2,:)./plot_p_k(1,:));
 %                 theta = theta - pi*(plot_p_k(1,:)<0)+pi/2;
 %                 histogram(theta,36);

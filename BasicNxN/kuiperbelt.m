@@ -94,7 +94,8 @@ for i=1:N
 end
 p = [p; zeros(1,N)];
 v = [v; zeros(1,N)];
-
+colors = zeros(size(Mass_k));
+rel_theta_begin = zeros(size(Mass_k));
 if trojans
     theta_colors = 2*pi/360*[-65, -55,55,65;30,90,-90,-30];
     wanted_theta = 2*pi/360*[60;-60;120;-120;180;-180];
