@@ -388,10 +388,11 @@ for int_met = int_methods
             p2(int_met,power-2) = (saved_var(power-1) - saved_var(power-2))./(saved_var(power)-saved_var(power-1));
         end
     end
-    figure(2)
+    figure(3)
     plot(saved_var)
     hold on
 end
-legend('1','2','4','5','6','7','8')
+legend('4')
 
 disp(log(abs(p2(int_methods,:)))/log(2))
+plot(p2)
