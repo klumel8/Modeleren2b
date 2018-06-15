@@ -1,4 +1,4 @@
-function [p, v, Mass_k,colors] = kuiperbelt(N, p_neptune,trojans)
+function [p, v, Mass_k,colors,rel_theta_begin] = kuiperbelt(N, p_neptune,trojans)
 %kuiperbelt Creates the initial conditions for the simulation
 %
 %   Syntax:
@@ -97,13 +97,13 @@ v = [v; zeros(1,N)];
 
 if trojans
     theta_colors = 2*pi/360*[-65, -55,55,65;30,90,-90,-30];
-    wanted_theta = 2*pi/360*[60;-60;120;-120;180];
+    wanted_theta = 2*pi/360*[60;-60;120;-120;180;-180];
     difference_theta = 20/360 * 2*pi;
-    theta_neptune = atan2(p_neptune(2),p_neptune(1));
     
     trojans_theta_plus = wanted_theta+ difference_theta;
     trojans_theta_min = wanted_theta- difference_theta;
     
+    theta_neptune = atan2(p_neptune(2),p_neptune(1));
     relative_theta = atan2(p(2,:),p(1,:))-theta_neptune;
     relative_theta = relative_theta + (2*pi)* (relative_theta<-pi) - 2*pi*(relative_theta>pi);
     remaining = logical(sum(relative_theta<max(trojans_theta_plus,trojans_theta_min) &...
@@ -113,10 +113,10 @@ if trojans
     v = v(:,remaining);
     Mass_k = Mass_k(remaining);
     colors = ones(size(Mass_k));
-    new_rel_theta = relative_theta(remaining);
+    rel_theta_begin = relative_theta(remaining);
     for k = 1:size(theta_colors,1)
-        colors = colors + k*((new_rel_theta<theta_colors(k,2) & new_rel_theta>theta_colors(k,1))|...
-            (new_rel_theta<theta_colors(k,4) & new_rel_theta>theta_colors(k,3)));
+        colors = colors + k*((rel_theta_begin<theta_colors(k,2) & rel_theta_begin>theta_colors(k,1))|...
+            (rel_theta_begin<theta_colors(k,4) & rel_theta_begin>theta_colors(k,3)));
     end
     
     

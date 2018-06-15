@@ -33,23 +33,22 @@ if type == 1 % early solar system
     T = 1e10;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
 end
-
 if type == 2 % solar system and Kuyper belt
     defaultRange = 30*AU; % [m]
     trojans = true;
     N = 1e0; % Dummy variable
     N_k = 1e1; % particles in kuiper belt
-    dt = 3600*24*7*52/30; % in seconds 
+    dt = 3600*24*7*52; % in seconds 
     T = 3600*24*7*52*12*4500; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
-    [p_k, v_k, Mass_k,colors_k] = kuiperbelt(N_k, p(:,2),trojans);
-     max_orbit_length = 1000; %determines how much of the orbit of a single particle is shown
-     particles = 1:2;
-     used_colors = {'.r','.b','.g','.c'};
-    
-
+    [p_k, v_k, Mass_k,colors_k,begin_thetas_k] = kuiperbelt(N_k, p(:,2),trojans);
+    max_orbit_length = 1000; %determines how much of the orbit of a single particle is shown
+    particles = 1:2;
+    used_colors = {'.r','.b','.g','.c'};
+     
     kuipercollisions = false;
 end
+max_theta = 0;
 
 
 % plotting configuration
@@ -59,7 +58,7 @@ plot_ang_mom = false;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
 plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
-plot_hist = false;
+plot_hist = true;
 
 fps = 1;
 TstepsPframe = 4; 
@@ -338,11 +337,16 @@ for t = 0:dt:T
     if size(single_p,2)>max_orbit_length
         single_p = single_p(:,2:end,:);
     end
-    
-    
-
-    
-    
+    if type == 2
+        theta_neptune = atan2(p(2,2),p(1,2));
+        relative_theta = atan2(p_k(2,:),p_k(1,:))-theta_neptune;
+        relative_theta = relative_theta + (2*pi)* (relative_theta<-pi) - 2*pi*(relative_theta>pi);
+        if t== 0
+            begin_thetas_k = relative_theta;
+        end
+        max_theta = max(begin_thetas_k - relative_theta,max_theta);
+        
+    end
 
     %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
     %only plot when plotting = true, (saves time)
@@ -468,31 +472,35 @@ for t = 0:dt:T
             
             if plot_hist
                 subplot(2,3,4)
-                theta = atan(plot_p_k(2,:)./plot_p_k(1,:));
-                theta = theta - pi*(plot_p_k(1,:)<0)+pi/2;
-                histogram(theta,36);
-                title('histogram of all angles')
-                xlabel('amount of particles')
-                ylabel('angle (radians)')
+%                 theta = atan(plot_p_k(2,:)./plot_p_k(1,:));
+%                 theta = theta - pi*(plot_p_k(1,:)<0)+pi/2;
+%                 histogram(theta,36);
+%                 title('histogram of all angles')
+%                 xlabel('amount of particles')
+%                 ylabel('angle (radians)')
+                plot(begin_thetas_k,max_theta,'.k')
+                xlabel('$\theta_{rel}(t=0)$','Interpreter','latex')
+                ylabel('$\Delta \theta_{max}$','Interpreter','latex')
+
                 
-                subplot(2,3,5)
-                histogram(ecc_kuiper,20);
-                title('Eccentricity')
-                xlabel('from 0 to 0.1')
-                ylabel('#correlating eccentricity')
-                
-                subplot(2,3,6)
-                histogram(semi_m_axis_kuiper,100);
-                title('Histogram of semi-major axis and number of particles')
-                xlabel('semimajor axis [AU]')
-                ylabel('number of particles')
-                xt = get(gca, 'XTick');
-                set(gca, 'XTick', xt, 'XTickLabel', round(xt/AU,1))
-                set(0,'defaulttextinterpreter','latex');
-                set(0,'defaultaxesfontsize',14);
-                ylim([0 200])
-                xlim([1 3.5]*AU)
-                disp(['time: ',num2str(round(t/31556926,1)),' y'])
+%                 subplot(2,3,5)
+%                 histogram(ecc_kuiper,20);
+%                 title('Eccentricity')
+%                 xlabel('from 0 to 0.1')
+%                 ylabel('#correlating eccentricity')
+%                 
+%                 subplot(2,3,6)
+%                 histogram(semi_m_axis_kuiper,100);
+%                 title('Histogram of semi-major axis and number of particles')
+%                 xlabel('semimajor axis [AU]')
+%                 ylabel('number of particles')
+%                 xt = get(gca, 'XTick');
+%                 set(gca, 'XTick', xt, 'XTickLabel', round(xt/AU,1))
+%                 set(0,'defaulttextinterpreter','latex');
+%                 set(0,'defaultaxesfontsize',14);
+%                 ylim([0 200])
+%                 xlim([1 3.5]*AU)
+%                 disp(['time: ',num2str(round(t/31556926,1)),' y'])
             end
             %}
         end
