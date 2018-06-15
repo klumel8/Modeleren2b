@@ -308,6 +308,19 @@ end
     plot(saved_var)
     hold on
 end
-    legend('1','2','4','5','6','7','8')
 
-disp(log(abs(p2(int_methods,:)))/log(2))
+
+
+disp(log(abs(p2(int_methods,:)))/log(2));
+figure(3)
+plot(log(abs(p2(int_methods,:)'))/log(2));
+legend('4')
+hold on
+for i = 1:size(int_methods,2)
+    text(1,log(abs(p2(int_methods(i),1)'))/log(2),num2str(int_methods(i)))
+end
+figure(4)
+for i = 1:numel(xCells)
+    plot(xCells{i,1}(2,:),xCells{i,1}(1,:))
+    hold on
+end
