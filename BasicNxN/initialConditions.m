@@ -88,16 +88,11 @@ if type == 2
 %     r     = [0.1 30.110387 ((3/2)^(2/3))*30.110387 ] * AU;      % AU
 %     ecc   = [0   0.009456  0.25                    ];
 %     theta = [0   0         180/360                 ] * 2*pi;    % radians
-
+  
     Mass  = [0   102       ] * 10^24;   % kg
     r     = [0.1 30.110387 ] * AU;      % AU
     ecc   = [0   0.009456  ];
-    theta = [0   0         ] * 2*pi;    % radians
-  
-%     Mass  = [0   1898      ] * 10^24;   % kg
-%     r     = [0.1 5.2 ] * AU;      % AU
-%     ecc   = [0   0.05];
-%     theta = [0   0   ] * 2*pi;    % radians
+    theta = [0   0      ];
   
     Mass(1) =  Mass_sun;
     N     = length(Mass);
