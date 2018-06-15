@@ -30,7 +30,7 @@ AU = 1.49597871e11; % [m]
 %rng(122) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
-    N = 1e2;
+    N = 1e3;
     dt = 3600*24*7*52; % in seconds (dt = 1 day)
     T = 1e10;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);   
@@ -85,8 +85,8 @@ plot_ang_mom = false;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
 plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
-plot_hist = true;
-plot_all_dt = true;     %plot all time steps
+plot_hist = false;
+plot_all_dt = false;     %plot all time steps
 
 fps = 1/1;
 TstepsPframe = 1/4; 
