@@ -135,9 +135,9 @@ if type == 3 %sphere
 
 end
 if type  == 4 %test to see whether calculations are correct
-   Mass = [2,1]*Mass_total/3;
-   p = [-0.5,0.5;0,0;0,0]*radius;
-   v = [0,0;-1/2,1;0,0]*sqrt(G*Mass(2)./(2*radius));
+   Mass = [100,1]*Mass_total/3;
+   p = [1/100,-1,;0,0;0,0]*radius;
+   v = [0,0;-1/100,1;0,0]*sqrt(G*Mass(1)./(2*radius));
    
 end
 if type == 5 %normal solar system

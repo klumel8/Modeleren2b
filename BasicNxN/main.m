@@ -6,7 +6,7 @@ clear; close all;
 % 4 = 2 particles (test)
 % 5 = solar system (normal, all planets)
 
-type = 3;
+type = 2;
 
 gpuNeed = false;
 make_movie = false;
@@ -65,7 +65,7 @@ if type == 4
     defaultRange = 3*AU; % [m]
     N = 2;
     dt = 3600*24*7*30; % in seconds (dt = 1 day)
-    T = 5e10; % in seconds
+    T = dt*1000; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,type);
 end
 
@@ -86,7 +86,7 @@ plot_momentum = false;   %plot the momentum, relative to jupiter(only for type =
 plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
 plot_hist = false;
-plot_all_dt = false;     %plot all time steps
+plot_all_dt = true;     %plot all time steps
 
 fps = 1/1;
 TstepsPframe = 1/4; 
@@ -490,7 +490,7 @@ for t = 0:dt:T
 
             
         end
-        if plot_system
+        if plot_system & type~=3
 
             if type == 2
                 plot_p(1:2,:) = A*p(1:2,:);
@@ -507,11 +507,11 @@ for t = 0:dt:T
             plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20);
             
             
-            axis([-1 1 -1 1]*max(max(abs(p)))*1.1);
+                axis([-1 1 -1 1]*defaultRange*1.1);
             title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
             if t == 0
                 
-                axis([-1 1 -1 1]*max(max(abs(p)))*1.1);
+                axis([-1 1 -1 1]*defaultRange*1.1);
                 
             end
             %plot kuiperbelt if type == 2
