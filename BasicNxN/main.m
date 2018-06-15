@@ -29,7 +29,7 @@ rng(121) %rng(seed): Used to control random number generation
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
     N = 1e2;
-    dt = 3600*24*7*52; % in seconds (dt = 1 day)
+    dt = 3600*24*7*52*3; % in seconds (dt = 1 day)
     T = 1e10;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);
 end
@@ -38,11 +38,11 @@ if type == 2 % solar system and Kuyper belt
     defaultRange = 50*AU; % [m]
     N = 1e4; % Dummy variable
     N_k = 0; % particles in kuiper belt
-    dt = 3600*24*7*52*3; % in seconds 
-    T = 1e20; % in seconds
+    dt = 3600*24*7*52*5; % in seconds 
+    T = 3600*24*7*52*165*5000; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k, Mass_k] = kuiperbelt(N_k, p);
-     max_orbit_length = 20000; %determines how much of the orbit of a single particle is shown
+     max_orbit_length = 20000000; %determines how much of the orbit of a single particle is shown
      particle = 3; % plot path of Pluto
 
     kuipercollisions = false;
@@ -58,7 +58,7 @@ plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
 plot_hist = false;
 
-fps = 1/30;
+fps = 1/3;
 TstepsPframe = 1/4; 
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
