@@ -238,7 +238,7 @@ for t = 0:dt:T
         rel_momentum = permute(rel_momentum,[3,2,1]);
     end
     
-    [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass);
+    [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass,p);
     ecc = vecnorm(ecc,2,1)';
     semi_m_axis = semi_m_axis';
 
