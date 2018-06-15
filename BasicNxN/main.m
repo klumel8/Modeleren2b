@@ -37,13 +37,13 @@ if type == 2 % solar system and Kuyper belt
     defaultRange = 30*AU; % [m]
     trojans = true;
     N = 1e0; % Dummy variable
-    N_k = 1e1; % particles in kuiper belt
+    N_k = 1e3; % particles in kuiper belt
     dt = 3600*24*7*52*3; % in seconds 
     T = 3600*24*7*52*165*1000; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k, Mass_k,colors_k,begin_thetas_k] = kuiperbelt(N_k, p(:,2),trojans);
      max_orbit_length = 1000; %determines how much of the orbit of a single particle is shown
-     particles = 1:2;
+     particles = 1;
      used_colors = {'.r','.b','.g','.c'};
      marker_sizes = [3,5,10,3];
     
@@ -343,10 +343,10 @@ for t = 0:dt:T
         theta_neptune = atan2(p(2,2),p(1,2));
         relative_theta = atan2(p_k(2,:),p_k(1,:))-theta_neptune;
         relative_theta = relative_theta + (2*pi)* (relative_theta<-pi) - 2*pi*(relative_theta>pi);
-        if t== 0
-            begin_thetas_k = relative_theta;
-        end
-        max_theta = max(begin_thetas_k - relative_theta,max_theta);
+%         if t== 0
+%             begin_thetas_k = relative_theta;
+%         end
+        max_theta = max(abs(begin_thetas_k - relative_theta),max_theta);
         
     end
 
@@ -486,7 +486,8 @@ for t = 0:dt:T
 %                 axis([0 N_k 6*10^12 8*10^12]);
             
             if plot_hist
-                subplot(2,3,4)
+%                 subplot(2,3,4)
+                figure(2);
 %                 theta = atan(plot_p_k(2,:)./plot_p_k(1,:));
 %                 theta = theta - pi*(plot_p_k(1,:)<0)+pi/2;
 %                 histogram(theta,36);
@@ -494,10 +495,21 @@ for t = 0:dt:T
 %                 xlabel('amount of particles')
 %                 ylabel('angle (radians)')
                 plot(begin_thetas_k,max_theta,'.k')
+                title('Maximum $\Delta \theta$ for Trojans versus $\theta_{(t=0)}$ ')
                 xlabel('$\theta_{rel}(t=0)$','Interpreter','latex')
                 ylabel('$\Delta \theta_{max}$','Interpreter','latex')
-
-                
+                yt = get(gca, 'YTick');
+                set(gca, 'YTick', yt, 'YTickLabel', round(yt/pi,1))
+%                 xt = get(gca, 'XTick');
+%                 set(gca, 'XTick', xt, 'XTickLabel', round(xt/pi,1))
+                xticks([-pi -pi/3 -pi/6 0 pi/6 pi/3 pi])
+                xticklabels({'-\pi', '-\pi/3', '-\pi/6', '0', '\pi/6', '\pi/3', '\pi'})
+                yticks([0 pi 2*pi])
+                yticklabels({'0', '\pi', '\pi'})
+                xlim(pi*[-1 1]);ylim(pi*[0 2]);
+                disp(['time: ',num2str(round(t/31556926,1)),' y'])
+                figure(1);
+             
 %                 subplot(2,3,5)
 %                 histogram(ecc_kuiper,20);
 %                 title('Eccentricity')

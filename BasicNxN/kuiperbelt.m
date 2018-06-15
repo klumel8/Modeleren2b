@@ -98,7 +98,7 @@ v = [v; zeros(1,N)];
 if trojans
     theta_colors = 2*pi/360*[-65, -55,55,65;30,90,-90,-30];
     wanted_theta = 2*pi/360*[60;-60;120;-120;180;-180];
-    difference_theta = 20/360 * 2*pi;
+    difference_theta = 179/360 * 2*pi;
     
     trojans_theta_plus = wanted_theta+ difference_theta;
     trojans_theta_min = wanted_theta- difference_theta;
