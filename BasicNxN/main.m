@@ -88,12 +88,6 @@ plotting = true;        %plot anything at all
 plot_hist = true;
 plot_all_dt = true;     %plot all time steps
 
-
-make_movie = true;
-TstepsPframe = 3;
-
-maxframes = 200; %gather the frames from GPU every maxframes number of frames
-curr_frame = 1; 
 fps = 1/1;
 TstepsPframe = 1/4; 
 
@@ -103,6 +97,7 @@ if make_movie
 end
 
 if gpuNeed
+    curr_frame = 1; 
     max_frames = 151;
     CPUframes_save = zeros([size(p),frames]);
     pframes = gpuArray(zeros([size(p),max_frames]));

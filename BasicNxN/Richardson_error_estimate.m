@@ -9,7 +9,7 @@ clear all; close all;
 %2,4-6: runge kutta (paper)
 %7: leapfrog
 %8: runge kutta 4, first order
-int_methods = [7];%[1,2,4,5,6,7,8];
+int_methods = [4,7];%[1,2,4,5,6,7,8];
 
 for int_met = int_methods
     start_dt = 3600*24*7*52*50;
@@ -244,8 +244,8 @@ for int_met = int_methods
                 rel_momentum = permute(rel_momentum,[3,2,1]);
             end
             
-            [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass);
-            ecc = vecnorm(ecc,2,1)';
+            [ecc, semi_m_axis] = eccentricity_sma(p,v,Mass, p);
+            ecc = ecc';
             semi_m_axis = semi_m_axis';
             
             %when plotting too often this can drastically slow down the script. Plotting once every 200 timesteps help speeding this up IFF the plotting is bottlenecking the script
