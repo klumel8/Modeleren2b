@@ -37,13 +37,13 @@ if type == 2 % solar system and Kuyper belt
     defaultRange = 30*AU; % [m]
     trojans = true;
     N = 1e0; % Dummy variable
-    N_k = 1e1; % particles in kuiper belt
+    N_k = 1e2; % particles in kuiper belt
     dt = 3600*24*7*52; % in seconds 
     T = 3600*24*7*52*165*1000; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k, Mass_k,colors_k,begin_thetas_k] = kuiperbelt(N_k, p(:,2),trojans);
-     max_orbit_length = 1000; %determines how much of the orbit of a single particle is shown
-     particles = [1,4];
+     max_orbit_length = 20000; %determines how much of the orbit of a single particle is shown
+     particles = [3,12];
      used_colors = {'.r','.b','.g','.c'};
      marker_sizes = [3,5,10,3];
     
@@ -388,7 +388,8 @@ for t = 0:dt:T
 
         end
         if ~plot_ang_mom
-            subplot(2,3,2)
+%             subplot(2,3,2)
+figure(2)
             plot_p(1:2,:) = A*p(1:2,:);
             ax_single = gca;
             plot(permute(single_p(1,:,:),[2,3,1]), permute(single_p(2,:,:),[2,3,1]),'LineWidth',0.05);
@@ -401,6 +402,19 @@ for t = 0:dt:T
             ylabel('y[m]')
             axis([-1.2 1.2 -1.2 1.2]*defaultRange);
             ax_single.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
+            
+            title('Neptune and Trojans')
+            xlabel('$x$ [AU]')
+            ylabel('$y$ [AU]')
+            yt = get(gca, 'YTick');
+            set(gca, 'YTick', yt, 'YTickLabel', round(yt/AU,1))
+            xt = get(gca, 'XTick');
+            set(gca, 'XTick', xt, 'XTickLabel', round(xt/AU,1))
+            set(0,'defaulttextinterpreter','latex');
+            set(0,'defaultaxesfontsize',14);
+
+            disp(['time: ',num2str(round(t/31556926,1)),' y'])
+            figure(1)
         end
         if plot_ang_mom
             %angular momentum

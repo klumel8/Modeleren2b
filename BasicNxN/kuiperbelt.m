@@ -58,13 +58,13 @@ if trojans
     r = 30.110387*AU;
 else
 %     r = ((5/2)^(2/3))*(30.110387*AU);
-r = (2 + 1.5*rand(1,N))*AU;
-% r = (2)^(2/3) * 30.110387*AU;
+% r = (2 + 1.5*rand(1,N))*AU;
+r = (3/2)^(2/3) * 30.110387*AU;
 % r = 39.4*AU;
 end
 
-ecc = rand(1,N)*0.01;
-% ecc = ones(1,N)*0.1;
+ecc = rand(1,N)*0.3;
+% ecc = ones(1,N)*0.3;
 
 %use defualt gonio functions to make a physically valid semi-major/minor
 %axis a
@@ -99,7 +99,7 @@ rel_theta_begin = zeros(size(Mass_k));
 if trojans
     theta_colors = 2*pi/360*[-65, -55,55,65;30,90,-90,-30];
     wanted_theta = 2*pi/360*[60;-60;120;-120;180;-180];
-    difference_theta = 179/360 * 2*pi;
+    difference_theta = 10/360 * 2*pi;
     
     trojans_theta_plus = wanted_theta+ difference_theta;
     trojans_theta_min = wanted_theta- difference_theta;
