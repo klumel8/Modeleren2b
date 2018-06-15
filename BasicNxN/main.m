@@ -346,7 +346,7 @@ for t = 0:dt:T
         if t== 0
             begin_thetas_k = relative_theta;
         end
-        max_theta = max(begin_thetas_k - relative_theta,max_theta);
+        max_theta = max(abs(begin_thetas_k - relative_theta),max_theta);
         
     end
 
