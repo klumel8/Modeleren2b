@@ -35,16 +35,17 @@ if type == 1 % early solar system
 end
 
 if type == 2 % solar system and Kuyper belt
-    defaultRange = 5*AU; % [m]
-    trojans = false;
-    N = 1e4; % Dummy variable
-    N_k = 1e4; % particles in kuiper belt
+    defaultRange = 30*AU; % [m]
+    trojans = true;
+    N = 1e0; % Dummy variable
+    N_k = 1e1; % particles in kuiper belt
     dt = 3600*24*7*52/30; % in seconds 
     T = 3600*24*7*52*12*4500; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
-    [p_k, v_k, Mass_k] = kuiperbelt(N_k, p(:,2),trojans);
+    [p_k, v_k, Mass_k,colors_k] = kuiperbelt(N_k, p(:,2),trojans);
      max_orbit_length = 1000; %determines how much of the orbit of a single particle is shown
      particles = 1:2;
+     used_colors = {'.r','.b','.g','.c'};
     
 
     kuipercollisions = false;
@@ -58,9 +59,9 @@ plot_ang_mom = false;    %plot the angular momentum
 plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
 plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
-plot_hist = true;
+plot_hist = false;
 
-fps = 1/10;
+fps = 1;
 TstepsPframe = 4; 
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
@@ -380,7 +381,6 @@ for t = 0:dt:T
 
         end
         if ~plot_ang_mom
-            figure(1);
             subplot(2,3,2)
             plot_p(1:2,:) = A*p(1:2,:);
             ax_single = gca;
@@ -425,7 +425,6 @@ for t = 0:dt:T
             axSys = gca;
             plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
             axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
-            
             plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20); 
             
             
@@ -438,10 +437,12 @@ for t = 0:dt:T
             end
             %plot kuiperbelt if type == 2
             if type == 2
-                hold on
-                plot(plot_p_k(1,:),plot_p_k(2,:),'.r','MarkerSize',2); 
+                unique_cols = unique(colors_k);
+                for curr_col = 1:numel(unique_cols)
+                    plot(plot_p_k(1,colors_k == unique_cols(curr_col)),plot_p_k(2,colors_k == unique_cols(curr_col)), ...
+                        used_colors{curr_col},'MarkerSize',5); 
+                end
                 axis([-1 1 -1 1]*defaultRange*1.1);
-                hold off
                 
             end
             axSys.NextPlot = 'replaceChildren'; %Hold off, maar dan dat de assen ook bewaren
@@ -466,22 +467,21 @@ for t = 0:dt:T
 %                 axis([0 N_k 6*10^12 8*10^12]);
             
             if plot_hist
-%                 subplot(2,3,4)
-%                 theta = atan(plot_p_k(2,:)./plot_p_k(1,:));
-%                 theta = theta - pi*(plot_p_k(1,:)<0)+pi/2;
-%                 histogram(theta,36);
-%                 title('histogram of all angles')
-%                 xlabel('amount of particles')
-%                 ylabel('angle (radians)')
-%                 
-%                 subplot(2,3,5)
-%                 histogram(ecc_kuiper,20);
-%                 title('Eccentricity')
-%                 xlabel('from 0 to 0.1')
-%                 ylabel('#correlating eccentricity')
+                subplot(2,3,4)
+                theta = atan(plot_p_k(2,:)./plot_p_k(1,:));
+                theta = theta - pi*(plot_p_k(1,:)<0)+pi/2;
+                histogram(theta,36);
+                title('histogram of all angles')
+                xlabel('amount of particles')
+                ylabel('angle (radians)')
                 
-%                 subplot(2,3,6)
-                figure(2);
+                subplot(2,3,5)
+                histogram(ecc_kuiper,20);
+                title('Eccentricity')
+                xlabel('from 0 to 0.1')
+                ylabel('#correlating eccentricity')
+                
+                subplot(2,3,6)
                 histogram(semi_m_axis_kuiper,100);
                 title('Histogram of semi-major axis and number of particles')
                 xlabel('semimajor axis [AU]')
