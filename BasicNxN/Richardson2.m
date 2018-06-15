@@ -51,7 +51,7 @@ for int_met = int_methods
             N = 1e4; % Dummy variable
             N_k = 0; % particles in kuiper belt
             %dt = 3600*24*7*52*3; % in seconds
-            T = start_dt*16; % in seconds
+            T = start_dt*2^8; % in seconds
             [Mass, p, v, N] = initialConditions(defaultRange,N,2);
             [p_k, v_k, Mass_k] = kuiperbelt(N_k, p);
             max_orbit_length = 20000; %determines how much of the orbit of a single particle is shown
@@ -388,10 +388,11 @@ for int_met = int_methods
             p2(int_met,power-2) = (saved_var(power-1) - saved_var(power-2))./(saved_var(power)-saved_var(power-1));
         end
     end
-    figure(2)
+    figure(3)
     plot(saved_var)
     hold on
 end
-legend('1','2','4','5','6','7','8')
+legend('4')
 
 disp(log(abs(p2(int_methods,:)))/log(2))
+plot(p2)
