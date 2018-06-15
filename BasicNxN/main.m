@@ -343,6 +343,7 @@ for t = 0:dt:T
         theta_neptune = atan2(p(2,2),p(1,2));
         relative_theta = atan2(p_k(2,:),p_k(1,:))-theta_neptune;
         relative_theta = relative_theta + (2*pi)* (relative_theta<-pi) - 2*pi*(relative_theta>pi);
+
 %         if t== 0
 %             begin_thetas_k = relative_theta;
 %         end
