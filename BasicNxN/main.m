@@ -38,14 +38,15 @@ if type == 2 % solar system and Kuyper belt
     defaultRange = 30*AU; % [m]
     trojans = true;
     N = 1e0; % Dummy variable
-    N_k = 1e1; % particles in kuiper belt
-    dt = 3600*24*7*52/30; % in seconds 
-    T = 3600*24*7*52*12*4500; % in seconds
+    N_k = 1e3; % particles in kuiper belt
+    dt = 3600*24*7*52*3; % in seconds 
+    T = 3600*24*7*52*165*1000; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,2);
     [p_k, v_k, Mass_k,colors_k] = kuiperbelt(N_k, p(:,2),trojans);
      max_orbit_length = 1000; %determines how much of the orbit of a single particle is shown
      particles = 1:2;
      used_colors = {'.r','.b','.g','.c'};
+     marker_sizes = [3,5,10,3];
     
 
     kuipercollisions = false;
@@ -61,7 +62,7 @@ plot_RV = false;          %plot the range vs the speed
 plotting = true;        %plot anything at all
 plot_hist = false;
 
-fps = 1;
+fps = 1/5;
 TstepsPframe = 4; 
 frames = floor(T/(TstepsPframe*dt))+1;
 if make_movie
@@ -380,21 +381,21 @@ for t = 0:dt:T
             ax.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
 
         end
-        if ~plot_ang_mom
-            subplot(2,3,2)
-            plot_p(1:2,:) = A*p(1:2,:);
-            ax_single = gca;
-            plot(permute(single_p(1,:,:),[2,3,1]), permute(single_p(2,:,:),[2,3,1]),'LineWidth',0.05);
-            ax_single.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
-            plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20); 
-
-            plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
-            title(['time: ',num2str(round(t/31556926,1)),' y'])
-            xlabel('x[m]')
-            ylabel('y[m]')
-            axis([-1.2 1.2 -1.2 1.2]*defaultRange);
-            ax_single.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
-        end
+%         if ~plot_ang_mom
+%             subplot(2,3,2)
+%             plot_p(1:2,:) = A*p(1:2,:);
+%             ax_single = gca;
+%             plot(permute(single_p(1,:,:),[2,3,1]), permute(single_p(2,:,:),[2,3,1]),'LineWidth',0.05);
+%             ax_single.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
+%             plot(plot_p(1,1),plot_p(2,1),'*y', 'MarkerSize',20); 
+% 
+%             plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
+%             title(['time: ',num2str(round(t/31556926,1)),' y'])
+%             xlabel('x[m]')
+%             ylabel('y[m]')
+%             axis([-1.2 1.2 -1.2 1.2]*defaultRange);
+%             ax_single.NextPlot = 'replaceChildren'; %Houdt dezelfde assen nu ook bij vervolgplots
+%         end
         if plot_ang_mom
             %angular momentum
             subplot(2,3,2)       
@@ -421,7 +422,20 @@ for t = 0:dt:T
                 plot_p = p;
             end
             %particle system
-            subplot(2,3,3)
+%             subplot(2,3,3)
+           title('Neptune and Trojans')
+            xlabel('$x$ [AU]')
+            ylabel('$y$ [AU]')
+            yt = get(gca, 'YTick');
+            set(gca, 'YTick', yt, 'YTickLabel', round(yt/AU,1))
+            xt = get(gca, 'XTick');
+            set(gca, 'XTick', xt, 'XTickLabel', round(xt/AU,1))
+            set(0,'defaulttextinterpreter','latex');
+            set(0,'defaultaxesfontsize',14);
+%             ylim([0 200])
+%             xlim([1 3.5]*AU)
+            disp(['time: ',num2str(round(t/31556926,1)),' y'])
+            
             axSys = gca;
             plot(plot_p(1,2:end),plot_p(2,2:end),'.k','MarkerSize',20); 
             axSys.NextPlot = 'add'; %Hold on, maar dan dat de assen ook bewaren
@@ -429,7 +443,7 @@ for t = 0:dt:T
             
             
             axis([-1 1 -1 1]*defaultRange*1.1);
-            title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
+%             title(strcat('N =', " ", num2str(sum(Mass~=0)-1)));
             if t == 0
                 
                 axis([-1 1 -1 1]*defaultRange*1.1);
@@ -440,7 +454,7 @@ for t = 0:dt:T
                 unique_cols = unique(colors_k);
                 for curr_col = 1:numel(unique_cols)
                     plot(plot_p_k(1,colors_k == unique_cols(curr_col)),plot_p_k(2,colors_k == unique_cols(curr_col)), ...
-                        used_colors{curr_col},'MarkerSize',5); 
+                        used_colors{curr_col},'MarkerSize',marker_sizes(curr_col)); 
                 end
                 axis([-1 1 -1 1]*defaultRange*1.1);
                 
