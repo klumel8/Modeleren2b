@@ -179,7 +179,7 @@ for t = 0:dt:T
         v = colGas(p,v,Mass,N,dt,MassGas);
     end
     %}
-    c = col(p,v,Mass,N,dt);
+    c = col(p,v,Mass,N,dt,type);
 
     %#BUG will crash if multiple collisions in one timestep
     %check if the collision vector is empty
