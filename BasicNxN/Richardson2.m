@@ -9,16 +9,17 @@ clear all; close all;
 %2,4-6: runge kutta (paper)
 %7: leapfrog
 %8: runge kutta 4, first order
-int_methods = [4];
+int_methods = [7];
 
 for int_met = int_methods
-    start_dt = 3600*24*7*52*3;
+    start_dt = 3600*24*7*52*10;
     T = start_dt;
     saved_var = [];
     P = 5;
+    xCells = cell(P,1);
     for power = 1:P
         power
-        dt = start_dt*2^(-(power-1));
+        dt = start_dt*2^(-(power-2));
         %Particles in our model;
         % 1 = early solar system
         % 2 = solar system and Kuyper belt
@@ -30,12 +31,6 @@ for int_met = int_methods
         d_theta_old = 0;
         
         
-        %integration method
-        %1: newton forward
-        %2,4-6: runge kutta
-        %7: leapfrog
-        int_met = 4;
-        %use barnes hut
         barnes_hut = false;
         theta = 0.5;%0 to test acc calculation: all particles are indiviually used,
         %should be the same as without barnes hut
@@ -51,11 +46,11 @@ for int_met = int_methods
             N = 1e4; % Dummy variable
             N_k = 0; % particles in kuiper belt
             %dt = 3600*24*7*52*3; % in seconds
-            T = start_dt*2^8; % in seconds
+            T = start_dt*2^12; % in seconds
             [Mass, p, v, N] = initialConditions(defaultRange,N,2);
             [p_k, v_k, Mass_k] = kuiperbelt(N_k, p);
             max_orbit_length = 20000; %determines how much of the orbit of a single particle is shown
-            particle = 3; % plot path of Pluto
+            particle = 2; % plot path of Pluto
             
             kuipercollisions = false;
         end
@@ -67,7 +62,7 @@ for int_met = int_methods
         plot_ang_mom = false;    %plot the angular momentum
         plot_momentum = false;   %plot the momentum, relative to jupiter(only for type ==2)
         plot_RV = false;          %plot the range vs the speed
-        plotting = true;        %plot anything at all
+        plotting = false;        %plot anything at all
         plot_hist = false;
         
         fps = 1/3;
@@ -106,6 +101,7 @@ for int_met = int_methods
         % a timer so we dont plot too often and slow down the script
         tic;
         for t = 0:dt:T
+            xPower(:,t/dt+1) = [(p(1,2)^2+p(2,2)^2)^0.5;t];
             index = index+1;
             
             %remove particles every [remove_index] timesteps:
@@ -132,7 +128,7 @@ for int_met = int_methods
             
             if any(remove_crit)
                 disp('too far')
-                indices = find(remove_crit);
+                indices = find(remove_crit)
                 disp(['Number of removed particles: ',num2str(numel(indices))])
                 p(:,indices) = p(:,indices)./20;%bring particle back in the system
                 v(:,indices) = repmat([0;0;0],1,numel(indices));%set velocity to 0
@@ -383,7 +379,10 @@ for int_met = int_methods
                 tic;
             end
         end
-        saved_var(power) = v(2,2);%p(1,2);%vecnorm(v(:,2));%kin + pot;% L(3)-L_0(3);%;
+        xCells{power} = xPower;
+        
+        saved_var(power) = xPower(1,end);%p(1,2);%vecnorm(v(:,2));%kin + pot;% L(3)-L_0(3);%;
+        
         if power>=3
             p2(int_met,power-2) = (saved_var(power-1) - saved_var(power-2))./(saved_var(power)-saved_var(power-1));
         end
@@ -393,9 +392,10 @@ for int_met = int_methods
     hold on
 end
 
-disp(log(abs(p2(int_methods,:)))/log(2));
-figure(3)
-plot(log(abs(p2(int_methods,:)'))/log(2));
+order = log(abs(p2(int_methods,:)))/log(2);
+disp(order);
+figure(5)
+plot(order');
 legend('4')
 hold on
 for i = 1:size(int_methods,2)
