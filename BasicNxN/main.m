@@ -6,7 +6,7 @@ clear; close all;
 % 4 = 2 particles (test)
 % 5 = solar system (normal, all planets)
 
-type = 2;
+type = 1;
 
 gpuNeed = false;
 make_movie = false;
@@ -31,7 +31,7 @@ AU = 1.49597871e11; % [m]
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
     N = 1e3;
-    dt = 3600*24*7*52; % in seconds (dt = 1 day)
+    dt = 3600*24*7*5; % in seconds (dt = 1 day)
     T = 1e10;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);   
 end

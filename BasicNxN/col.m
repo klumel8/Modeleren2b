@@ -19,6 +19,7 @@ function Collision = col(p, v, Mass, N,dt)
     %check if particles collide
     %make the radius of the particle dependent on size
     planetradius = Mass.^(1/3)/(4/3*rho*pi)^(1/3);
+    planetradius(1) = 6.9e8;
     
     %do some things to get the linear combination of all added ranges
     planetCombi = planetradius + planetradius';

@@ -59,7 +59,7 @@ if type == 1 %random particles
     theta = 2*pi*rand(1,N); % create random angles
     AU = 1.49597871e11;% [m]
     r_low = 1*AU;
-    r_high = 5*AU;
+    r_high = 8*AU;
     r = r_low + (r_high - r_low)*rand(1,N); % create normally distributed angles
 
     p = r.*[cos(theta); sin(theta); zeros(1,N)]; % position vector
