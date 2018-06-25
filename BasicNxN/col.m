@@ -1,4 +1,4 @@
-function Collision = col(p, v, Mass, N,dt)
+function Collision = col(p, v, Mass, N,dt,type)
 %Calculate which particles, if any, collide
 %input arguments:
 %   p       : (3xN) position vector

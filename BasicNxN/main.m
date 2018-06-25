@@ -31,7 +31,7 @@ AU = 1.49597871e11; % [m]
 if type == 1 % early solar system
     defaultRange = 5*AU; % [m]
     N = 1e3;
-    dt = 3600*24*7*5; % in seconds (dt = 1 day)
+    dt = 3600*24*7; % in seconds (dt = 1 day)
     T = 1e10;%5e10; % in seconds
     [Mass, p, v, N] = initialConditions(defaultRange,N,1);   
 end
@@ -226,6 +226,9 @@ for t = 0:dt:T
         for j = 1:size(collisions,1)
             
             if sum(collisions(j,:))>1
+                if collisions(j,1) == 1
+                    disp('sun collides')
+                end
                 end_particle_index = find(collisions(j,:),1,'first');
                 p(:,end_particle_index) = sum(p(:,collisions(j,:)).*Mass(collisions(j,:)),2)/sum(Mass(collisions(j,:)));
                 v(:,end_particle_index) = sum(v(:,collisions(j,:)).*Mass(collisions(j,:)),2)/sum(Mass(collisions(j,:)));
